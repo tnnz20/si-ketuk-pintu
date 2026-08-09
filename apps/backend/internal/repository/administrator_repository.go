@@ -38,3 +38,21 @@ func (r *AdministratorRepository) Create(ctx context.Context, administrator *ent
 
 	return nil
 }
+
+var ErrAdministratorNotFound = errors.New("administrator not found")
+
+func (r *AdministratorRepository) FindByIdentifier(ctx context.Context, identifier string) (*entity.Administrator, error) {
+	var administrator entity.Administrator
+	err := r.database.WithContext(ctx).
+		Where("LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?)", identifier, identifier).
+		First(&administrator).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrAdministratorNotFound
+		}
+
+		return nil, fmt.Errorf("find administrator by identifier: %w", err)
+	}
+
+	return &administrator, nil
+}

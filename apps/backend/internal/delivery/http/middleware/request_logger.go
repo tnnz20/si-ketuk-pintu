@@ -12,12 +12,19 @@ func RequestLogger(logger *logrus.Logger) gin.HandlerFunc {
 		startedAt := time.Now()
 		context.Next()
 
-		logger.WithFields(logrus.Fields{
+		fields := logrus.Fields{
 			"component":   "http",
 			"duration_ms": time.Since(startedAt).Milliseconds(),
 			"method":      context.Request.Method,
 			"path":        context.Request.URL.Path,
 			"status":      context.Writer.Status(),
-		}).Info("request completed")
+		}
+
+		if len(context.Errors) > 0 {
+			fields["errors"] = context.Errors.Errors()
+			logger.WithFields(fields).Error("request failed")
+		} else {
+			logger.WithFields(fields).Info("request completed")
+		}
 	}
 }

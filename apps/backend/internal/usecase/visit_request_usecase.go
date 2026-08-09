@@ -1,0 +1,285 @@
+package usecase
+
+import (
+	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"math/big"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/entity"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/model"
+)
+
+const (
+	tokenAlphabet   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	tokenSuffixLen  = 5
+	maxTokenRetries = 10
+	maxPDFSize      = 5 << 20 // 5 MB
+)
+
+var ErrInvalidPDF = errors.New("file must be a valid PDF")
+
+type VisitRequestStore interface {
+	Create(ctx context.Context, visitRequest *entity.VisitRequest) error
+	FindByToken(ctx context.Context, token string) (*entity.VisitRequest, error)
+	FindByID(ctx context.Context, id uuid.UUID) (*entity.VisitRequest, error)
+	List(ctx context.Context, filter model.ListFilter) ([]entity.VisitRequest, int64, error)
+	UpdateStatus(ctx context.Context, id uuid.UUID, status string) error
+	TokenExists(ctx context.Context, token string) (bool, error)
+}
+
+type AuditEventCreator interface {
+	Create(ctx context.Context, event *entity.AuditEvent) error
+}
+
+type UpdateStatusInput struct {
+	VisitRequestID  uuid.UUID
+	NewStatus       string
+	AdministratorID int64
+}
+
+type VisitRequestUsecase struct {
+	store     VisitRequestStore
+	auditor   AuditEventCreator
+	uploadDir string
+	timeZone  *time.Location
+}
+
+func NewVisitRequestUsecase(
+	store VisitRequestStore,
+	auditor AuditEventCreator,
+	uploadDir string,
+	timeZone *time.Location,
+) *VisitRequestUsecase {
+	return &VisitRequestUsecase{
+		store:     store,
+		auditor:   auditor,
+		uploadDir: uploadDir,
+		timeZone:  timeZone,
+	}
+}
+
+type FileInput struct {
+	Reader   io.Reader
+	Filename string
+	Size     int64
+}
+
+type CreateVisitRequestInput struct {
+	Email             string
+	NamaInstansi      string
+	AlamatInstansi    string
+	TanggalKunjungan  time.Time
+	JamKunjungan      string
+	TemaKunjungan     string
+	PimpinanRombongan string
+	JumlahTamu        int
+	KontakDihubungi   string
+	Guests            []model.GuestInput
+	SuratKunjungan    FileInput
+	SuratTugas        FileInput
+}
+
+func (u *VisitRequestUsecase) Create(
+	ctx context.Context,
+	input CreateVisitRequestInput,
+) (*entity.VisitRequest, error) {
+	if len(input.Guests) != input.JumlahTamu {
+		return nil, fmt.Errorf("guest count (%d) does not match jumlah_tamu (%d)", len(input.Guests), input.JumlahTamu)
+	}
+
+	token, err := u.generateUniqueToken(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	visitRequest := &entity.VisitRequest{
+		Token:             token,
+		Email:             input.Email,
+		NamaInstansi:      input.NamaInstansi,
+		AlamatInstansi:    input.AlamatInstansi,
+		TanggalKunjungan:  input.TanggalKunjungan,
+		JamKunjungan:      input.JamKunjungan,
+		TemaKunjungan:     input.TemaKunjungan,
+		PimpinanRombongan: input.PimpinanRombongan,
+		JumlahTamu:        input.JumlahTamu,
+		KontakDihubungi:   input.KontakDihubungi,
+		Status:            "pending",
+	}
+
+	guests := make([]entity.Guest, 0, len(input.Guests))
+	for i, g := range input.Guests {
+		guests = append(guests, entity.Guest{
+			GuestOrder: i + 1,
+			Nama:       strings.TrimSpace(g.Nama),
+			Jabatan:    strings.TrimSpace(g.Jabatan),
+		})
+	}
+	visitRequest.Guests = guests
+
+	suratKunjunganAttachment, err := u.savePDF(visitRequest.ID, "surat_kunjungan", input.SuratKunjungan)
+	if err != nil {
+		return nil, fmt.Errorf("save surat_kunjungan: %w", err)
+	}
+
+	suratTugasAttachment, err := u.savePDF(visitRequest.ID, "surat_tugas", input.SuratTugas)
+	if err != nil {
+		return nil, fmt.Errorf("save surat_tugas: %w", err)
+	}
+
+	visitRequest.Attachments = []entity.Attachment{*suratKunjunganAttachment, *suratTugasAttachment}
+
+	if err := u.store.Create(ctx, visitRequest); err != nil {
+		return nil, err
+	}
+
+	auditValue, _ := json.Marshal(map[string]string{"status": "pending"})
+	_ = u.auditor.Create(ctx, &entity.AuditEvent{
+		VisitRequestID: &visitRequest.ID,
+		ActorType:      "visitor",
+		Action:         "request_submitted",
+		PreviousValue:  json.RawMessage("{}"),
+		NewValue:       auditValue,
+		OccurredAt:     time.Now().In(u.timeZone),
+	})
+
+	return visitRequest, nil
+}
+
+func (u *VisitRequestUsecase) FindByToken(ctx context.Context, token string) (*entity.VisitRequest, error) {
+	return u.store.FindByToken(ctx, token)
+}
+
+func (u *VisitRequestUsecase) FindByID(ctx context.Context, id uuid.UUID) (*entity.VisitRequest, error) {
+	return u.store.FindByID(ctx, id)
+}
+
+func (u *VisitRequestUsecase) List(
+	ctx context.Context,
+	filter model.ListFilter,
+) ([]entity.VisitRequest, int64, error) {
+	return u.store.List(ctx, filter)
+}
+
+func (u *VisitRequestUsecase) UpdateStatus(ctx context.Context, input UpdateStatusInput) error {
+	visitRequest, err := u.store.FindByID(ctx, input.VisitRequestID)
+	if err != nil {
+		return err
+	}
+
+	previousStatus := visitRequest.Status
+	if err := u.store.UpdateStatus(ctx, input.VisitRequestID, input.NewStatus); err != nil {
+		return err
+	}
+
+	previousValue, _ := json.Marshal(map[string]string{"status": previousStatus})
+	newValue, _ := json.Marshal(map[string]string{"status": input.NewStatus})
+	_ = u.auditor.Create(ctx, &entity.AuditEvent{
+		VisitRequestID:  &input.VisitRequestID,
+		AdministratorID: &input.AdministratorID,
+		ActorType:       "administrator",
+		Action:          "status_changed",
+		PreviousValue:   previousValue,
+		NewValue:        newValue,
+		OccurredAt:      time.Now().In(u.timeZone),
+	})
+
+	return nil
+}
+
+func (u *VisitRequestUsecase) generateUniqueToken(ctx context.Context) (string, error) {
+	now := time.Now().In(u.timeZone)
+	datePrefix := fmt.Sprintf("SKP-%s-", now.Format("20060102"))
+
+	for range maxTokenRetries {
+		suffix, err := randomAlphanumeric(tokenSuffixLen)
+		if err != nil {
+			return "", fmt.Errorf("generate token suffix: %w", err)
+		}
+
+		token := datePrefix + suffix
+		exists, err := u.store.TokenExists(ctx, token)
+		if err != nil {
+			return "", err
+		}
+
+		if !exists {
+			return token, nil
+		}
+	}
+
+	return "", fmt.Errorf("failed to generate unique token after %d attempts", maxTokenRetries)
+}
+
+func randomAlphanumeric(length int) (string, error) {
+	alphabetLen := big.NewInt(int64(len(tokenAlphabet)))
+	result := make([]byte, length)
+	for i := range result {
+		index, err := rand.Int(rand.Reader, alphabetLen)
+		if err != nil {
+			return "", err
+		}
+
+		result[i] = tokenAlphabet[index.Int64()]
+	}
+
+	return string(result), nil
+}
+
+func (u *VisitRequestUsecase) savePDF(
+	visitRequestID uuid.UUID,
+	attachmentType string,
+	file FileInput,
+) (*entity.Attachment, error) {
+	if file.Size > maxPDFSize {
+		return nil, fmt.Errorf("%s: file exceeds 5 MB limit", attachmentType)
+	}
+
+	content, err := io.ReadAll(io.LimitReader(file.Reader, maxPDFSize+1))
+	if err != nil {
+		return nil, fmt.Errorf("read %s: %w", attachmentType, err)
+	}
+
+	if int64(len(content)) > maxPDFSize {
+		return nil, fmt.Errorf("%s: file exceeds 5 MB limit", attachmentType)
+	}
+
+	detectedType := http.DetectContentType(content)
+	if detectedType != "application/pdf" {
+		return nil, fmt.Errorf("%s: %w (detected: %s)", attachmentType, ErrInvalidPDF, detectedType)
+	}
+
+	checksum := sha256.Sum256(content)
+	checksumHex := hex.EncodeToString(checksum[:])
+
+	dir := filepath.Join(u.uploadDir, visitRequestID.String())
+	if err := os.MkdirAll(dir, 0o750); err != nil {
+		return nil, fmt.Errorf("create upload directory: %w", err)
+	}
+
+	storageKey := filepath.Join(visitRequestID.String(), attachmentType+".pdf")
+	fullPath := filepath.Join(u.uploadDir, storageKey)
+	if err := os.WriteFile(fullPath, content, 0o640); err != nil {
+		return nil, fmt.Errorf("write %s: %w", attachmentType, err)
+	}
+
+	return &entity.Attachment{
+		AttachmentType: attachmentType,
+		OriginalName:   file.Filename,
+		StorageKey:     storageKey,
+		ContentType:    "application/pdf",
+		SizeBytes:      int64(len(content)),
+		ChecksumSHA256: checksumHex,
+	}, nil
+}

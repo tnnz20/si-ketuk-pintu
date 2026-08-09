@@ -27,6 +27,7 @@ func (c *HealthController) Readiness(ginContext *gin.Context) {
 	defer cancel()
 
 	if err := c.healthUsecase.IsReady(ctx); err != nil {
+		_ = ginContext.Error(err)
 		ginContext.JSON(http.StatusServiceUnavailable, model.HealthResponse{Status: "unavailable"})
 		return
 	}

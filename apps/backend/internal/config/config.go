@@ -22,6 +22,10 @@ type Config struct {
 	TestDatabaseURL string
 	UploadDir       string
 	LogLevel        string
+	JWTSecret       string
+	JWTExpiryHours  int
+	CORSOrigins     []string
+	RateLimitRPS    float64
 }
 
 func Load() (Config, error) {
@@ -55,6 +59,23 @@ func load(lookup func(string) string) (Config, error) {
 		return Config{}, fmt.Errorf("load APP_TIME_ZONE %q: %w", timeZoneName, err)
 	}
 
+	jwtSecret := strings.TrimSpace(lookup("JWT_SECRET"))
+	if jwtSecret == "" {
+		return Config{}, fmt.Errorf("JWT_SECRET is required")
+	}
+
+	jwtExpiryHours, err := parsePositiveInt(lookup("JWT_EXPIRY_HOURS"), 24)
+	if err != nil {
+		return Config{}, fmt.Errorf("parse JWT_EXPIRY_HOURS: %w", err)
+	}
+
+	corsOrigins := parseCORSOrigins(lookup("CORS_ORIGINS"))
+
+	rateLimitRPS, err := parseFloat(lookup("RATE_LIMIT_RPS"), 10.0)
+	if err != nil {
+		return Config{}, fmt.Errorf("parse RATE_LIMIT_RPS: %w", err)
+	}
+
 	return Config{
 		Environment:     valueOrDefault(lookup("APP_ENV"), "development"),
 		Host:            valueOrDefault(lookup("APP_HOST"), "0.0.0.0"),
@@ -64,6 +85,10 @@ func load(lookup func(string) string) (Config, error) {
 		TestDatabaseURL: strings.TrimSpace(lookup("TEST_DATABASE_URL")),
 		UploadDir:       valueOrDefault(lookup("UPLOAD_DIR"), "./var/uploads"),
 		LogLevel:        valueOrDefault(lookup("LOG_LEVEL"), "info"),
+		JWTSecret:       jwtSecret,
+		JWTExpiryHours:  jwtExpiryHours,
+		CORSOrigins:     corsOrigins,
+		RateLimitRPS:    rateLimitRPS,
 	}, nil
 }
 
@@ -92,3 +117,56 @@ func valueOrDefault(value string, fallback string) string {
 
 	return value
 }
+
+func parsePositiveInt(value string, fallback int) (int, error) {
+	if strings.TrimSpace(value) == "" {
+		return fallback, nil
+	}
+
+	parsed, err := strconv.Atoi(value)
+	if err != nil {
+		return 0, err
+	}
+
+	if parsed < 1 {
+		return 0, fmt.Errorf("value must be positive, got %d", parsed)
+	}
+
+	return parsed, nil
+}
+
+func parseFloat(value string, fallback float64) (float64, error) {
+	if strings.TrimSpace(value) == "" {
+		return fallback, nil
+	}
+
+	parsed, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return parsed, nil
+}
+
+func parseCORSOrigins(value string) []string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return []string{"*"}
+	}
+
+	origins := strings.Split(value, ",")
+	result := make([]string, 0, len(origins))
+	for _, origin := range origins {
+		trimmed := strings.TrimSpace(origin)
+		if trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+
+	if len(result) == 0 {
+		return []string{"*"}
+	}
+
+	return result
+}
+

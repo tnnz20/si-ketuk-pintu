@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/controllers"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/middleware"
 	httproute "github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/route"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
@@ -36,10 +37,54 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 		return nil, err
 	}
 
+	// Repositories
 	healthRepository := repository.NewDatabaseHealthRepository(database)
+	administratorRepository := repository.NewAdministratorRepository(database)
+	visitRequestRepository := repository.NewVisitRequestRepository(database)
+	auditEventRepository := repository.NewAuditEventRepository(database)
+
+	// Usecases
 	healthUsecase := usecase.NewHealthUsecase(healthRepository)
+	authUsecase := usecase.NewAuthUsecase(
+		administratorRepository,
+		applicationConfig.JWTSecret,
+		applicationConfig.JWTExpiryHours,
+	)
+	visitRequestUsecase := usecase.NewVisitRequestUsecase(
+		visitRequestRepository,
+		auditEventRepository,
+		applicationConfig.UploadDir,
+		applicationConfig.TimeZone,
+	)
+	qrUsecase := usecase.NewQRUsecase()
+
+	// Controllers
 	healthController := controllers.NewHealthController(healthUsecase)
-	router := httproute.NewRouter(logger, healthController)
+	visitRequestController := controllers.NewVisitRequestController(
+		visitRequestUsecase,
+		qrUsecase,
+		applicationConfig.TimeZone,
+	)
+	adminAuthController := controllers.NewAdminAuthController(authUsecase)
+	adminRequestController := controllers.NewAdminRequestController(
+		visitRequestUsecase,
+		applicationConfig.UploadDir,
+	)
+
+	// Middleware
+	rateLimiter := middleware.NewRateLimiter(applicationConfig.RateLimitRPS, 20)
+
+	// Router
+	router := httproute.NewRouter(httproute.RouterDeps{
+		Logger:                 logger,
+		CORSOrigins:            applicationConfig.CORSOrigins,
+		RateLimiter:            rateLimiter,
+		AuthUsecase:            authUsecase,
+		HealthController:       healthController,
+		VisitRequestController: visitRequestController,
+		AdminAuthController:    adminAuthController,
+		AdminRequestController: adminRequestController,
+	})
 
 	return &Bootstrap{
 		Config: applicationConfig,

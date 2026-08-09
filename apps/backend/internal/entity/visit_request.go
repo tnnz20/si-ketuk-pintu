@@ -13,7 +13,7 @@ type VisitRequest struct {
 	NamaInstansi      string    `gorm:"not null"`
 	AlamatInstansi    string    `gorm:"not null"`
 	TanggalKunjungan  time.Time `gorm:"type:date;not null"`
-	JamKunjungan      time.Time `gorm:"type:time;not null"`
+	JamKunjungan      string    `gorm:"type:time;not null"`
 	TemaKunjungan     string    `gorm:"not null"`
 	PimpinanRombongan string    `gorm:"not null"`
 	JumlahTamu        int       `gorm:"not null"`

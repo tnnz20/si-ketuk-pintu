@@ -6,11 +6,14 @@ func TestLoadUsesMakassarByDefault(t *testing.T) {
 	t.Parallel()
 
 	applicationConfig, err := load(func(key string) string {
-		if key == "DATABASE_URL" {
+		switch key {
+		case "DATABASE_URL":
 			return "postgres://skp:password@localhost:5432/si_ketuk_pintu?sslmode=disable"
+		case "JWT_SECRET":
+			return "test-secret"
+		default:
+			return ""
 		}
-
-		return ""
 	})
 	if err != nil {
 		t.Fatalf("load config: %v", err)
@@ -37,6 +40,8 @@ func TestLoadRejectsInvalidPort(t *testing.T) {
 		switch key {
 		case "DATABASE_URL":
 			return "postgres://skp:password@localhost:5432/si_ketuk_pintu?sslmode=disable"
+		case "JWT_SECRET":
+			return "test-secret"
 		case "APP_PORT":
 			return "invalid"
 		default:
@@ -47,3 +52,19 @@ func TestLoadRejectsInvalidPort(t *testing.T) {
 		t.Fatal("load config should reject an invalid APP_PORT")
 	}
 }
+
+func TestLoadRejectsMissingJWTSecret(t *testing.T) {
+	t.Parallel()
+
+	_, err := load(func(key string) string {
+		if key == "DATABASE_URL" {
+			return "postgres://skp:password@localhost:5432/si_ketuk_pintu?sslmode=disable"
+		}
+
+		return ""
+	})
+	if err == nil {
+		t.Fatal("load config should reject a missing JWT_SECRET")
+	}
+}
+
