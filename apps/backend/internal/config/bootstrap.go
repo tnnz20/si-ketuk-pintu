@@ -40,7 +40,7 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 	// Repositories
 	healthRepository := repository.NewDatabaseHealthRepository(database)
 	administratorRepository := repository.NewAdministratorRepository(database)
-	visitRequestRepository := repository.NewVisitRequestRepository(database)
+	visitRequestRepository := repository.NewVisitRequestRepository(database, logger)
 	auditEventRepository := repository.NewAuditEventRepository(database)
 
 	// Usecases
@@ -53,6 +53,7 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 	visitRequestUsecase := usecase.NewVisitRequestUsecase(
 		visitRequestRepository,
 		auditEventRepository,
+		logger,
 		applicationConfig.UploadDir,
 		applicationConfig.TimeZone,
 	)
@@ -63,11 +64,13 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 	visitRequestController := controllers.NewVisitRequestController(
 		visitRequestUsecase,
 		qrUsecase,
+		logger,
 		applicationConfig.TimeZone,
 	)
 	adminAuthController := controllers.NewAdminAuthController(authUsecase)
 	adminRequestController := controllers.NewAdminRequestController(
 		visitRequestUsecase,
+		logger,
 		applicationConfig.UploadDir,
 	)
 

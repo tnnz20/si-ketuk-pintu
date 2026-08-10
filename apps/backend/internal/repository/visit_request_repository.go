@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/entity"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/model"
 	"gorm.io/gorm"
@@ -15,15 +16,17 @@ var ErrVisitRequestNotFound = errors.New("visit request not found")
 
 type VisitRequestRepository struct {
 	database *gorm.DB
+	logger   *logrus.Logger
 }
 
-func NewVisitRequestRepository(database *gorm.DB) *VisitRequestRepository {
-	return &VisitRequestRepository{database: database}
+func NewVisitRequestRepository(database *gorm.DB, logger *logrus.Logger) *VisitRequestRepository {
+	return &VisitRequestRepository{database: database, logger: logger}
 }
 
 func (r *VisitRequestRepository) Create(ctx context.Context, visitRequest *entity.VisitRequest) error {
 	return r.database.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(visitRequest).Error; err != nil {
+			r.logger.WithError(err).Error("failed to create visit request")
 			return fmt.Errorf("create visit request: %w", err)
 		}
 
@@ -45,6 +48,7 @@ func (r *VisitRequestRepository) FindByToken(ctx context.Context, token string) 
 			return nil, ErrVisitRequestNotFound
 		}
 
+		r.logger.WithError(err).Error("failed to find visit request by token")
 		return nil, fmt.Errorf("find visit request by token: %w", err)
 	}
 
@@ -67,6 +71,7 @@ func (r *VisitRequestRepository) FindByID(ctx context.Context, id uuid.UUID) (*e
 			return nil, ErrVisitRequestNotFound
 		}
 
+		r.logger.WithError(err).Error("failed to find visit request by id")
 		return nil, fmt.Errorf("find visit request by id: %w", err)
 	}
 
@@ -100,6 +105,7 @@ func (r *VisitRequestRepository) List(
 
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
+		r.logger.WithError(err).Error("failed to count visit requests")
 		return nil, 0, fmt.Errorf("count visit requests: %w", err)
 	}
 
@@ -121,6 +127,7 @@ func (r *VisitRequestRepository) List(
 		Limit(size).
 		Find(&visitRequests).Error
 	if err != nil {
+		r.logger.WithError(err).Error("failed to list visit requests")
 		return nil, 0, fmt.Errorf("list visit requests: %w", err)
 	}
 
@@ -133,6 +140,7 @@ func (r *VisitRequestRepository) UpdateStatus(ctx context.Context, id uuid.UUID,
 		Where("id = ?", id).
 		Update("status", status)
 	if result.Error != nil {
+		r.logger.WithError(result.Error).Error("failed to update visit request status")
 		return fmt.Errorf("update visit request status: %w", result.Error)
 	}
 
@@ -150,6 +158,7 @@ func (r *VisitRequestRepository) TokenExists(ctx context.Context, token string) 
 		Where("token = ?", token).
 		Count(&count).Error
 	if err != nil {
+		r.logger.WithError(err).Error("failed to check token exists")
 		return false, fmt.Errorf("check token exists: %w", err)
 	}
 

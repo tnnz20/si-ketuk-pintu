@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/entity"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/model"
 )
@@ -52,6 +53,7 @@ type UpdateStatusInput struct {
 type VisitRequestUsecase struct {
 	store     VisitRequestStore
 	auditor   AuditEventCreator
+	logger    *logrus.Logger
 	uploadDir string
 	timeZone  *time.Location
 }
@@ -59,12 +61,14 @@ type VisitRequestUsecase struct {
 func NewVisitRequestUsecase(
 	store VisitRequestStore,
 	auditor AuditEventCreator,
+	logger *logrus.Logger,
 	uploadDir string,
 	timeZone *time.Location,
 ) *VisitRequestUsecase {
 	return &VisitRequestUsecase{
 		store:     store,
 		auditor:   auditor,
+		logger:    logger,
 		uploadDir: uploadDir,
 		timeZone:  timeZone,
 	}
@@ -96,11 +100,14 @@ func (u *VisitRequestUsecase) Create(
 	input CreateVisitRequestInput,
 ) (*entity.VisitRequest, error) {
 	if len(input.Guests) != input.JumlahTamu {
-		return nil, fmt.Errorf("guest count (%d) does not match jumlah_tamu (%d)", len(input.Guests), input.JumlahTamu)
+		err := fmt.Errorf("guest count (%d) does not match jumlah_tamu (%d)", len(input.Guests), input.JumlahTamu)
+		u.logger.WithError(err).Error("invalid guest count")
+		return nil, err
 	}
 
 	token, err := u.generateUniqueToken(ctx)
 	if err != nil {
+		u.logger.WithError(err).Error("failed to generate unique token")
 		return nil, err
 	}
 
@@ -130,17 +137,20 @@ func (u *VisitRequestUsecase) Create(
 
 	suratKunjunganAttachment, err := u.savePDF(visitRequest.ID, "surat_kunjungan", input.SuratKunjungan)
 	if err != nil {
+		u.logger.WithError(err).Error("failed to save surat_kunjungan")
 		return nil, fmt.Errorf("save surat_kunjungan: %w", err)
 	}
 
 	suratTugasAttachment, err := u.savePDF(visitRequest.ID, "surat_tugas", input.SuratTugas)
 	if err != nil {
+		u.logger.WithError(err).Error("failed to save surat_tugas")
 		return nil, fmt.Errorf("save surat_tugas: %w", err)
 	}
 
 	visitRequest.Attachments = []entity.Attachment{*suratKunjunganAttachment, *suratTugasAttachment}
 
 	if err := u.store.Create(ctx, visitRequest); err != nil {
+		u.logger.WithError(err).Error("failed to create visit request in store")
 		return nil, err
 	}
 
@@ -175,11 +185,13 @@ func (u *VisitRequestUsecase) List(
 func (u *VisitRequestUsecase) UpdateStatus(ctx context.Context, input UpdateStatusInput) error {
 	visitRequest, err := u.store.FindByID(ctx, input.VisitRequestID)
 	if err != nil {
+		u.logger.WithError(err).Error("failed to find visit request by ID for status update")
 		return err
 	}
 
 	previousStatus := visitRequest.Status
 	if err := u.store.UpdateStatus(ctx, input.VisitRequestID, input.NewStatus); err != nil {
+		u.logger.WithError(err).Error("failed to update visit request status in store")
 		return err
 	}
 
@@ -205,12 +217,14 @@ func (u *VisitRequestUsecase) generateUniqueToken(ctx context.Context) (string, 
 	for range maxTokenRetries {
 		suffix, err := randomAlphanumeric(tokenSuffixLen)
 		if err != nil {
+			u.logger.WithError(err).Error("failed to generate token suffix")
 			return "", fmt.Errorf("generate token suffix: %w", err)
 		}
 
 		token := datePrefix + suffix
 		exists, err := u.store.TokenExists(ctx, token)
 		if err != nil {
+			u.logger.WithError(err).Error("failed to check token existence")
 			return "", err
 		}
 
@@ -219,7 +233,9 @@ func (u *VisitRequestUsecase) generateUniqueToken(ctx context.Context) (string, 
 		}
 	}
 
-	return "", fmt.Errorf("failed to generate unique token after %d attempts", maxTokenRetries)
+	err := fmt.Errorf("failed to generate unique token after %d attempts", maxTokenRetries)
+	u.logger.WithError(err).Error("token generation exhausted retries")
+	return "", err
 }
 
 func randomAlphanumeric(length int) (string, error) {
@@ -243,21 +259,28 @@ func (u *VisitRequestUsecase) savePDF(
 	file FileInput,
 ) (*entity.Attachment, error) {
 	if file.Size > maxPDFSize {
-		return nil, fmt.Errorf("%s: file exceeds 5 MB limit", attachmentType)
+		err := fmt.Errorf("%s: file exceeds 5 MB limit", attachmentType)
+		u.logger.WithError(err).Error("file size exceeds limit in savePDF")
+		return nil, err
 	}
 
 	content, err := io.ReadAll(io.LimitReader(file.Reader, maxPDFSize+1))
 	if err != nil {
+		u.logger.WithError(err).Error("failed to read file content")
 		return nil, fmt.Errorf("read %s: %w", attachmentType, err)
 	}
 
 	if int64(len(content)) > maxPDFSize {
-		return nil, fmt.Errorf("%s: file exceeds 5 MB limit", attachmentType)
+		err := fmt.Errorf("%s: file exceeds 5 MB limit", attachmentType)
+		u.logger.WithError(err).Error("file content exceeds limit in savePDF")
+		return nil, err
 	}
 
 	detectedType := http.DetectContentType(content)
 	if detectedType != "application/pdf" {
-		return nil, fmt.Errorf("%s: %w (detected: %s)", attachmentType, ErrInvalidPDF, detectedType)
+		err := fmt.Errorf("%s: %w (detected: %s)", attachmentType, ErrInvalidPDF, detectedType)
+		u.logger.WithError(err).Error("invalid file type detected")
+		return nil, err
 	}
 
 	checksum := sha256.Sum256(content)
@@ -265,12 +288,14 @@ func (u *VisitRequestUsecase) savePDF(
 
 	dir := filepath.Join(u.uploadDir, visitRequestID.String())
 	if err := os.MkdirAll(dir, 0o750); err != nil {
+		u.logger.WithError(err).Error("failed to create upload directory")
 		return nil, fmt.Errorf("create upload directory: %w", err)
 	}
 
 	storageKey := filepath.Join(visitRequestID.String(), attachmentType+".pdf")
 	fullPath := filepath.Join(u.uploadDir, storageKey)
 	if err := os.WriteFile(fullPath, content, 0o640); err != nil {
+		u.logger.WithError(err).Error("failed to write file")
 		return nil, fmt.Errorf("write %s: %w", attachmentType, err)
 	}
 

@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/middleware"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/model"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository"
@@ -19,15 +20,18 @@ import (
 
 type AdminRequestController struct {
 	visitRequestUsecase *usecase.VisitRequestUsecase
+	logger              *logrus.Logger
 	uploadDir           string
 }
 
 func NewAdminRequestController(
 	visitRequestUsecase *usecase.VisitRequestUsecase,
+	logger *logrus.Logger,
 	uploadDir string,
 ) *AdminRequestController {
 	return &AdminRequestController{
 		visitRequestUsecase: visitRequestUsecase,
+		logger:              logger,
 		uploadDir:           uploadDir,
 	}
 }
@@ -46,6 +50,7 @@ func (c *AdminRequestController) List(ginContext *gin.Context) {
 
 	visitRequests, total, err := c.visitRequestUsecase.List(ginContext.Request.Context(), filter)
 	if err != nil {
+		c.logger.WithError(err).Error("failed to list visit requests in admin controller")
 		_ = ginContext.Error(err)
 		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
 		return
@@ -83,6 +88,7 @@ func (c *AdminRequestController) List(ginContext *gin.Context) {
 func (c *AdminRequestController) FindByID(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
+		c.logger.WithError(err).Warn("invalid request ID format")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
 		return
 	}
@@ -90,10 +96,12 @@ func (c *AdminRequestController) FindByID(ginContext *gin.Context) {
 	visitRequest, err := c.visitRequestUsecase.FindByID(ginContext.Request.Context(), id)
 	if err != nil {
 		if errors.Is(err, repository.ErrVisitRequestNotFound) {
+			c.logger.WithField("id", id).Warn("visit request not found by ID")
 			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})
 			return
 		}
 
+		c.logger.WithError(err).Error("failed to find visit request by ID")
 		_ = ginContext.Error(err)
 		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
 		return
@@ -128,12 +136,14 @@ func (c *AdminRequestController) FindByID(ginContext *gin.Context) {
 func (c *AdminRequestController) UpdateStatus(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
+		c.logger.WithError(err).Warn("invalid request ID format")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
 		return
 	}
 
 	var request model.UpdateStatusRequest
 	if err := ginContext.ShouldBindJSON(&request); err != nil {
+		c.logger.WithError(err).Warn("failed to bind update status request")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
 		return
 	}
@@ -147,10 +157,12 @@ func (c *AdminRequestController) UpdateStatus(ginContext *gin.Context) {
 	})
 	if err != nil {
 		if errors.Is(err, repository.ErrVisitRequestNotFound) {
+			c.logger.WithField("id", id).Warn("visit request not found for status update")
 			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})
 			return
 		}
 
+		c.logger.WithError(err).Error("failed to update visit request status")
 		_ = ginContext.Error(err)
 		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
 		return
@@ -162,12 +174,14 @@ func (c *AdminRequestController) UpdateStatus(ginContext *gin.Context) {
 func (c *AdminRequestController) DownloadAttachment(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
+		c.logger.WithError(err).Warn("invalid request ID format")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
 		return
 	}
 
 	attachmentType := ginContext.Param("type")
 	if attachmentType != "surat_kunjungan" && attachmentType != "surat_tugas" {
+		c.logger.WithField("attachmentType", attachmentType).Warn("invalid attachment type")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "attachment type must be surat_kunjungan or surat_tugas"})
 		return
 	}
@@ -175,9 +189,11 @@ func (c *AdminRequestController) DownloadAttachment(ginContext *gin.Context) {
 	visitRequest, err := c.visitRequestUsecase.FindByID(ginContext.Request.Context(), id)
 	if err != nil {
 		if errors.Is(err, repository.ErrVisitRequestNotFound) {
+			c.logger.WithField("id", id).Warn("visit request not found for attachment download")
 			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})
 			return
 		}
+		c.logger.WithError(err).Error("failed to find visit request for attachment download")
 		_ = ginContext.Error(err)
 		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
 		return
@@ -187,6 +203,7 @@ func (c *AdminRequestController) DownloadAttachment(ginContext *gin.Context) {
 		if attachment.AttachmentType == attachmentType {
 			filePath := filepath.Join(c.uploadDir, attachment.StorageKey)
 			if _, err := os.Stat(filePath); err != nil {
+				c.logger.WithError(err).Warn("attachment file not found on disk")
 				ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "file not found"})
 				return
 			}
@@ -197,5 +214,6 @@ func (c *AdminRequestController) DownloadAttachment(ginContext *gin.Context) {
 		}
 	}
 
+	c.logger.WithField("attachmentType", attachmentType).Warn("attachment not found in database record")
 	ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "attachment not found"})
 }
