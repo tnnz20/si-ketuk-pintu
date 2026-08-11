@@ -12,6 +12,16 @@ Initial Go backend foundation for the Government Visitor Request Platform.
 
 The backend reads environment variables and optionally loads `apps/backend/.env` for local development. PostgreSQL runs through `compose.yaml` as `postgres:alpine` with a persistent named volume.
 
+## Frontend setup
+
+1. Copy `apps/frontend/.env.example` to `apps/frontend/.env`.
+2. Run `npm install` from `apps/frontend`.
+3. Run `npm run dev` and open `http://localhost:5173`.
+
+`VITE_API_URL` defaults to `http://localhost:8080` for local backend access. The backend example CORS configuration already allows Vite's local origin.
+
+Use `npm run lint`, `npm run format:check`, and `npm run build` before deployment. `apps/frontend/nginx.conf` serves the generated single-page application from `/usr/share/nginx/html`.
+
 ## Commands
 
 Run `make help` for all available commands. The most common are:
@@ -23,4 +33,3 @@ Run `make help` for all available commands. The most common are:
 - `make test` — run unit and isolated database migration checks.
 
 `apps/backend/db/migrations` is the database source of truth. GORM is used for database access only and does not run automatic schema migrations.
-
