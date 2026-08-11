@@ -1,7 +1,8 @@
-.env
-apps/backend/.env
 apps/backend/.bin/
 apps/backend/bin/
-apps/backend/var/
-coverage.out
 
+
+apps/frontend/node_modules/
+apps/frontend/dist/
+
+.env
