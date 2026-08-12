@@ -1,8 +1,10 @@
+.env
+
+
 apps/backend/.bin/
 apps/backend/bin/
+apps/backend/var/uploads/
 
 
 apps/frontend/node_modules/
 apps/frontend/dist/
-
-.env
