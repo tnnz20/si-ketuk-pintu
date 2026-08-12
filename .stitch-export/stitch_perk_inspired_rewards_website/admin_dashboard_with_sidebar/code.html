@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Enterprise Admin Dashboard</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;family=Public+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#ccc4c9",
+                    "tertiary-container": "#1e1b1e",
+                    "status-success": "#14140F",
+                    "on-error": "#ffffff",
+                    "tertiary": "#000000",
+                    "on-secondary-fixed-variant": "#344e00",
+                    "on-primary-fixed": "#1c1c17",
+                    "background": "#fafaf0",
+                    "on-secondary": "#ffffff",
+                    "secondary-fixed": "#b6f648",
+                    "primary-fixed-dim": "#c9c6be",
+                    "surface-container": "#eeeee5",
+                    "error-container": "#ffdad6",
+                    "on-secondary-container": "#496d00",
+                    "secondary-fixed-dim": "#9bd92a",
+                    "surface-container-high": "#e9e9df",
+                    "on-error-container": "#93000a",
+                    "on-secondary-fixed": "#121f00",
+                    "on-surface-variant": "#484740",
+                    "secondary-container": "#b3f345",
+                    "status-info": "#D2D2C8",
+                    "on-primary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-container": "#1c1c17",
+                    "primary": "#000000",
+                    "secondary": "#466800",
+                    "on-background": "#1a1c16",
+                    "on-tertiary": "#ffffff",
+                    "surface": "#fafaf0",
+                    "on-surface": "#1a1c16",
+                    "on-tertiary-fixed": "#1e1b1e",
+                    "on-primary-container": "#85847c",
+                    "primary-fixed": "#e5e2da",
+                    "surface-container-highest": "#e3e3d9",
+                    "inverse-surface": "#2f312b",
+                    "outline-variant": "#c9c6bd",
+                    "surface-variant": "#e3e3d9",
+                    "surface-container-low": "#f4f4ea",
+                    "surface-tint": "#5f5e58",
+                    "on-tertiary-fixed-variant": "#4a4549",
+                    "tertiary-fixed": "#e8e0e5",
+                    "surface-alt": "#D2D2C8",
+                    "inverse-on-surface": "#f1f1e7",
+                    "on-tertiary-container": "#888286",
+                    "on-primary-fixed-variant": "#484741",
+                    "outline": "#78776f",
+                    "surface-bright": "#fafaf0",
+                    "surface-dim": "#dadbd1",
+                    "inverse-primary": "#c9c6be"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "container-max": "1200px",
+                    "unit": "8px",
+                    "gutter": "24px",
+                    "margin-desktop": "40px",
+                    "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                    "body-md": ["Public Sans"],
+                    "body-lg": ["Public Sans"],
+                    "display": ["Plus Jakarta Sans"],
+                    "headline-lg-mobile": ["Plus Jakarta Sans"],
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "label-md": ["Public Sans"],
+                    "label-sm": ["Public Sans"],
+                    "headline-md": ["Plus Jakarta Sans"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #fafaf0;
+            font-family: 'Public Sans', sans-serif;
+        }
+        .sidebar-active {
+            background-color: #eeeeec;
+            color: #161613;
+        }
+    </style>
+</head>
+<body class="flex min-h-screen">
+<!-- Persistent Sidebar -->
+<aside class="w-64 border-r border-outline-variant bg-surface flex flex-col shrink-0">
+<div class="p-6 flex items-center gap-3 border-b border-outline-variant">
+<div class="size-10 rounded-full bg-cover bg-center" data-alt="A professional, high-contrast minimalist corporate logo featuring a sleek abstract geometric mark. The design is presented in deep charcoal and crisp off-white tones, reflecting an enterprise software aesthetic. The lighting is clean and even, set against a pristine, neutral background to emphasize precision and modern corporate identity." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC7vutmj6GETEYxg-e86YQks3DnU28ROMiwuinbgv9m3Z0zdR8PQHaPztQz96H_DV6Si0FnEw7pWbpS-KUmv_gEeQehvts7ZuWY9SoFjnOFuuxYMUjx0J_dlazQFFOx8TSc6Ae91TkxMI0VeVj0Oi5LZlzYryS9uFCKOMy1c4q3NcxKNHcTrWeKhOhKprFaIEoz7jQay2MDK3rzZqZNdruJflpIcS6JjGfnNEohZ8fJpUyp6uIax_zANA')"></div>
+<div class="flex flex-col">
+<span class="text-primary font-display font-bold text-lg leading-tight">Admin Panel</span>
+<span class="text-on-surface-variant text-label-sm">Enterprise Edition</span>
+</div>
+</div>
+<nav class="flex-1 px-4 py-6 space-y-2">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg sidebar-active text-primary font-medium transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-label-md">Request Management</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors" href="#">
+<span class="material-symbols-outlined">qr_code_scanner</span>
+<span class="text-label-md">QR Scanner</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-label-md">Settings</span>
+</a>
+</nav>
+<div class="p-4 border-t border-outline-variant">
+<button class="flex w-full items-center justify-center gap-2 rounded-lg h-10 px-4 bg-primary text-on-primary text-label-md font-bold transition-transform active:scale-95">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span>Log Out</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto">
+<div class="max-w-[1200px] mx-auto p-8 lg:p-10">
+<!-- Header Section -->
+<header class="mb-10">
+<h1 class="text-primary font-display font-bold text-3xl mb-2">Welcome back, Admin</h1>
+<p class="text-on-surface-variant">Here is a summary of your operations for today.</p>
+</header>
+<!-- Metric Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+<div class="flex flex-col gap-2 rounded-xl p-6 border border-outline-variant bg-surface-container-lowest shadow-sm">
+<p class="text-on-surface-variant text-label-md font-medium">Total Requests</p>
+<div class="flex items-baseline justify-between">
+<p class="text-primary tracking-tight text-3xl font-bold">1,284</p>
+<span class="text-secondary font-bold text-label-md bg-secondary-container px-2 py-0.5 rounded-full">+12%</span>
+</div>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-6 border border-outline-variant bg-surface-container-lowest shadow-sm">
+<p class="text-on-surface-variant text-label-md font-medium">Pending Approval</p>
+<div class="flex items-baseline justify-between">
+<p class="text-primary tracking-tight text-3xl font-bold">42</p>
+<span class="text-secondary font-bold text-label-md bg-secondary-container px-2 py-0.5 rounded-full">+5%</span>
+</div>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-6 border border-outline-variant bg-surface-container-lowest shadow-sm">
+<p class="text-on-surface-variant text-label-md font-medium">Active QR Codes</p>
+<div class="flex items-baseline justify-between">
+<p class="text-primary tracking-tight text-3xl font-bold">856</p>
+<span class="text-error font-bold text-label-md bg-error-container px-2 py-0.5 rounded-full">-2%</span>
+</div>
+</div>
+</div>
+<!-- Recent Requests Section -->
+<section class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden shadow-sm">
+<div class="px-6 py-5 border-b border-outline-variant flex items-center justify-between">
+<h2 class="text-primary text-xl font-bold font-display">Recent Requests</h2>
+<span class="text-label-sm text-on-surface-variant font-medium">Last updated 5m ago</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low">
+<th class="px-6 py-4 text-on-surface-variant text-label-md font-semibold border-b border-outline-variant">Date</th>
+<th class="px-6 py-4 text-on-surface-variant text-label-md font-semibold border-b border-outline-variant">ID</th>
+<th class="px-6 py-4 text-on-surface-variant text-label-md font-semibold border-b border-outline-variant">User</th>
+<th class="px-6 py-4 text-on-surface-variant text-label-md font-semibold border-b border-outline-variant">Status</th>
+<th class="px-6 py-4 text-on-surface-variant text-label-md font-semibold border-b border-outline-variant text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant">
+<tr class="hover:bg-surface-bright transition-colors">
+<td class="px-6 py-4 text-on-surface text-body-md">2023-10-24</td>
+<td class="px-6 py-4 text-on-surface-variant text-body-md font-medium">REQ-001</td>
+<td class="px-6 py-4 text-on-surface text-body-md">John Doe</td>
+<td class="px-6 py-4">
+<span class="inline-flex px-3 py-1 rounded-full bg-surface-container text-primary text-label-sm font-bold">Pending</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-bright transition-colors">
+<td class="px-6 py-4 text-on-surface text-body-md">2023-10-24</td>
+<td class="px-6 py-4 text-on-surface-variant text-body-md font-medium">REQ-002</td>
+<td class="px-6 py-4 text-on-surface text-body-md">Jane Smith</td>
+<td class="px-6 py-4">
+<span class="inline-flex px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-label-sm font-bold">Approved</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-bright transition-colors">
+<td class="px-6 py-4 text-on-surface text-body-md">2023-10-23</td>
+<td class="px-6 py-4 text-on-surface-variant text-body-md font-medium">REQ-003</td>
+<td class="px-6 py-4 text-on-surface text-body-md">Mike Ross</td>
+<td class="px-6 py-4">
+<span class="inline-flex px-3 py-1 rounded-full bg-error-container text-on-error-container text-label-sm font-bold">Rejected</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-bright transition-colors">
+<td class="px-6 py-4 text-on-surface text-body-md">2023-10-23</td>
+<td class="px-6 py-4 text-on-surface-variant text-body-md font-medium">REQ-004</td>
+<td class="px-6 py-4 text-on-surface text-body-md">Harvey Specter</td>
+<td class="px-6 py-4">
+<span class="inline-flex px-3 py-1 rounded-full bg-surface-container text-primary text-label-sm font-bold">Pending</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-bright transition-colors">
+<td class="px-6 py-4 text-on-surface text-body-md">2023-10-22</td>
+<td class="px-6 py-4 text-on-surface-variant text-body-md font-medium">REQ-005</td>
+<td class="px-6 py-4 text-on-surface text-body-md">Louis Litt</td>
+<td class="px-6 py-4">
+<span class="inline-flex px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-label-sm font-bold">Approved</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="p-2 hover:bg-surface-container rounded-full transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- View All Footer -->
+<div class="px-6 py-4 bg-surface-bright flex justify-center">
+<button class="flex items-center gap-2 text-primary font-bold text-label-md hover:underline group">
+<span>View All Requests</span>
+<span class="material-symbols-outlined text-[18px] transition-transform group-hover:translate-x-1">arrow_forward</span>
+</button>
+</div>
+</section>
+<!-- Decorative Visual Context -->
+<div class="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
+<div class="rounded-xl overflow-hidden h-64 border border-outline-variant relative group">
+<div class="absolute inset-0 bg-primary/10 group-hover:bg-primary/0 transition-colors z-10"></div>
+<div class="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="A wide-angle, cinematic view of a futuristic data center hallway with rhythmic rows of server racks emitting a soft white and deep grey glow. The atmosphere is highly professional and sterile, utilizing a palette of monochrome tones with subtle green power indicator highlights. The perspective leads the eye toward a distant, brightly lit portal, symbolizing the massive scale of enterprise cloud infrastructure." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD8ROdxkzC3fWgOjbX7-0xU3mlp1As6P-H7RwKfQmDCpQMMjjG03x6IWYEcEH7qGrlWSbNfX1JIG8qCw23KU26v-yabTbpoJOvExkyW5oLBuwDTqKs-7yd1SDzqPz6DNi04pSXLPZVJcDYmmidzLmg3Xxs0ZthBUoUwlzs053KWNecb5AEYiDsFP8vOuDTVuSlptHlLlhqoaoOM0_tlMxcYxP_UgHFWReQHawnZ3zHl2s6SOa7uzS6gtg')"></div>
+<div class="absolute bottom-0 left-0 right-0 p-6 z-20 bg-gradient-to-t from-primary/80 to-transparent">
+<h3 class="text-on-primary font-bold text-lg">System Infrastructure</h3>
+<p class="text-on-primary/80 text-label-sm">Monitor global node status and latency</p>
+</div>
+</div>
+<div class="rounded-xl overflow-hidden h-64 border border-outline-variant relative group">
+<div class="absolute inset-0 bg-primary/10 group-hover:bg-primary/0 transition-colors z-10"></div>
+<div class="w-full h-full bg-cover bg-center transition-transform duration-700 group-hover:scale-105" data-alt="An abstract visualization of a complex digital network or mesh structure, rendered in high-fidelity 3D with sharp geometric lines and glowing nodes. The lighting is bright and airy, conforming to a sophisticated light-mode UI aesthetic, dominated by whites, silvers, and deep slate blacks. The composition feels organized yet intricate, representing the interconnected nature of modern enterprise security protocols." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA_bk4q-SwsDOCGIb2phHN6rvdHmuwt137--tSa3kY_2uYw7JzEAFd56h5E1HnBy3kxvWY6kchlkSN5KwTRbK_v1AGSb367yr9daB1ffh0sHc6HXIoOk7nizwiRCNykQo0oapccKxcwiTYCj4M-JqX99eDl2sn42751O7HWd_A8m4U_dchI3umsMfnr1i53BzHTNGF4VH6sXLNijOZBPegKWQQDSOdvsr4Ut6FNbvXkhX2dJaqPeWOyvw')"></div>
+<div class="absolute bottom-0 left-0 right-0 p-6 z-20 bg-gradient-to-t from-primary/80 to-transparent">
+<h3 class="text-on-primary font-bold text-lg">Security Analytics</h3>
+<p class="text-on-primary/80 text-label-sm">Real-time threat detection and management</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Micro-interactions for table rows
+        document.querySelectorAll('tbody tr').forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.style.cursor = 'pointer';
+            });
+        });
+
+        // Toggle sidebar active state logic (simulated)
+        const navLinks = document.querySelectorAll('aside nav a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                navLinks.forEach(l => {
+                    l.classList.remove('sidebar-active', 'text-primary');
+                    l.classList.add('text-on-surface-variant');
+                    const icon = l.querySelector('.material-symbols-outlined');
+                    if(icon) icon.style.fontVariationSettings = "'FILL' 0";
+                });
+                link.classList.add('sidebar-active', 'text-primary');
+                link.classList.remove('text-on-surface-variant');
+                const activeIcon = link.querySelector('.material-symbols-outlined');
+                if(activeIcon) activeIcon.style.fontVariationSettings = "'FILL' 1";
+            });
+        });
+    </script>
+</body></html>
