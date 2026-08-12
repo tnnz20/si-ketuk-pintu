@@ -1,22 +1,33 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'sonner';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import Layout from './components/layout/Layout';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminLogin from './pages/admin/AdminLogin';
+import RequestDetail from './pages/admin/RequestDetail';
+import RequestList from './pages/admin/RequestList';
+import LandingPage from './pages/public/LandingPage';
+import RequestStatus from './pages/public/RequestStatus';
+import SubmissionForm from './pages/public/SubmissionForm';
+import SubmissionSuccess from './pages/public/SubmissionSuccess';
 
-export default function App() {
+function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-      </Routes>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/submit" element={<SubmissionForm />} />
+          <Route path="/status/:token" element={<RequestStatus />} />
+          <Route path="/success" element={<SubmissionSuccess />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/requests" element={<RequestList />} />
+          <Route path="/admin/requests/:id" element={<RequestDetail />} />
+        </Routes>
+        <Toaster position="top-right" richColors />
+      </Layout>
     </BrowserRouter>
   );
 }
 
-function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-foreground">Si Ketuk Pintu</h1>
-        <p className="mt-4 text-muted-foreground">Government Visitor Request Platform</p>
-      </div>
-    </div>
-  );
-}
+export default App;

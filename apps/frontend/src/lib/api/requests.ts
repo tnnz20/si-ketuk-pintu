@@ -1,0 +1,55 @@
+import { api } from './client';
+import type {
+  CreateVisitRequestData,
+  PaginatedRequestsResponse,
+  RequestDetailResponse,
+  VisitRequest,
+} from '../types/api';
+
+export async function createVisitRequest(request: CreateVisitRequestData): Promise<{ token: string; message: string }> {
+  const form = new FormData();
+  const entries: [string, string | Blob][] = [
+    ['email', request.email],
+    ['nama_instansi', request.nama_instansi],
+    ['alamat_instansi', request.alamat_instansi],
+    ['tanggal_kunjungan', request.tanggal_kunjungan],
+    ['jam_kunjungan', request.jam_kunjungan],
+    ['tema_kunjungan', request.tema_kunjungan],
+    ['pimpinan_rombongan', request.pimpinan_rombongan],
+    ['jumlah_tamu', String(request.jumlah_tamu)],
+    ['kontak_dihubungi', request.kontak_dihubungi],
+    ['guests', JSON.stringify(request.guests)],
+    ['surat_kunjungan', request.surat_kunjungan],
+    ['surat_tugas', request.surat_tugas],
+  ];
+  entries.forEach(([key, value]) => form.append(key, value));
+  return api('/public/requests', { method: 'POST', body: form });
+}
+
+export async function getRequests(page = 1, pageSize = 20, filters?: { search?: string; status?: string; date?: string }): Promise<PaginatedRequestsResponse> {
+  const params = new URLSearchParams({ page: page.toString(), page_size: pageSize.toString() });
+  if (filters?.search) params.append('search', filters.search);
+  if (filters?.status) params.append('status', filters.status);
+  if (filters?.date) params.append('date', filters.date);
+  return api(`/admin/requests?${params}`);
+}
+
+export function getRequestById(id: string): Promise<RequestDetailResponse> {
+  return api(`/admin/requests/${id}`);
+}
+
+export function getRequestByToken(token: string): Promise<VisitRequest> {
+  return api(`/public/requests/${token}`);
+}
+
+export function updateStatus(id: string, status: 'pending' | 'approved' | 'rejected'): Promise<{ message: string }> {
+  return api(`/admin/requests/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+}
+
+export function downloadQR(token: string): Promise<Blob> {
+  return api(`/public/requests/${token}/qr`);
+}
+
+export function downloadAttachment(id: string, type: 'surat_kunjungan' | 'surat_tugas'): Promise<Blob> {
+  return api(`/admin/requests/${id}/attachments/${type}`);
+}
