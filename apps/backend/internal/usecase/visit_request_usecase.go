@@ -286,14 +286,9 @@ func (u *VisitRequestUsecase) savePDF(
 	checksum := sha256.Sum256(content)
 	checksumHex := hex.EncodeToString(checksum[:])
 
-	dir := filepath.Join(u.uploadDir, visitRequestID.String())
-	if err := os.MkdirAll(dir, 0o750); err != nil {
-		u.logger.WithError(err).Error("failed to create upload directory")
-		return nil, fmt.Errorf("create upload directory: %w", err)
-	}
-
-	storageKey := filepath.Join(visitRequestID.String(), attachmentType+".pdf")
-	fullPath := filepath.Join(u.uploadDir, storageKey)
+	filename := fmt.Sprintf("%s_%d.pdf", attachmentType, time.Now().UnixNano())
+	fullPath := filepath.Join(u.uploadDir, filename)
+	storageKey := filename
 	if err := os.WriteFile(fullPath, content, 0o640); err != nil {
 		u.logger.WithError(err).Error("failed to write file")
 		return nil, fmt.Errorf("write %s: %w", attachmentType, err)
