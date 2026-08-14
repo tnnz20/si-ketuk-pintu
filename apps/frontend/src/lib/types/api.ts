@@ -68,6 +68,12 @@ export interface LoginResponse {
   token: string;
 }
 
+export interface StatsResponse {
+  today_requests: number;
+  pending_approval: number;
+  total_requests: number;
+}
+
 export interface PaginatedRequestsResponse {
   data: {
     id: string;

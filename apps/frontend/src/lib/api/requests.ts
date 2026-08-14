@@ -3,6 +3,7 @@ import type {
   CreateVisitRequestData,
   PaginatedRequestsResponse,
   RequestDetailResponse,
+  StatsResponse,
   VisitRequest,
 } from '../types/api';
 
@@ -32,6 +33,14 @@ export async function getRequests(page = 1, pageSize = 20, filters?: { search?: 
   if (filters?.status) params.append('status', filters.status);
   if (filters?.date) params.append('date', filters.date);
   return api(`/admin/requests?${params}`);
+}
+
+export function getStats(): Promise<StatsResponse> {
+  return api('/admin/stats');
+}
+
+export function deleteRequest(id: string): Promise<{ message: string }> {
+  return api(`/admin/requests/${id}`, { method: 'DELETE' });
 }
 
 export function getRequestById(id: string): Promise<RequestDetailResponse> {

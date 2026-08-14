@@ -20,9 +20,9 @@ function App() {
           <Route path="/status/:token" element={<RequestStatus />} />
           <Route path="/success" element={<SubmissionSuccess />} />
           <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/requests" element={<RequestList />} />
-          <Route path="/admin/requests/:id" element={<RequestDetail />} />
+          <Route path="/dashboard" element={<AdminDashboard />} />
+          <Route path="/dashboard/requests" element={<RequestList />} />
+          <Route path="/dashboard/requests/:id" element={<RequestDetail />} />
         </Routes>
         <Toaster position="top-right" richColors />
       </Layout>

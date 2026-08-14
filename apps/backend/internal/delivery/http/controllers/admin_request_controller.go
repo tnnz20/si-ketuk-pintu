@@ -85,6 +85,21 @@ func (c *AdminRequestController) List(ginContext *gin.Context) {
 	})
 }
 
+func (c *AdminRequestController) Stats(ginContext *gin.Context) {
+	today, pending, total, err := c.visitRequestUsecase.Stats(ginContext.Request.Context())
+	if err != nil {
+		c.logger.WithError(err).Error("failed to get admin stats")
+		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
+		return
+	}
+
+	ginContext.JSON(http.StatusOK, gin.H{
+		"today_requests":   today,
+		"pending_approval": pending,
+		"total_requests":   total,
+	})
+}
+
 func (c *AdminRequestController) FindByID(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
@@ -169,6 +184,27 @@ func (c *AdminRequestController) UpdateStatus(ginContext *gin.Context) {
 	}
 
 	ginContext.JSON(http.StatusOK, gin.H{"message": "status updated"})
+}
+
+func (c *AdminRequestController) Delete(ginContext *gin.Context) {
+	id, err := uuid.Parse(ginContext.Param("id"))
+	if err != nil {
+		c.logger.WithError(err).Warn("invalid request ID format")
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
+		return
+	}
+
+	if err := c.visitRequestUsecase.Delete(ginContext.Request.Context(), id); err != nil {
+		if errors.Is(err, repository.ErrVisitRequestNotFound) {
+			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})
+			return
+		}
+		c.logger.WithError(err).Error("failed to delete visit request")
+		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
+		return
+	}
+
+	ginContext.JSON(http.StatusOK, gin.H{"message": "Permohonan berhasil dihapus"})
 }
 
 func (c *AdminRequestController) DownloadAttachment(ginContext *gin.Context) {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -148,6 +149,46 @@ func (r *VisitRequestRepository) UpdateStatus(ctx context.Context, id uuid.UUID,
 		return ErrVisitRequestNotFound
 	}
 
+	return nil
+}
+
+func (r *VisitRequestRepository) Stats(ctx context.Context, now time.Time) (int64, int64, int64, error) {
+	var today, pending, total int64
+	start := now.Truncate(24 * time.Hour)
+	end := start.Add(24 * time.Hour)
+	if err := r.database.WithContext(ctx).Model(&entity.VisitRequest{}).Where("created_at >= ? AND created_at < ?", start, end).Count(&today).Error; err != nil {
+		return 0, 0, 0, fmt.Errorf("count today's visit requests: %w", err)
+	}
+	if err := r.database.WithContext(ctx).Model(&entity.VisitRequest{}).Where("status = ?", "pending").Count(&pending).Error; err != nil {
+		return 0, 0, 0, fmt.Errorf("count pending visit requests: %w", err)
+	}
+	if err := r.database.WithContext(ctx).Model(&entity.VisitRequest{}).Count(&total).Error; err != nil {
+		return 0, 0, 0, fmt.Errorf("count visit requests: %w", err)
+	}
+	return today, pending, total, nil
+}
+
+func (r *VisitRequestRepository) Delete(ctx context.Context, id uuid.UUID) error {
+	var affected int64
+	err := r.database.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
+		for _, model := range []any{&entity.Guest{}, &entity.Attachment{}, &entity.AuditEvent{}} {
+			if err := tx.Unscoped().Where("visit_request_id = ?", id).Delete(model).Error; err != nil {
+				return fmt.Errorf("delete related records: %w", err)
+			}
+		}
+		result := tx.Delete(&entity.VisitRequest{}, "id = ?", id)
+		if result.Error != nil {
+			return fmt.Errorf("delete visit request: %w", result.Error)
+		}
+		affected = result.RowsAffected
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return ErrVisitRequestNotFound
+	}
 	return nil
 }
 

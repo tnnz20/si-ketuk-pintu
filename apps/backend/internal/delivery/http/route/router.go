@@ -30,7 +30,7 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 	router.Use(middleware.RequestLogger(deps.Logger))
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     deps.CORSOrigins,
-		AllowMethods:     []string{"GET", "POST", "PATCH", "OPTIONS"},
+		AllowMethods:     []string{"GET", "POST", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
 	}))
@@ -53,10 +53,12 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 
 		protected := admin.Group("", middleware.Auth(deps.AuthUsecase))
 		{
+			protected.GET("/stats", deps.AdminRequestController.Stats)
 			requests := protected.Group("/requests")
 			requests.GET("", deps.AdminRequestController.List)
 			requests.GET("/:id", deps.AdminRequestController.FindByID)
 			requests.PATCH("/:id/status", deps.AdminRequestController.UpdateStatus)
+			requests.DELETE("/:id", deps.AdminRequestController.Delete)
 			requests.GET("/:id/attachments/:type", deps.AdminRequestController.DownloadAttachment)
 		}
 	}

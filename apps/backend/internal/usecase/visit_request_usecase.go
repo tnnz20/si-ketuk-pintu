@@ -37,6 +37,8 @@ type VisitRequestStore interface {
 	FindByID(ctx context.Context, id uuid.UUID) (*entity.VisitRequest, error)
 	List(ctx context.Context, filter model.ListFilter) ([]entity.VisitRequest, int64, error)
 	UpdateStatus(ctx context.Context, id uuid.UUID, status string) error
+	Stats(ctx context.Context, now time.Time) (int64, int64, int64, error)
+	Delete(ctx context.Context, id uuid.UUID) error
 	TokenExists(ctx context.Context, token string) (bool, error)
 }
 
@@ -180,6 +182,14 @@ func (u *VisitRequestUsecase) List(
 	filter model.ListFilter,
 ) ([]entity.VisitRequest, int64, error) {
 	return u.store.List(ctx, filter)
+}
+
+func (u *VisitRequestUsecase) Stats(ctx context.Context) (int64, int64, int64, error) {
+	return u.store.Stats(ctx, time.Now().In(u.timeZone))
+}
+
+func (u *VisitRequestUsecase) Delete(ctx context.Context, id uuid.UUID) error {
+	return u.store.Delete(ctx, id)
 }
 
 func (u *VisitRequestUsecase) UpdateStatus(ctx context.Context, input UpdateStatusInput) error {
