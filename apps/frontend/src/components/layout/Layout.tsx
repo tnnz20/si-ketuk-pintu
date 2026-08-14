@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 import Footer from './Footer';
 import TopBar from './TopBar';
 
@@ -8,12 +9,18 @@ type LayoutProps = {
   showFooter?: boolean;
 };
 
-export default function Layout({ children, showTopBar = true, showFooter = true }: LayoutProps) {
+export default function Layout({ children, showTopBar, showFooter }: LayoutProps) {
+  const { pathname } = useLocation();
+  const isAdminRoute = pathname.startsWith('/admin');
+
+  const displayTopBar = showTopBar ?? !isAdminRoute;
+  const displayFooter = showFooter ?? !isAdminRoute;
+
   return (
     <div className="min-h-screen bg-background text-on-background">
-      {showTopBar && <TopBar />}
-      <main className={showTopBar ? 'pt-20' : undefined}>{children}</main>
-      {showFooter && <Footer />}
+      {displayTopBar && <TopBar />}
+      <main className={displayTopBar ? 'pt-20' : undefined}>{children}</main>
+      {displayFooter && <Footer />}
     </div>
   );
 }

@@ -1,11 +1,6 @@
 import { useMotionValue, useSpring, useTransform } from 'motion/react';
 import { useCallback } from 'react';
 
-interface MousePosition {
-  x: number;
-  y: number;
-}
-
 export function useMouseTilt(stiffness = 150, damping = 15) {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -27,7 +22,7 @@ export function useMouseTilt(stiffness = 150, damping = 15) {
       mouseX.set(x);
       mouseY.set(y);
     },
-    [mouseX, mouseY]
+    [mouseX, mouseY],
   );
 
   const handleMouseLeave = useCallback(() => {
@@ -48,7 +43,7 @@ export function useMousePosition() {
       x.set(e.clientX - rect.left);
       y.set(e.clientY - rect.top);
     },
-    [x, y]
+    [x, y],
   );
 
   return { x, y, handleMouseMove };
