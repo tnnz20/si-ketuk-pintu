@@ -17,7 +17,7 @@ import (
 
 func seedAdmin(t *testing.T) {
 	t.Helper()
-	seedUsecase := usecase.NewSeedAdministratorUsecase(repository.NewAdministratorRepository(appDB))
+	seedUsecase := usecase.NewSeedAdministratorUsecase(repository.NewAdministratorRepository(appDB, bootstrap.Logger))
 	input := usecase.SeedAdministratorInput{
 		Username: "admin_test",
 		Email:    "admin_test@example.com",

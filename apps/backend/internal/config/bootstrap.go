@@ -39,7 +39,7 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 
 	// Repositories
 	healthRepository := repository.NewDatabaseHealthRepository(database)
-	administratorRepository := repository.NewAdministratorRepository(database)
+	administratorRepository := repository.NewAdministratorRepository(database, logger)
 	visitRequestRepository := repository.NewVisitRequestRepository(database, logger)
 	auditEventRepository := repository.NewAuditEventRepository(database)
 
@@ -49,6 +49,7 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 		administratorRepository,
 		applicationConfig.JWTSecret,
 		applicationConfig.JWTExpiryHours,
+		logger,
 	)
 	visitRequestUsecase := usecase.NewVisitRequestUsecase(
 		visitRequestRepository,
@@ -67,7 +68,7 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 		logger,
 		applicationConfig.TimeZone,
 	)
-	adminAuthController := controllers.NewAdminAuthController(authUsecase)
+	adminAuthController := controllers.NewAdminAuthController(authUsecase, logger)
 	adminRequestController := controllers.NewAdminRequestController(
 		visitRequestUsecase,
 		logger,
