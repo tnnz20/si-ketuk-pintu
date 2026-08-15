@@ -24,8 +24,11 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createVisitRequest } from '../../lib/api/requests';
+import { toast } from 'sonner';
+import { z } from 'zod';
 import { fadeInUp, staggerContainer } from '../../components/landing/animations';
+import { createVisitRequest } from '../../lib/api/requests';
+import { guestSchema, visitRequestSchema } from '../../schemas/visitRequest';
 
 interface Guest {
   name: string;
@@ -70,12 +73,19 @@ export default function SubmissionForm() {
   const [files, setFiles] = useState<{ surat_kunjungan?: File; surat_tugas?: File }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     instansi: true,
     kunjungan: true,
   });
 
   const updateField = (field: keyof FormData, value: string) => {
+    setError('');
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -94,40 +104,99 @@ export default function SubmissionForm() {
   };
 
   const updateGuest = (index: number, field: keyof Guest, value: string) => {
+    setError('');
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next[`guests.${index}.${field === 'name' ? 'nama' : 'jabatan'}`];
+      return next;
+    });
     setGuests(guests.map((guest, i) => (i === index ? { ...guest, [field]: value } : guest)));
   };
 
   const handleFileChange = (key: 'surat_kunjungan' | 'surat_tugas', file: File | undefined) => {
+    setError('');
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
     setFiles((prev) => ({ ...prev, [key]: file }));
   };
 
   const validateStep = (step: number): boolean => {
+    let schema: z.ZodType | null;
+    let payload: unknown;
     switch (step) {
       case 1:
-        return !!(formData.email && formData.nama_instansi && formData.alamat_instansi);
+        schema = visitRequestSchema.pick({
+          email: true,
+          nama_instansi: true,
+          alamat_instansi: true,
+        });
+        payload = formData;
+        break;
       case 2:
-        return !!(
-          formData.tanggal_kunjungan &&
-          formData.jam_kunjungan &&
-          formData.tema_kunjungan &&
-          formData.pimpinan_rombongan &&
-          formData.kontak_dihubungi
-        );
+        schema = visitRequestSchema.pick({
+          tanggal_kunjungan: true,
+          jam_kunjungan: true,
+          tema_kunjungan: true,
+          pimpinan_rombongan: true,
+          kontak_dihubungi: true,
+        });
+        payload = formData;
+        break;
       case 3:
-        return guests.every((g) => g.name.trim() && g.position.trim());
+        schema = z.object({
+          guests: z.array(guestSchema).min(1, 'Minimal 1 tamu'),
+        });
+        payload = { guests: guests.map((g) => ({ nama: g.name, jabatan: g.position })) };
+        break;
       case 4:
-        return !!(files.surat_kunjungan && files.surat_tugas);
+        schema = null;
+        payload = null;
+        break;
       default:
-        return true;
+        schema = null;
+        payload = null;
     }
+
+    if (schema) {
+      const result = schema.safeParse(payload);
+      if (!result.success) {
+        const next: Record<string, string> = {};
+        result.error.issues.forEach((issue) => {
+          const path = issue.path.map((p) => String(p)).join('.');
+          if (!next[path]) next[path] = issue.message;
+        });
+        setFieldErrors(next);
+        toast.error('Periksa kembali isian Anda sebelum melanjutkan.');
+        return false;
+      }
+    }
+
+    if (step === 4) {
+      const fileErrors: Record<string, string> = {};
+      if (!files.surat_kunjungan) fileErrors.surat_kunjungan = 'Surat Kunjungan wajib diunggah.';
+      else if (files.surat_kunjungan.size > 5 * 1024 * 1024)
+        fileErrors.surat_kunjungan = 'File maksimal 5MB.';
+      if (!files.surat_tugas) fileErrors.surat_tugas = 'Surat Tugas wajib diunggah.';
+      else if (files.surat_tugas.size > 5 * 1024 * 1024)
+        fileErrors.surat_tugas = 'File maksimal 5MB.';
+      if (Object.keys(fileErrors).length > 0) {
+        setFieldErrors(fileErrors);
+        toast.error('Periksa kembali isian Anda sebelum melanjutkan.');
+        return false;
+      }
+    }
+
+    return true;
   };
 
   const nextStep = () => {
+    setError('');
     if (validateStep(currentStep)) {
-      setError('');
+      setFieldErrors({});
       setCurrentStep((prev) => Math.min(prev + 1, 4));
-    } else {
-      setError('Mohon lengkapi semua field yang wajib diisi.');
     }
   };
 
@@ -137,12 +206,8 @@ export default function SubmissionForm() {
   };
 
   const submit = async () => {
-    if (!files.surat_kunjungan || !files.surat_tugas) {
-      setError('Surat Kunjungan dan Surat Tugas wajib diunggah.');
-      return;
-    }
-    if ([files.surat_kunjungan, files.surat_tugas].some((file) => file.size > 5 * 1024 * 1024)) {
-      setError('Setiap PDF harus 5MB atau lebih kecil.');
+    if (!validateStep(4)) {
+      setError('Mohon lengkapi semua field yang wajib diisi.');
       return;
     }
     setIsSubmitting(true);
@@ -159,12 +224,15 @@ export default function SubmissionForm() {
         jumlah_tamu: guests.length,
         kontak_dihubungi: formData.kontak_dihubungi,
         guests: guests.map(({ name, position }) => ({ nama: name, jabatan: position })),
-        surat_kunjungan: files.surat_kunjungan,
-        surat_tugas: files.surat_tugas,
+        surat_kunjungan: files.surat_kunjungan!,
+        surat_tugas: files.surat_tugas!,
       });
       navigate(`/success?token=${encodeURIComponent(result.token)}`);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Pengajuan gagal. Silakan coba lagi.');
+      const message =
+        reason instanceof Error ? reason.message : 'Pengajuan gagal. Silakan coba lagi.';
+      setError(message);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -374,6 +442,9 @@ export default function SubmissionForm() {
                           placeholder="email@instansi.go.id"
                           className="font-body-md w-full rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all placeholder:text-on-surface-variant/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
                         />
+                        {fieldErrors.email && (
+                          <p className="font-label text-label-sm text-error">{fieldErrors.email}</p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
@@ -392,6 +463,11 @@ export default function SubmissionForm() {
                           placeholder="Nama lengkap instansi"
                           className="font-body-md w-full rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all placeholder:text-on-surface-variant/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
                         />
+                        {fieldErrors.nama_instansi && (
+                          <p className="font-label text-label-sm text-error">
+                            {fieldErrors.nama_instansi}
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-2 md:col-span-2">
@@ -410,6 +486,11 @@ export default function SubmissionForm() {
                           rows={3}
                           className="font-body-md w-full resize-none rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all placeholder:text-on-surface-variant/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
                         />
+                        {fieldErrors.alamat_instansi && (
+                          <p className="font-label text-label-sm text-error">
+                            {fieldErrors.alamat_instansi}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -461,6 +542,11 @@ export default function SubmissionForm() {
                           onChange={(e) => updateField('tanggal_kunjungan', e.target.value)}
                           className="font-body-md w-full rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
                         />
+                        {fieldErrors.tanggal_kunjungan && (
+                          <p className="font-label text-label-sm text-error">
+                            {fieldErrors.tanggal_kunjungan}
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
@@ -471,13 +557,15 @@ export default function SubmissionForm() {
                           <Clock className="h-4 w-4 text-emerald-600" />
                           Jam Kunjungan
                         </label>
-                        <input
-                          id="jam_kunjungan"
-                          type="time"
+                        <TimePicker
                           value={formData.jam_kunjungan}
-                          onChange={(e) => updateField('jam_kunjungan', e.target.value)}
-                          className="font-body-md w-full rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+                          onChange={(value) => updateField('jam_kunjungan', value)}
                         />
+                        {fieldErrors.jam_kunjungan && (
+                          <p className="font-label text-label-sm text-error">
+                            {fieldErrors.jam_kunjungan}
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-2 md:col-span-2">
@@ -496,6 +584,11 @@ export default function SubmissionForm() {
                           placeholder="Contoh: Studi banding pengelolaan data"
                           className="font-body-md w-full rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all placeholder:text-on-surface-variant/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
                         />
+                        {fieldErrors.tema_kunjungan && (
+                          <p className="font-label text-label-sm text-error">
+                            {fieldErrors.tema_kunjungan}
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
@@ -514,6 +607,11 @@ export default function SubmissionForm() {
                           placeholder="Nama pimpinan rombongan"
                           className="font-body-md w-full rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all placeholder:text-on-surface-variant/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
                         />
+                        {fieldErrors.pimpinan_rombongan && (
+                          <p className="font-label text-label-sm text-error">
+                            {fieldErrors.pimpinan_rombongan}
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
@@ -532,6 +630,11 @@ export default function SubmissionForm() {
                           placeholder="08xx-xxxx-xxxx"
                           className="font-body-md w-full rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all placeholder:text-on-surface-variant/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
                         />
+                        {fieldErrors.kontak_dihubungi && (
+                          <p className="font-label text-label-sm text-error">
+                            {fieldErrors.kontak_dihubungi}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -591,6 +694,11 @@ export default function SubmissionForm() {
                               placeholder="Nama lengkap tamu"
                               className="font-body-md w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 text-body-md transition-all placeholder:text-on-surface-variant/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
                             />
+                            {fieldErrors[`guests.${index}.nama`] && (
+                              <p className="font-label text-label-sm text-error">
+                                {fieldErrors[`guests.${index}.nama`]}
+                              </p>
+                            )}
                           </div>
 
                           <div className="space-y-2">
@@ -603,6 +711,11 @@ export default function SubmissionForm() {
                               placeholder="Jabatan dalam instansi"
                               className="font-body-md w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 text-body-md transition-all placeholder:text-on-surface-variant/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
                             />
+                            {fieldErrors[`guests.${index}.jabatan`] && (
+                              <p className="font-label text-label-sm text-error">
+                                {fieldErrors[`guests.${index}.jabatan`]}
+                              </p>
+                            )}
                           </div>
 
                           <button
@@ -664,6 +777,7 @@ export default function SubmissionForm() {
                       title="Surat Kunjungan"
                       description="Surat resmi dari instansi pemohon"
                       file={files.surat_kunjungan}
+                      error={fieldErrors.surat_kunjungan}
                       onFileChange={(file) => handleFileChange('surat_kunjungan', file)}
                       reduce={reduce}
                     />
@@ -673,6 +787,7 @@ export default function SubmissionForm() {
                       title="Surat Tugas"
                       description="Surat tugas untuk pimpinan rombongan"
                       file={files.surat_tugas}
+                      error={fieldErrors.surat_tugas}
                       onFileChange={(file) => handleFileChange('surat_tugas', file)}
                       reduce={reduce}
                     />
@@ -771,12 +886,14 @@ function FileUploadCard({
   title,
   description,
   file,
+  error,
   onFileChange,
   reduce,
 }: {
   title: string;
   description: string;
   file?: File;
+  error?: string;
   onFileChange: (file: File | undefined) => void;
   reduce: boolean;
 }) {
@@ -824,7 +941,16 @@ function FileUploadCard({
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10">
               <CheckCircle2 className="h-8 w-8 text-emerald-600" />
             </div>
-            <p className="mb-1 font-label text-label-md font-medium text-on-surface">{file.name}</p>
+            <button
+              type="button"
+              onClick={() =>
+                window.open(URL.createObjectURL(file), '_blank', 'noopener,noreferrer')
+              }
+              title="Klik untuk pratinjau di tab baru"
+              className="mb-1 max-w-full truncate font-label text-label-md font-medium text-emerald-700 underline decoration-emerald-500/30 underline-offset-2 transition-colors hover:decoration-emerald-700"
+            >
+              {file.name}
+            </button>
             <p className="mb-4 font-label text-label-sm text-on-surface-variant">
               {(file.size / 1024 / 1024).toFixed(2)} MB
             </p>
@@ -863,9 +989,54 @@ function FileUploadCard({
                 className="hidden"
               />
             </label>
+            {error && <p className="mt-3 font-label text-label-sm text-error">{error}</p>}
           </>
         )}
+        {error && file && <p className="mt-3 font-label text-label-sm text-error">{error}</p>}
       </div>
     </motion.div>
+  );
+}
+
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
+
+function TimePicker({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const [hour, minute] = value.split(':');
+
+  return (
+    <div className="flex items-center gap-2">
+      <select
+        value={hour || ''}
+        onChange={(e) => onChange(`${e.target.value}:${minute ?? '00'}`)}
+        aria-label="Jam"
+        className="font-body-md flex-1 rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+      >
+        <option value="" disabled>
+          Jam
+        </option>
+        {HOURS.map((h) => (
+          <option key={h} value={h}>
+            {h}
+          </option>
+        ))}
+      </select>
+      <span className="font-body-md text-on-surface-variant">:</span>
+      <select
+        value={minute || ''}
+        onChange={(e) => onChange(`${hour ?? '00'}:${e.target.value}`)}
+        aria-label="Menit"
+        className="font-body-md flex-1 rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+      >
+        <option value="" disabled>
+          Menit
+        </option>
+        {MINUTES.map((m) => (
+          <option key={m} value={m}>
+            {m}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }

@@ -12,7 +12,9 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { login } from '../../lib/api/auth';
+import { loginSchema } from '../../schemas/login';
 
 const features = [
   {
@@ -38,19 +40,41 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
   const reduce = useReducedMotion();
 
+  const clearError = (field: string) => {
+    setError('');
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFieldErrors({});
+    const result = loginSchema.safeParse({ identifier, password });
+    if (!result.success) {
+      const next: Record<string, string> = {};
+      result.error.issues.forEach((issue) => {
+        next[String(issue.path[0])] = issue.message;
+      });
+      setFieldErrors(next);
+      toast.error('Periksa kembali isian Anda.');
+      return;
+    }
     setIsLoading(true);
     setError('');
 
     try {
       await login(identifier, password);
-      navigate('/admin');
+      navigate('/dashboard');
     } catch {
-      setError('Invalid credentials');
+      setError('Email, username, atau password salah.');
+      toast.error('Gagal masuk. Periksa kembali kredensial Anda.');
     } finally {
       setIsLoading(false);
     }
@@ -245,12 +269,18 @@ export default function AdminLogin() {
                     className="font-body-md w-full rounded-lg border border-surface-alt bg-surface-container-low py-2.5 pr-3 pl-11 text-body-md transition-all placeholder:text-outline/70 focus:border-emerald-600 focus:bg-surface-container-lowest focus:ring-2 focus:ring-emerald-600/20 focus:outline-none"
                     placeholder="admin@domain.gov"
                     value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
+                    onChange={(e) => {
+                      setIdentifier(e.target.value);
+                      clearError('identifier');
+                    }}
                     required
                     type="text"
                     autoComplete="username"
                   />
                 </div>
+                {fieldErrors.identifier && (
+                  <p className="font-label text-label-sm text-error">{fieldErrors.identifier}</p>
+                )}
               </div>
 
               <div className="flex flex-col gap-2">
@@ -272,7 +302,10 @@ export default function AdminLogin() {
                     className="font-body-md w-full rounded-lg border border-surface-alt bg-surface-container-low py-2.5 pr-11 pl-11 text-body-md transition-all placeholder:text-outline/70 focus:border-emerald-600 focus:bg-surface-container-lowest focus:ring-2 focus:ring-emerald-600/20 focus:outline-none"
                     placeholder="••••••••"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      clearError('password');
+                    }}
                     required
                     type={showPassword ? 'text' : 'password'}
                     autoComplete="current-password"
@@ -286,6 +319,9 @@ export default function AdminLogin() {
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
+                {fieldErrors.password && (
+                  <p className="font-label text-label-sm text-error">{fieldErrors.password}</p>
+                )}
               </div>
 
               <motion.button

@@ -1,12 +1,26 @@
 import { CheckCircle, Copy, Download } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { downloadQR } from '../../lib/api/requests';
 
 export default function SubmissionSuccess() {
   const [copied, setCopied] = useState(false);
+  const [qrUrl, setQrUrl] = useState('');
   const [params] = useSearchParams();
   const token = params.get('token') || 'SKP-20240520-A7B8C';
+
+  useEffect(() => {
+    let url = '';
+    downloadQR(token)
+      .then((blob) => {
+        url = URL.createObjectURL(blob);
+        setQrUrl(url);
+      })
+      .catch(() => setQrUrl(''));
+    return () => {
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [token]);
 
   const copyToken = async () => {
     await navigator.clipboard.writeText(token);
@@ -62,7 +76,13 @@ export default function SubmissionSuccess() {
         </div>
         <div className="mb-8 flex flex-col items-center">
           <div className="mb-4 rounded border border-surface-alt bg-white p-4 shadow-sm">
-            <img src="/assets/logo.webp" alt="QR Code" className="h-48 w-48 object-contain" />
+            {qrUrl ? (
+              <img src={qrUrl} alt="QR Code" className="h-48 w-48 object-contain" />
+            ) : (
+              <div className="flex h-48 w-48 items-center justify-center text-label-sm text-on-surface-variant">
+                Memuat QR Code...
+              </div>
+            )}
           </div>
           <p className="font-body-md max-w-sm text-body-md text-on-surface-variant">
             Please save your token and QR code to check your visit status later at the security
