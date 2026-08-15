@@ -78,7 +78,7 @@ export default function StatusSection() {
               custom={2}
               className="font-body-md mb-8 max-w-md text-body-md leading-relaxed text-on-surface-variant"
             >
-              Masukkan token 16 digit yang Anda terima setelah mengajukan permohonan. Sistem kami
+              Masukkan token 18 digit yang Anda terima setelah mengajukan permohonan. Sistem kami
               akan menampilkan status terkini secara real-time.
             </motion.p>
 
