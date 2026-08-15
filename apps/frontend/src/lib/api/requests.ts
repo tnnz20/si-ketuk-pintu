@@ -7,7 +7,9 @@ import type {
   VisitRequest,
 } from '../types/api';
 
-export async function createVisitRequest(request: CreateVisitRequestData): Promise<{ token: string; message: string }> {
+export async function createVisitRequest(
+  request: CreateVisitRequestData,
+): Promise<{ token: string; message: string }> {
   const form = new FormData();
   const entries: [string, string | Blob][] = [
     ['email', request.email],
@@ -27,7 +29,11 @@ export async function createVisitRequest(request: CreateVisitRequestData): Promi
   return api('/public/requests', { method: 'POST', body: form });
 }
 
-export async function getRequests(page = 1, pageSize = 20, filters?: { search?: string; status?: string; date?: string }): Promise<PaginatedRequestsResponse> {
+export async function getRequests(
+  page = 1,
+  pageSize = 20,
+  filters?: { search?: string; status?: string; date?: string },
+): Promise<PaginatedRequestsResponse> {
   const params = new URLSearchParams({ page: page.toString(), page_size: pageSize.toString() });
   if (filters?.search) params.append('search', filters.search);
   if (filters?.status) params.append('status', filters.status);
@@ -51,7 +57,10 @@ export function getRequestByToken(token: string): Promise<VisitRequest> {
   return api(`/public/requests/${token}`);
 }
 
-export function updateStatus(id: string, status: 'pending' | 'approved' | 'rejected'): Promise<{ message: string }> {
+export function updateStatus(
+  id: string,
+  status: 'pending' | 'approved' | 'rejected',
+): Promise<{ message: string }> {
   return api(`/admin/requests/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
 }
 
@@ -59,6 +68,9 @@ export function downloadQR(token: string): Promise<Blob> {
   return api(`/public/requests/${token}/qr`);
 }
 
-export function downloadAttachment(id: string, type: 'surat_kunjungan' | 'surat_tugas'): Promise<Blob> {
+export function downloadAttachment(
+  id: string,
+  type: 'surat_kunjungan' | 'surat_tugas',
+): Promise<Blob> {
   return api(`/admin/requests/${id}/attachments/${type}`);
 }

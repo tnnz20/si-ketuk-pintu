@@ -7,13 +7,18 @@ export default function Sidebar() {
   return (
     <aside className="flex h-screen w-64 shrink-0 flex-col border-r border-outline-variant bg-surface">
       <div className="flex items-center gap-3 border-b border-outline-variant p-6">
-        <div className="h-10 w-10 rounded-full bg-cover bg-center" style={{ backgroundImage: "url('/assets/logo.webp')" }} />
+        <div
+          className="h-10 w-10 rounded-full bg-cover bg-center"
+          style={{ backgroundImage: "url('/assets/logo.webp')" }}
+        />
         <div>
-          <span className="font-display text-lg font-bold leading-tight text-primary">Portal Admin</span>
+          <span className="font-display text-lg leading-tight font-bold text-primary">
+            Portal Admin
+          </span>
           <span className="block text-label-sm text-on-surface-variant">Civic Gateway</span>
         </div>
       </div>
-      <nav className="flex-1 px-4 py-6 space-y-2">
+      <nav className="flex-1 space-y-2 px-4 py-6">
         {[
           { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
           { icon: FileText, label: 'Manajemen Permohonan', path: '/dashboard/requests' },
@@ -23,13 +28,18 @@ export default function Sidebar() {
             to={item.path}
             className={`flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors ${pathname === item.path ? 'bg-surface-container font-medium text-primary' : 'text-on-surface-variant hover:bg-surface-container'}`}
           >
-            <span className={pathname === item.path ? 'fill-primary' : ''}>{<item.icon className="h-5 w-5" />}</span>
+            <span className={pathname === item.path ? 'fill-primary' : ''}>
+              {<item.icon className="h-5 w-5" />}
+            </span>
             <span className="text-label-md">{item.label}</span>
           </Link>
         ))}
       </nav>
       <div className="border-t border-outline-variant p-4">
-        <button onClick={() => navigate('/')} className="flex w-full items-center justify-center gap-2 rounded-lg h-10 px-4 bg-primary text-on-primary text-label-md font-bold">
+        <button
+          onClick={() => navigate('/')}
+          className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-label-md font-bold text-on-primary"
+        >
           <LogOut className="h-5 w-5" />
           <span>Log Out</span>
         </button>

@@ -11,7 +11,7 @@ type LayoutProps = {
 
 export default function Layout({ children, showTopBar, showFooter }: LayoutProps) {
   const { pathname } = useLocation();
-  const isAdminRoute = pathname.startsWith('/admin');
+  const isAdminRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/admin');
 
   const displayTopBar = showTopBar ?? !isAdminRoute;
   const displayFooter = showFooter ?? !isAdminRoute;

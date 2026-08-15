@@ -16,27 +16,43 @@ interface RequestTableProps {
 export default function RequestTable({ requests, onRowClick }: RequestTableProps) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left border-collapse">
+      <table className="w-full border-collapse text-left">
         <thead>
           <tr className="bg-surface-container-low">
-            <th className="px-6 py-4 text-on-surface-variant text-label-md font-semibold border-b border-outline-variant">Date</th>
-            <th className="px-6 py-4 text-on-surface-variant text-label-md font-semibold border-b border-outline-variant">ID</th>
-            <th className="px-6 py-4 text-on-surface-variant text-label-md font-semibold border-b border-outline-variant">User</th>
-            <th className="px-6 py-4 text-on-surface-variant text-label-md font-semibold border-b border-outline-variant">Status</th>
-            <th className="px-6 py-4 text-on-surface-variant text-label-md font-semibold border-b border-outline-variant text-right">Actions</th>
+            <th className="border-b border-outline-variant px-6 py-4 text-label-md font-semibold text-on-surface-variant">
+              Date
+            </th>
+            <th className="border-b border-outline-variant px-6 py-4 text-label-md font-semibold text-on-surface-variant">
+              ID
+            </th>
+            <th className="border-b border-outline-variant px-6 py-4 text-label-md font-semibold text-on-surface-variant">
+              User
+            </th>
+            <th className="border-b border-outline-variant px-6 py-4 text-label-md font-semibold text-on-surface-variant">
+              Status
+            </th>
+            <th className="border-b border-outline-variant px-6 py-4 text-right text-label-md font-semibold text-on-surface-variant">
+              Actions
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-outline-variant">
           {requests.map((row) => (
-            <tr key={row.id} onClick={() => onRowClick?.(row.id)} className="hover:bg-surface-bright transition-colors">
-              <td className="px-6 py-4 text-on-surface text-body-md">{row.date}</td>
-              <td className="px-6 py-4 text-on-surface-variant text-body-md font-medium">{row.id}</td>
-              <td className="px-6 py-4 text-on-surface text-body-md">{row.user}</td>
+            <tr
+              key={row.id}
+              onClick={() => onRowClick?.(row.id)}
+              className="transition-colors hover:bg-surface-bright"
+            >
+              <td className="px-6 py-4 text-body-md text-on-surface">{row.date}</td>
+              <td className="px-6 py-4 text-body-md font-medium text-on-surface-variant">
+                {row.id}
+              </td>
+              <td className="px-6 py-4 text-body-md text-on-surface">{row.user}</td>
               <td className="px-6 py-4">
                 <StatusBadge status={row.status} />
               </td>
               <td className="px-6 py-4 text-right">
-                <button className="p-2 hover:bg-surface-container rounded-full transition-colors">
+                <button className="rounded-full p-2 transition-colors hover:bg-surface-container">
                   <MoreHorizontal className="h-5 w-5 text-on-surface-variant" />
                 </button>
               </td>

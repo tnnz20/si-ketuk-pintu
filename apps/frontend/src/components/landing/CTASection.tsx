@@ -11,12 +11,12 @@ export default function CTASection() {
       {/* Animated gradient mesh */}
       <div className="pointer-events-none absolute inset-0">
         <motion.div
-          className="absolute -left-1/4 -top-1/4 h-150 w-150 rounded-full bg-emerald-500/5 blur-3xl"
+          className="absolute -top-1/4 -left-1/4 h-150 w-150 rounded-full bg-emerald-500/5 blur-3xl"
           animate={reduce ? undefined : { scale: [1, 1.2, 1], opacity: [0.05, 0.08, 0.05] }}
           transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
         />
         <motion.div
-          className="absolute -bottom-1/4 -right-1/4 h-150 w-150 rounded-full bg-emerald-500/5 blur-3xl"
+          className="absolute -right-1/4 -bottom-1/4 h-150 w-150 rounded-full bg-emerald-500/5 blur-3xl"
           animate={reduce ? undefined : { scale: [1.2, 1, 1.2], opacity: [0.08, 0.05, 0.08] }}
           transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
         />
@@ -31,7 +31,9 @@ export default function CTASection() {
           className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-4 py-2"
         >
           <ShieldCheck className="h-4 w-4 text-emerald-600" />
-          <span className="font-label text-label-sm text-emerald-700">Layanan Resmi Terpercaya</span>
+          <span className="font-label text-label-sm text-emerald-700">
+            Layanan Resmi Terpercaya
+          </span>
         </motion.div>
 
         <motion.h2
@@ -40,7 +42,7 @@ export default function CTASection() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
           custom={1}
-          className="mb-6 font-display text-headline-lg-mobile leading-tight text-on-surface md:text-[40px] md:leading-[1.15]"
+          className="text-headline-lg-mobile mb-6 font-display leading-tight text-on-surface md:text-[40px] md:leading-[1.15]"
         >
           Siap Mengajukan Kunjungan Anda?
         </motion.h2>
@@ -51,7 +53,7 @@ export default function CTASection() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
           custom={2}
-          className="mx-auto mb-10 max-w-xl font-body-lg text-body-lg leading-relaxed text-on-surface-variant"
+          className="font-body-lg mx-auto mb-10 max-w-xl text-body-lg leading-relaxed text-on-surface-variant"
         >
           Proses pengajuan hanya membutuhkan waktu 5 menit. Dapatkan token kunjungan Anda hari ini.
         </motion.p>

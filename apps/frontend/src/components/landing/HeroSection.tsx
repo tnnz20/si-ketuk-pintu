@@ -23,23 +23,23 @@ export default function HeroSection() {
     <section className="relative min-h-[calc(100dvh-80px)] overflow-hidden border-b border-surface-alt bg-background">
       {/* Animated grain texture */}
       <div className="pointer-events-none absolute inset-0 opacity-[0.03]">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg viewBox=%220 0 256 256%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E')]" />
+        <div className="bg-[url('data:image/svg+xml,%3Csvg viewBox=%220 0 256 256%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E')] absolute inset-0" />
       </div>
 
       {/* Floating geometric shapes */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <motion.div
-          className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-emerald-500/5"
+          className="absolute -top-20 -right-20 h-64 w-64 rounded-full bg-emerald-500/5"
           animate={reduce ? undefined : { y: [0, -20, 0], scale: [1, 1.05, 1] }}
           transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
         />
         <motion.div
-          className="absolute -left-32 top-1/3 h-96 w-96 rounded-full bg-emerald-500/3"
+          className="absolute top-1/3 -left-32 h-96 w-96 rounded-full bg-emerald-500/3"
           animate={reduce ? undefined : { y: [0, 30, 0], scale: [1, 0.95, 1] }}
           transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
         />
         <motion.div
-          className="absolute bottom-20 right-1/4 h-32 w-32 rotate-45 border border-emerald-500/10"
+          className="absolute right-1/4 bottom-20 h-32 w-32 rotate-45 border border-emerald-500/10"
           animate={reduce ? undefined : { rotate: [45, 90, 45], y: [0, -15, 0] }}
           transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
         />
@@ -59,11 +59,13 @@ export default function HeroSection() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
             </span>
-            <span className="font-label text-label-sm text-emerald-700">Portal Resmi Pemerintah</span>
+            <span className="font-label text-label-sm text-emerald-700">
+              Portal Resmi Pemerintah
+            </span>
           </motion.div>
 
           {/* Headline with word stagger */}
-          <h1 className="font-display text-headline-lg-mobile leading-[1.1] tracking-tight text-on-surface md:text-[56px] md:leading-[1.05]">
+          <h1 className="text-headline-lg-mobile font-display leading-[1.1] tracking-tight text-on-surface md:text-[56px] md:leading-[1.05]">
             {headlineWords.map((word, i) => (
               <motion.span
                 key={word}
@@ -95,9 +97,10 @@ export default function HeroSection() {
             initial="hidden"
             animate="visible"
             custom={2}
-            className="mt-6 max-w-lg font-body-lg text-body-lg leading-relaxed text-on-surface-variant"
+            className="font-body-lg mt-6 max-w-lg text-body-lg leading-relaxed text-on-surface-variant"
           >
-            Proses kunjungan resmi yang transparan, aman, dan efisien. Ajukan permohonan, pantau status, dan kunjungi instansi pemerintah dengan mudah.
+            Proses kunjungan resmi yang transparan, aman, dan efisien. Ajukan permohonan, pantau
+            status, dan kunjungi instansi pemerintah dengan mudah.
           </motion.p>
 
           {/* CTAs */}
@@ -153,22 +156,32 @@ export default function HeroSection() {
               <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-5 w-5 text-emerald-600" />
-                  <span className="font-label text-label-sm font-semibold text-emerald-700">Token Kunjungan</span>
+                  <span className="font-label text-label-sm font-semibold text-emerald-700">
+                    Token Kunjungan
+                  </span>
                 </div>
-                <span className="rounded-full bg-emerald-500/10 px-3 py-1 font-label text-label-sm text-emerald-700">Aktif</span>
+                <span className="rounded-full bg-emerald-500/10 px-3 py-1 font-label text-label-sm text-emerald-700">
+                  Aktif
+                </span>
               </div>
 
               {/* Token display */}
               <div className="mb-6 rounded-xl bg-surface-container p-4">
                 <p className="mb-1 font-label text-label-sm text-on-surface-variant">Nomor Token</p>
                 <div className="flex items-center justify-between">
-                  <code className="font-mono text-lg font-semibold tracking-wider text-on-surface">{sampleToken}</code>
+                  <code className="font-mono text-lg font-semibold tracking-wider text-on-surface">
+                    {sampleToken}
+                  </code>
                   <button
                     onClick={copyToken}
                     className="rounded-lg p-2 text-on-surface-variant transition-colors hover:bg-emerald-500/10 hover:text-emerald-600"
                     aria-label="Salin token"
                   >
-                    {copied ? <CheckCircle2 className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                    {copied ? (
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -177,22 +190,30 @@ export default function HeroSection() {
               <div className="space-y-3">
                 <div className="flex justify-between border-b border-surface-alt pb-2">
                   <span className="font-label text-label-sm text-on-surface-variant">Instansi</span>
-                  <span className="font-label text-label-sm font-medium text-on-surface">Dinas Komunikasi</span>
+                  <span className="font-label text-label-sm font-medium text-on-surface">
+                    Dinas Komunikasi
+                  </span>
                 </div>
                 <div className="flex justify-between border-b border-surface-alt pb-2">
                   <span className="font-label text-label-sm text-on-surface-variant">Tanggal</span>
-                  <span className="font-label text-label-sm font-medium text-on-surface">15 Agustus 2026</span>
+                  <span className="font-label text-label-sm font-medium text-on-surface">
+                    15 Agustus 2026
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="font-label text-label-sm text-on-surface-variant">Waktu</span>
-                  <span className="font-label text-label-sm font-medium text-on-surface">09:00 - 11:00 WIB</span>
+                  <span className="font-label text-label-sm font-medium text-on-surface">
+                    09:00 - 11:00 WIB
+                  </span>
                 </div>
               </div>
 
               {/* Footer */}
               <div className="mt-6 flex items-center gap-2 rounded-lg bg-emerald-500/5 p-3">
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-                <p className="font-label text-label-sm text-emerald-700">Tunjukkan token ini di resepsionis</p>
+                <p className="font-label text-label-sm text-emerald-700">
+                  Tunjukkan token ini di resepsionis
+                </p>
               </div>
             </div>
           </motion.div>

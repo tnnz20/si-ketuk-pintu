@@ -34,11 +34,14 @@ export default function StatusSection() {
   };
 
   return (
-    <section id="status" className="relative overflow-hidden bg-surface px-margin-mobile py-24 md:px-margin-desktop">
+    <section
+      id="status"
+      className="relative overflow-hidden bg-surface px-margin-mobile py-24 md:px-margin-desktop"
+    >
       {/* Background decoration */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-40 top-1/2 h-80 w-80 -translate-y-1/2 rounded-full bg-emerald-500/3 blur-3xl" />
-        <div className="absolute -right-40 top-1/2 h-80 w-80 -translate-y-1/2 rounded-full bg-emerald-500/3 blur-3xl" />
+        <div className="absolute top-1/2 -left-40 h-80 w-80 -translate-y-1/2 rounded-full bg-emerald-500/3 blur-3xl" />
+        <div className="absolute top-1/2 -right-40 h-80 w-80 -translate-y-1/2 rounded-full bg-emerald-500/3 blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-container-max">
@@ -51,27 +54,50 @@ export default function StatusSection() {
         >
           {/* Left: Context */}
           <div className="flex flex-col justify-center">
-            <motion.div variants={reduce ? undefined : fadeInUp} custom={0} className="mb-4 flex items-center gap-2">
+            <motion.div
+              variants={reduce ? undefined : fadeInUp}
+              custom={0}
+              className="mb-4 flex items-center gap-2"
+            >
               <div className="h-px w-8 bg-emerald-500" />
-              <span className="font-label text-label-sm font-semibold uppercase tracking-wider text-emerald-600">Lacak Permohonan</span>
+              <span className="font-label text-label-sm font-semibold tracking-wider text-emerald-600 uppercase">
+                Lacak Permohonan
+              </span>
             </motion.div>
 
-            <motion.h2 variants={reduce ? undefined : fadeInUp} custom={1} className="mb-4 font-display text-headline-lg-mobile leading-tight text-on-surface md:text-headline-lg">
+            <motion.h2
+              variants={reduce ? undefined : fadeInUp}
+              custom={1}
+              className="text-headline-lg-mobile mb-4 font-display leading-tight text-on-surface md:text-headline-lg"
+            >
               Pantau Status Kunjungan Anda
             </motion.h2>
 
-            <motion.p variants={reduce ? undefined : fadeInUp} custom={2} className="mb-8 max-w-md font-body-md text-body-md leading-relaxed text-on-surface-variant">
-              Masukkan token 12 digit yang Anda terima setelah mengajukan permohonan. Sistem kami akan menampilkan status terkini secara real-time.
+            <motion.p
+              variants={reduce ? undefined : fadeInUp}
+              custom={2}
+              className="font-body-md mb-8 max-w-md text-body-md leading-relaxed text-on-surface-variant"
+            >
+              Masukkan token 12 digit yang Anda terima setelah mengajukan permohonan. Sistem kami
+              akan menampilkan status terkini secara real-time.
             </motion.p>
 
-            <motion.div variants={reduce ? undefined : fadeInUp} custom={3} className="flex flex-col gap-4">
+            <motion.div
+              variants={reduce ? undefined : fadeInUp}
+              custom={3}
+              className="flex flex-col gap-4"
+            >
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10">
                   <Shield className="h-5 w-5 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="font-label text-label-sm font-medium text-on-surface">Data Terenkripsi</p>
-                  <p className="font-label text-label-sm text-on-surface-variant">Informasi Anda aman dan terlindungi</p>
+                  <p className="font-label text-label-sm font-medium text-on-surface">
+                    Data Terenkripsi
+                  </p>
+                  <p className="font-label text-label-sm text-on-surface-variant">
+                    Informasi Anda aman dan terlindungi
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -79,8 +105,12 @@ export default function StatusSection() {
                   <TrendingUp className="h-5 w-5 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="font-label text-label-sm font-medium text-on-surface">Update Real-Time</p>
-                  <p className="font-label text-label-sm text-on-surface-variant">Status diperbarui secara langsung</p>
+                  <p className="font-label text-label-sm font-medium text-on-surface">
+                    Update Real-Time
+                  </p>
+                  <p className="font-label text-label-sm text-on-surface-variant">
+                    Status diperbarui secara langsung
+                  </p>
                 </div>
               </div>
             </motion.div>
@@ -99,18 +129,25 @@ export default function StatusSection() {
                     <Search className="h-6 w-6 text-emerald-600" />
                   </div>
                   <div>
-                    <h3 className="font-headline-md text-headline-md text-on-surface">Cek Status</h3>
-                    <p className="font-label text-label-sm text-on-surface-variant">Masukkan token kunjungan Anda</p>
+                    <h3 className="font-headline-md text-headline-md text-on-surface">
+                      Cek Status
+                    </h3>
+                    <p className="font-label text-label-sm text-on-surface-variant">
+                      Masukkan token kunjungan Anda
+                    </p>
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <label htmlFor="token-search" className="mb-2 block font-label text-label-sm font-medium text-on-surface">
+                    <label
+                      htmlFor="token-search"
+                      className="mb-2 block font-label text-label-sm font-medium text-on-surface"
+                    >
                       Token Kunjungan
                     </label>
                     <div className="relative">
-                      <FileText className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-variant" />
+                      <FileText className="absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-on-surface-variant" />
                       <input
                         id="token-search"
                         type="text"
@@ -118,10 +155,12 @@ export default function StatusSection() {
                         value={token}
                         onChange={handleTokenChange}
                         maxLength={16}
-                        className="w-full rounded-xl border border-outline-variant bg-surface py-4 pl-12 pr-20 font-mono text-body-md tracking-wider transition-all placeholder:text-on-surface-variant/50 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                        className="w-full rounded-xl border border-outline-variant bg-surface py-4 pr-20 pl-12 font-mono text-body-md tracking-wider transition-all placeholder:text-on-surface-variant/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
                       />
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                        <span className={`font-mono text-label-sm ${charCount >= 12 ? 'text-emerald-600' : 'text-on-surface-variant/50'}`}>
+                      <div className="absolute top-1/2 right-4 -translate-y-1/2">
+                        <span
+                          className={`font-mono text-label-sm ${charCount >= 12 ? 'text-emerald-600' : 'text-on-surface-variant/50'}`}
+                        >
                           {charCount}/12+
                         </span>
                       </div>
@@ -154,7 +193,9 @@ export default function StatusSection() {
 
                 {/* Example token hint */}
                 <div className="mt-6 rounded-xl bg-emerald-500/5 p-4">
-                  <p className="mb-2 font-label text-label-sm font-medium text-emerald-700">Contoh Token:</p>
+                  <p className="mb-2 font-label text-label-sm font-medium text-emerald-700">
+                    Contoh Token:
+                  </p>
                   <button
                     onClick={() => setToken('SKP-2026-0812-XY7K')}
                     className="font-mono text-body-md text-emerald-600 underline decoration-emerald-600/30 underline-offset-2 transition-colors hover:decoration-emerald-600"

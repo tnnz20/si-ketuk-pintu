@@ -8,7 +8,9 @@ const statusColors = {
 
 export default function StatusBadge({ status }: { status: Status }) {
   return (
-    <span className={`inline-flex px-3 py-1 rounded-full font-label-md text-label-md font-bold ${statusColors[status]}`}>
+    <span
+      className={`font-label-md inline-flex rounded-full px-3 py-1 text-label-md font-bold ${statusColors[status]}`}
+    >
       {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
   );

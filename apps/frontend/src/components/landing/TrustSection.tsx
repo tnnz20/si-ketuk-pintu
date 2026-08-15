@@ -77,13 +77,19 @@ export default function TrustSection() {
                 <div className="font-display text-3xl font-bold text-on-surface md:text-4xl">
                   <AnimatedCounter target={stat.value} suffix={stat.suffix} />
                 </div>
-                <p className="mt-1 font-label text-label-sm text-on-surface-variant">{stat.label}</p>
+                <p className="mt-1 font-label text-label-sm text-on-surface-variant">
+                  {stat.label}
+                </p>
               </motion.div>
             ))}
           </div>
 
           {/* Institutions marquee */}
-          <motion.div variants={reduce ? undefined : fadeInUp} custom={2} className="relative overflow-hidden">
+          <motion.div
+            variants={reduce ? undefined : fadeInUp}
+            custom={2}
+            className="relative overflow-hidden"
+          >
             <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-linear-to-r from-background to-transparent" />
             <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-linear-to-l from-background to-transparent" />
 
@@ -99,7 +105,9 @@ export default function TrustSection() {
                     className="flex shrink-0 items-center gap-3 rounded-xl border border-surface-alt bg-surface-container-lowest px-6 py-4"
                   >
                     <Building2 className="h-5 w-5 text-emerald-600" />
-                    <span className="whitespace-nowrap font-label text-label-sm font-medium text-on-surface">{name}</span>
+                    <span className="font-label text-label-sm font-medium whitespace-nowrap text-on-surface">
+                      {name}
+                    </span>
                   </div>
                 ))}
               </motion.div>

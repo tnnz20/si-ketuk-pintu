@@ -84,10 +84,22 @@
 }
 
 @layer base {
-  * { @apply border-outline-variant; }
-  html { scroll-behavior: smooth; }
-  body { @apply bg-background text-on-background font-body antialiased; }
-  button, a, input, textarea, select { @apply focus-visible:outline-2 focus-visible:outline-primary focus-visible:outline-offset-2; }
+  * {
+    @apply border-outline-variant;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background font-body text-on-background antialiased;
+  }
+  button,
+  a,
+  input,
+  textarea,
+  select {
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
+  }
 
   /* Custom selection color - emerald tint */
   ::selection {
