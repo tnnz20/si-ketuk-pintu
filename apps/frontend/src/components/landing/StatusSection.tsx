@@ -197,6 +197,7 @@ export default function StatusSection() {
                     Contoh Token:
                   </p>
                   <button
+                    type="button"
                     onClick={() => setToken('SKP-2026-0812-XY7K')}
                     className="font-mono text-body-md text-emerald-600 underline decoration-emerald-600/30 underline-offset-2 transition-colors hover:decoration-emerald-600"
                   >

@@ -62,6 +62,7 @@ export default function SubmissionSuccess() {
               {token}
             </span>
             <button
+              type="button"
               onClick={copyToken}
               className="text-on-surface-variant hover:text-primary"
               aria-label="Copy Token"
@@ -91,6 +92,7 @@ export default function SubmissionSuccess() {
         </div>
         <div className="flex flex-col justify-center gap-4 sm:flex-row">
           <button
+            type="button"
             onClick={downloadQr}
             className="font-label-md hover:bg-opacity-90 flex items-center justify-center gap-2 rounded bg-primary px-6 py-3 text-label-md text-on-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none"
           >

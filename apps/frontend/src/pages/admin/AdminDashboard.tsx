@@ -65,6 +65,7 @@ export default function AdminDashboard() {
         />
         <div className="flex justify-center p-4">
           <button
+            type="button"
             onClick={() => navigate('/dashboard/requests')}
             className="flex items-center gap-2 text-label-md font-bold text-primary"
           >

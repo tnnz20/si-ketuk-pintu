@@ -79,6 +79,7 @@ export default function RequestTable({ requests, onViewDetail }: RequestTablePro
             style={{ left: menu.left, top: menu.top }}
           >
             <button
+              type="button"
               className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-surface"
               onClick={() => {
                 setMenu(undefined);

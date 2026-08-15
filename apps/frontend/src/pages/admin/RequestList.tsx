@@ -239,6 +239,7 @@ export default function RequestList() {
             style={{ left: menu.left, top: menu.top }}
           >
             <button
+              type="button"
               className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-surface"
               onClick={() => {
                 setMenu(undefined);
@@ -248,12 +249,14 @@ export default function RequestList() {
               Lihat Detail
             </button>
             <button
+              type="button"
               className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-surface"
               onClick={() => void copyToken(menu.row)}
             >
               <Copy className="h-4 w-4" /> Copy Token
             </button>
             <button
+              type="button"
               className="flex w-full items-center gap-2 px-3 py-2 text-left text-error hover:bg-surface"
               onClick={() => {
                 setConfirmDelete(menu.row);
