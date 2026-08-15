@@ -1,0 +1,46 @@
+name: Deploy Backend
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build image with Buildah (Podman)
+        id: build-image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: backend
+          tags: latest ${{ github.sha }}
+          containerfiles: apps/backend/Dockerfile
+          context: apps/backend
+
+      - name: Push to GitHub Container Registry
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build-image.outputs.image }}
+          tags: ${{ steps.build-image.outputs.tags }}
+          registry: ghcr.io/${{ github.repository }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy and clean up old images
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}
+            IMG=ghcr.io/${{ github.repository }}/backend:latest
+            BACKEND_IMAGE=$IMG docker compose pull backend
+            BACKEND_IMAGE=$IMG docker compose up -d backend
+            docker image prune -f
