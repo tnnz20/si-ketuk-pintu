@@ -74,3 +74,10 @@ export function downloadAttachment(
 ): Promise<Blob> {
   return api(`/admin/requests/${id}/attachments/${type}`);
 }
+
+export function downloadAttachmentByToken(
+  token: string,
+  type: 'surat_kunjungan' | 'surat_tugas',
+): Promise<Blob> {
+  return api(`/public/requests/${token}/attachments/${type}`);
+}

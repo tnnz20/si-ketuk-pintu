@@ -1,8 +1,9 @@
-import { Clock, FileText, HelpCircle, Info, Search, Users } from 'lucide-react';
+import { Clock, Eye, FileText, HelpCircle, Info, Search, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { getRequestByToken } from '../../lib/api/requests';
-import type { VisitRequest } from '../../lib/types/api';
+import { toast } from 'sonner';
+import { downloadAttachmentByToken, getRequestByToken } from '../../lib/api/requests';
+import type { Attachment, VisitRequest } from '../../lib/types/api';
 
 export default function RequestStatus() {
   const { token } = useParams();
@@ -28,6 +29,16 @@ export default function RequestStatus() {
     surat_kunjungan: 'Visit Letter',
     surat_tugas: 'Assignment Letter',
   };
+
+  async function preview(doc: Attachment) {
+    if (!token) return;
+    try {
+      const blob = await downloadAttachmentByToken(token, doc.attachment_type);
+      window.open(URL.createObjectURL(blob), '_blank', 'noopener,noreferrer');
+    } catch {
+      toast.error('Failed to open document.');
+    }
+  }
 
   if (loading)
     return <div className="py-16 text-center text-on-surface-variant">Loading request...</div>;
@@ -171,19 +182,27 @@ export default function RequestStatus() {
             </h3>
             <ul className="mt-4 space-y-4">
               {request.attachments.map((doc, idx) => (
-                <li
-                  key={idx}
-                  className="group rounded-lg border border-surface-alt p-3 transition-colors hover:bg-surface-container"
-                >
-                  <span className="font-label-md mb-1 block text-xs font-medium tracking-wider text-on-surface-variant uppercase">
-                    {attachmentLabels[doc.attachment_type] || doc.attachment_type}
-                  </span>
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
-                    <span className="font-body-md truncate text-body-md text-on-surface">
-                      {doc.original_name}
+                <li key={idx}>
+                  <button
+                    type="button"
+                    onClick={() => preview(doc)}
+                    title="Click to preview in new tab"
+                    className="group w-full rounded-lg border border-surface-alt p-3 text-left transition-colors hover:bg-surface-container"
+                  >
+                    <span className="font-label-md mb-1 block text-xs font-medium tracking-wider text-on-surface-variant uppercase">
+                      {attachmentLabels[doc.attachment_type] || doc.attachment_type}
                     </span>
-                  </div>
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+                      <span className="font-body-md min-w-0 flex-1 truncate text-body-md text-on-surface">
+                        {doc.original_name}
+                      </span>
+                      <Eye
+                        className="h-4 w-4 shrink-0 text-on-surface-variant group-hover:text-primary"
+                        aria-hidden="true"
+                      />
+                    </div>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -197,7 +216,10 @@ export default function RequestStatus() {
               Modifications are not possible while the request is pending. If you need urgent
               changes, please contact support.
             </p>
-            <button className="font-label-md w-full rounded border border-outline px-4 py-2 text-label-md text-on-surface hover:bg-surface-container">
+            <button
+              type="button"
+              className="font-label-md w-full rounded border border-outline px-4 py-2 text-label-md text-on-surface hover:bg-surface-container"
+            >
               Contact Support
             </button>
           </section>
