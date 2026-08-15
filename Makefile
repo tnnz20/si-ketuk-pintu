@@ -6,12 +6,14 @@ MIGRATE_VERSION := v4.19.1
 MIGRATE_CLI := go run -tags postgres github.com/golang-migrate/migrate/v4/cmd/migrate@$(MIGRATE_VERSION)
 
 .DEFAULT_GOAL := help
-.PHONY: help check-env compose-up compose-down compose-logs run frontend-install frontend-dev frontend-build frontend-lint frontend-format-check frontend-preview build test test-unit test-migrations migrate-up migrate-down migrate-version migrate-create seed-admin
+.PHONY: help check-env compose-up compose-down compose-stop compose-down-v compose-logs run frontend-install frontend-dev frontend-build frontend-lint frontend-format-check frontend-prettier frontend-preview build test test-unit test-migrations migrate-up migrate-down migrate-version migrate-create seed-admin
 
 help:
 	@echo "Backend:"
 	@echo "  compose-up           Start PostgreSQL"
 	@echo "  compose-down         Stop PostgreSQL"
+	@echo "  compose-stop         Stop Compose containers"
+	@echo "  compose-down-v       Stop and remove containers and volumes"
 	@echo "  compose-logs         Follow PostgreSQL logs"
 	@echo "  run                  Start backend on http://localhost:8080"
 	@echo "  build                Build backend"
@@ -30,6 +32,7 @@ help:
 	@echo "  frontend-build       Build frontend"
 	@echo "  frontend-lint        Run ESLint"
 	@echo "  frontend-format-check Check code format"
+	@echo "  frontend-prettier    Format frontend files"
 	@echo "  frontend-preview     Preview production build"
 
 check-env:
@@ -40,6 +43,12 @@ compose-up: check-env
 
 compose-down: check-env
 	$(COMPOSE) down
+
+compose-stop: check-env
+	$(COMPOSE) stop
+
+compose-down-v: check-env
+	$(COMPOSE) down -v
 
 compose-logs: check-env
 	$(COMPOSE) logs -f postgres
@@ -64,6 +73,9 @@ frontend-lint:
 
 frontend-format-check:
 	npm --prefix $(FRONTEND_DIR) run format:check
+
+frontend-prettier:
+	npm --prefix $(FRONTEND_DIR) run prettier
 
 frontend-preview:
 	npm --prefix $(FRONTEND_DIR) run preview
