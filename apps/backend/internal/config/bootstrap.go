@@ -67,6 +67,7 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 		qrUsecase,
 		logger,
 		applicationConfig.TimeZone,
+		applicationConfig.UploadDir,
 	)
 	adminAuthController := controllers.NewAdminAuthController(authUsecase, logger)
 	adminRequestController := controllers.NewAdminRequestController(

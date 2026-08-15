@@ -43,6 +43,7 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 		requests := public.Group("/requests")
 		requests.POST("", deps.VisitRequestController.Create)
 		requests.GET("/:token", deps.RateLimiter.Middleware(), deps.VisitRequestController.FindByToken)
+		requests.GET("/:token/attachments/:type", deps.RateLimiter.Middleware(), deps.VisitRequestController.DownloadAttachment)
 		requests.GET("/:token/qr", deps.RateLimiter.Middleware(), deps.VisitRequestController.DownloadQR)
 	}
 

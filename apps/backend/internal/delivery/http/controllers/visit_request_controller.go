@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -21,6 +23,7 @@ type VisitRequestController struct {
 	qrUsecase           *usecase.QRUsecase
 	logger              *logrus.Logger
 	timeZone            *time.Location
+	uploadDir           string
 }
 
 func NewVisitRequestController(
@@ -28,12 +31,14 @@ func NewVisitRequestController(
 	qrUsecase *usecase.QRUsecase,
 	logger *logrus.Logger,
 	timeZone *time.Location,
+	uploadDir string,
 ) *VisitRequestController {
 	return &VisitRequestController{
 		visitRequestUsecase: visitRequestUsecase,
 		qrUsecase:           qrUsecase,
 		logger:              logger,
 		timeZone:            timeZone,
+		uploadDir:           uploadDir,
 	}
 }
 
@@ -159,6 +164,47 @@ func (c *VisitRequestController) FindByToken(ginContext *gin.Context) {
 	}
 
 	ginContext.JSON(http.StatusOK, toVisitRequestResponse(visitRequest))
+}
+
+func (c *VisitRequestController) DownloadAttachment(ginContext *gin.Context) {
+	token := ginContext.Param("token")
+	attachmentType := ginContext.Param("type")
+	if attachmentType != "surat_kunjungan" && attachmentType != "surat_tugas" {
+		c.logger.WithField("attachmentType", attachmentType).Warn("invalid attachment type")
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "attachment type must be surat_kunjungan or surat_tugas"})
+		return
+	}
+
+	visitRequest, err := c.visitRequestUsecase.FindByToken(ginContext.Request.Context(), token)
+	if err != nil {
+		if errors.Is(err, repository.ErrVisitRequestNotFound) {
+			c.logger.WithField("token", token).Warn("visit request not found for attachment download")
+			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})
+			return
+		}
+		c.logger.WithError(err).Error("failed to find visit request for attachment download")
+		_ = ginContext.Error(err)
+		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
+		return
+	}
+
+	for _, attachment := range visitRequest.Attachments {
+		if attachment.AttachmentType == attachmentType {
+			filePath := filepath.Join(c.uploadDir, attachment.StorageKey)
+			if _, err := os.Stat(filePath); err != nil {
+				c.logger.WithError(err).Warn("attachment file not found on disk")
+				ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "file not found"})
+				return
+			}
+
+			ginContext.Header("Content-Disposition", fmt.Sprintf("inline; filename=%s", attachment.OriginalName))
+			ginContext.File(filePath)
+			return
+		}
+	}
+
+	c.logger.WithField("attachmentType", attachmentType).Warn("attachment not found in database record")
+	ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "attachment not found"})
 }
 
 func (c *VisitRequestController) DownloadQR(ginContext *gin.Context) {
