@@ -78,7 +78,7 @@ export default function StatusSection() {
               custom={2}
               className="font-body-md mb-8 max-w-md text-body-md leading-relaxed text-on-surface-variant"
             >
-              Masukkan token 12 digit yang Anda terima setelah mengajukan permohonan. Sistem kami
+              Masukkan token 16 digit yang Anda terima setelah mengajukan permohonan. Sistem kami
               akan menampilkan status terkini secara real-time.
             </motion.p>
 
@@ -154,19 +154,19 @@ export default function StatusSection() {
                         placeholder="SKP-2026-XXXX-XXXX"
                         value={token}
                         onChange={handleTokenChange}
-                        maxLength={16}
+                        maxLength={18}
                         className="w-full rounded-xl border border-outline-variant bg-surface py-4 pr-20 pl-12 font-mono text-body-md tracking-wider transition-all placeholder:text-on-surface-variant/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
                       />
                       <div className="absolute top-1/2 right-4 -translate-y-1/2">
                         <span
-                          className={`font-mono text-label-sm ${charCount >= 12 ? 'text-emerald-600' : 'text-on-surface-variant/50'}`}
+                          className={`font-mono text-label-sm ${charCount >= 18 ? 'text-emerald-600' : 'text-on-surface-variant/50'}`}
                         >
-                          {charCount}/12+
+                          {charCount}/18
                         </span>
                       </div>
                     </div>
                     <p className="mt-2 font-label text-label-sm text-on-surface-variant">
-                      Format: SKP-YYYY-XXXX-XXXX (12 digit)
+                      Format: SKP-YYYY-XXXX-XXXX (18 digit)
                     </p>
                   </div>
 
