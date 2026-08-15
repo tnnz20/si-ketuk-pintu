@@ -20,13 +20,17 @@ The backend reads environment variables and optionally loads `apps/backend/.env`
 
 `VITE_API_URL` defaults to `http://localhost:8080` for local backend access. The backend example CORS configuration already allows Vite's local origin.
 
-Use `make frontend-lint`, `make frontend-format-check`, and `make frontend-build` before deployment. `apps/frontend/nginx.conf` serves the generated single-page application from `/usr/share/nginx/html`.
+The frontend provides a public submission flow (multi-step visitor request form with per-step validation, status lookup by token, and QR preview), an admin area (login, dashboard with latest requests, paginated request management, QR scanner), and route-protected screens. Zod schemas live in `apps/frontend/src/schemas/`.
+
+Use `make frontend-lint`, `make frontend-prettier`, and `make frontend-build` before deployment. `apps/frontend/nginx.conf` serves the generated single-page application from `/usr/share/nginx/html`.
 
 ## Commands
 
 Run `make help` for all available commands. The most common are:
 
 - `make compose-up` / `make compose-down` — manage PostgreSQL.
+- `make compose-stop` — stop Compose containers without removing them.
+- `make compose-down-v` — stop and remove Compose containers and their volumes.
 - `make migrate-up` / `make migrate-down` / `make migrate-version` — manage schema migrations.
 - `make migrate-create name=add_feature` — create paired sequential SQL migrations.
 - `make seed-admin` — create the first Administrator; it never overwrites an existing account.
@@ -36,6 +40,7 @@ Run `make help` for all available commands. The most common are:
 - `make frontend-build` — build frontend for production.
 - `make frontend-lint` — run frontend ESLint.
 - `make frontend-format-check` — check frontend formatting.
+- `make frontend-prettier` — format frontend source with Prettier.
 - `make frontend-preview` — preview frontend production build.
 
 `apps/backend/db/migrations` is the database source of truth. GORM is used for database access only and does not run automatic schema migrations.

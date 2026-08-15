@@ -204,9 +204,39 @@ Content-Disposition: attachment; filename={token}.png
 
 ---
 
+### 6. Preview Attachment by Token
+Preview an uploaded attachment for a visitor request (public, no auth).
+
+**Endpoint:** `GET /public/requests/:token/attachments/:type`
+
+**Rate Limited:** Yes (10 requests per second)
+
+**Path Parameters:**
+- `token` (string): Visit request token
+- `type` (string): Attachment type (`surat_kunjungan` or `surat_tugas`)
+
+**Response:** File (PDF)
+
+**Headers:**
+```
+Content-Disposition: inline; filename={original_filename}
+Content-Type: application/pdf
+```
+
+**Status Code:** `200 OK`
+
+**Error Responses:**
+| Status | Error |
+|--------|-------|
+| `400 Bad Request` | Invalid attachment type |
+| `404 Not Found` | Token or attachment not found |
+| `500 Internal Server Error` | Server error |
+
+---
+
 ## Admin Endpoints
 
-### 6. Admin Login
+### 7. Admin Login
 Authenticate as administrator.
 
 **Endpoint:** `POST /admin/auth/login`
@@ -239,7 +269,7 @@ Authenticate as administrator.
 
 ---
 
-### 7. List Visit Requests
+### 8. List Visit Requests
 Retrieve paginated list of visitor requests (admin only).
 
 **Endpoint:** `GET /admin/requests`
@@ -297,7 +327,7 @@ Retrieve paginated list of visitor requests (admin only).
 
 ---
 
-### 8. Get Visit Request Details
+### 9. Get Visit Request Details
 Retrieve detailed information about a specific visitor request (admin only).
 
 **Endpoint:** `GET /admin/requests/:id`
@@ -379,7 +409,7 @@ Retrieve detailed information about a specific visitor request (admin only).
 
 ---
 
-### 9. Update Visit Request Status
+### 10. Update Visit Request Status
 Update the status of a visitor request (admin only).
 
 **Endpoint:** `PATCH /admin/requests/:id/status`
@@ -420,7 +450,7 @@ Update the status of a visitor request (admin only).
 
 ---
 
-### 10. Download Attachment
+### 11. Download Attachment
 Download a specific attachment file (admin only).
 
 **Endpoint:** `GET /admin/requests/:id/attachments/:type`
@@ -432,6 +462,8 @@ Download a specific attachment file (admin only).
 - `type` (string): Attachment type (`surat_kunjungan` or `surat_tugas`)
 
 **Response:** File (PDF)
+
+> Used for browser preview in the admin dashboard; the same endpoint returns the file binary and the frontend opens it in a new tab via `URL.createObjectURL`.
 
 **Headers:**
 ```
@@ -486,7 +518,7 @@ By default, the following origins are allowed:
 - `http://localhost:3000`
 - `http://localhost:5173`
 
-**Allowed Methods:** `GET`, `POST`, `PATCH`, `OPTIONS`
+**Allowed Methods:** `GET`, `POST`, `PATCH`, `DELETE`, `OPTIONS`
 
 **Allowed Headers:** `Origin`, `Content-Type`, `Authorization`
 
@@ -496,6 +528,7 @@ By default, the following origins are allowed:
 
 Public endpoints with rate limiting:
 - `GET /public/requests/:token` - 10 requests per second
+- `GET /public/requests/:token/attachments/:type` - 10 requests per second
 - `GET /public/requests/:token/qr` - 10 requests per second
 
 Rate limit exceeded responses: `429 Too Many Requests`
