@@ -4,7 +4,7 @@
 apps/backend/.bin/
 apps/backend/bin/
 apps/backend/var/uploads/
-
+apps/backend/test/integration/var/
 
 apps/frontend/node_modules/
 apps/frontend/dist/
