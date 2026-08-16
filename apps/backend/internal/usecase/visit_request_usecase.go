@@ -297,6 +297,10 @@ func (u *VisitRequestUsecase) savePDF(
 	checksumHex := hex.EncodeToString(checksum[:])
 
 	filename := fmt.Sprintf("%s_%d.pdf", attachmentType, time.Now().UnixNano())
+	if err := os.MkdirAll(u.uploadDir, 0o750); err != nil {
+		u.logger.WithError(err).Error("failed to ensure upload directory exists")
+		return nil, fmt.Errorf("create upload directory %s: %w", u.uploadDir, err)
+	}
 	fullPath := filepath.Join(u.uploadDir, filename)
 	storageKey := filename
 	if err := os.WriteFile(fullPath, content, 0o640); err != nil {
