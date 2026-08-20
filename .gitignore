@@ -9,3 +9,5 @@ apps/frontend/node_modules/
 apps/frontend/dist/
 
 docs/*
+
+.playwright-mcp
