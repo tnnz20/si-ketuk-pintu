@@ -39,7 +39,7 @@ export default function SubmissionSuccess() {
   };
 
   return (
-    <div className="flex flex-grow flex-col items-center justify-center px-margin-mobile py-16 md:px-margin-desktop md:py-24">
+    <div className="flex grow flex-col items-center justify-center px-margin-mobile py-16 md:px-margin-desktop md:py-24">
       <div className="w-full max-w-2xl rounded-xl border border-surface-alt bg-surface-container-lowest p-8 text-center md:p-12">
         <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-secondary-container text-on-secondary-container">
           <CheckCircle className="h-10 w-10" />
@@ -94,7 +94,7 @@ export default function SubmissionSuccess() {
           <button
             type="button"
             onClick={downloadQr}
-            className="font-label-md hover:bg-opacity-90 flex items-center justify-center gap-2 rounded bg-primary px-6 py-3 text-label-md text-on-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none"
+            className="font-label-md flex items-center justify-center gap-2 rounded bg-primary px-6 py-3 text-label-md text-on-primary hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none"
           >
             <Download className="h-4 w-4" /> Download QR Code (PNG)
           </button>
