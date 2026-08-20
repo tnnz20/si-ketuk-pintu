@@ -5,7 +5,7 @@ import type {
   RequestDetailResponse,
   StatsResponse,
   VisitRequest,
-} from '../types/api';
+} from '@app-types/api';
 
 export async function createVisitRequest(
   request: CreateVisitRequestData,

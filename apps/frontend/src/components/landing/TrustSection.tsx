@@ -1,7 +1,7 @@
 import { motion, useReducedMotion, useInView } from 'motion/react';
 import { Building2, Users, Clock, CheckCircle2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { fadeInUp, staggerContainer } from './animations';
+import { fadeInUp, staggerContainer } from '@constants/animations';
 
 function AnimatedCounter({ target, suffix = '' }: { target: number; suffix?: string }) {
   const [count, setCount] = useState(0);

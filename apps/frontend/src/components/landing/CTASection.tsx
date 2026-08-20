@@ -1,7 +1,7 @@
 import { motion, useReducedMotion } from 'motion/react';
 import { ArrowRight, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { fadeInUp, scaleIn } from './animations';
+import { fadeInUp, scaleIn } from '@constants/animations';
 
 export default function CTASection() {
   const reduce = useReducedMotion();

@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { LoginResponse } from '../types/api';
+import type { LoginResponse } from '@app-types/api';
 
 export async function login(identifier: string, password: string): Promise<string> {
   const data = await api<LoginResponse>('/admin/auth/login', {

@@ -26,8 +26,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { fadeInUp, staggerContainer } from '../../components/landing/animations';
-import { Select } from '../../components/shared/Select';
+import { fadeInUp, staggerContainer } from '@constants/animations';
+import { Select } from '@components/shared/Select';
 import { createVisitRequest } from '../../lib/api/requests';
 import { guestSchema, visitRequestSchema } from '../../schemas/visitRequest';
 

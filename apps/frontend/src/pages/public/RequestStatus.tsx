@@ -2,8 +2,9 @@ import { Clock, Eye, FileText, HelpCircle, Info, Search, Users } from 'lucide-re
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
+import { statusDetailColors } from '@constants/status';
 import { downloadAttachmentByToken, getRequestByToken } from '../../lib/api/requests';
-import type { Attachment, VisitRequest } from '../../lib/types/api';
+import type { Attachment, VisitRequest } from '@app-types/api';
 
 export default function RequestStatus() {
   const { token } = useParams();
@@ -18,12 +19,6 @@ export default function RequestStatus() {
       .catch((reason) => setError(reason instanceof Error ? reason.message : 'Request not found'))
       .finally(() => setLoading(false));
   }, [token]);
-
-  const statusColor = {
-    pending: 'bg-surface-dim text-on-surface border border-outline-variant',
-    approved: 'bg-secondary-container text-on-secondary-container',
-    rejected: 'bg-error-container text-on-error-container',
-  };
 
   const attachmentLabels: Record<string, string> = {
     surat_kunjungan: 'Visit Letter',
@@ -88,7 +83,7 @@ export default function RequestStatus() {
         <div className="inline-flex flex-col items-start md:items-end">
           <p className="font-label-sm mb-2 text-label-sm text-on-surface-variant">Current Status</p>
           <div
-            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 ${statusColor[request.status]}`}
+            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 ${statusDetailColors[request.status]}`}
           >
             <div className="h-2 w-2 animate-pulse rounded-full bg-primary" />
             <span className="font-label-md text-label-md font-bold tracking-wider uppercase">

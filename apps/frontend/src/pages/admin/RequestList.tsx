@@ -10,12 +10,12 @@ import {
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import ConfirmDialog from '../../components/shared/ConfirmDialog';
-import { Select } from '../../components/shared/Select';
-import Skeleton from '../../components/shared/Skeleton';
-import StatusBadge from '../../components/shared/StatusBadge';
+import ConfirmDialog from '@components/shared/ConfirmDialog';
+import { Select } from '@components/shared/Select';
+import Skeleton from '@components/shared/Skeleton';
+import StatusBadge from '@components/shared/StatusBadge';
 import { deleteRequest, getRequests } from '../../lib/api/requests';
-import type { PaginatedRequestsResponse } from '../../lib/types/api';
+import type { PaginatedRequestsResponse } from '@app-types/api';
 
 type RequestRow = PaginatedRequestsResponse['data'][number];
 const PAGE_SIZES = [10, 20, 30, 40, 50];

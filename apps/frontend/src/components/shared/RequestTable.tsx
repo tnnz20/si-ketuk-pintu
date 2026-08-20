@@ -1,6 +1,7 @@
 import { Eye, MoreHorizontal } from 'lucide-react';
 import { useState } from 'react';
-import StatusBadge, { type Status } from './StatusBadge';
+import StatusBadge from './StatusBadge';
+import type { Status } from '@app-types/status';
 
 interface RequestRow {
   date: string;

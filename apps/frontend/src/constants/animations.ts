@@ -1,10 +1,8 @@
 import { type Variants } from 'motion/react';
 
-// Easing curves
 export const EASE_OUT = [0.16, 1, 0.3, 1] as const;
 export const EASE_SPRING = { type: 'spring', stiffness: 100, damping: 20 } as const;
 
-// Reusable animation variants
 export const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 24 },
   visible: (i: number = 0) => ({
@@ -77,7 +75,6 @@ export const slideInRight: Variants = {
   },
 };
 
-// Word-by-word headline animation
 export const wordReveal: Variants = {
   hidden: { opacity: 0, y: 20, rotateX: -40 },
   visible: (i: number) => ({
@@ -92,7 +89,6 @@ export const wordReveal: Variants = {
   }),
 };
 
-// Counter animation for stats
 export const counterVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {

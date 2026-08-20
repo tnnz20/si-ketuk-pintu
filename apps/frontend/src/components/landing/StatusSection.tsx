@@ -3,7 +3,7 @@ import { FileText, LoaderCircle, Search, Shield, TrendingUp } from 'lucide-react
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getRequestByToken } from '../../lib/api/requests';
-import { fadeInUp, staggerContainer } from './animations';
+import { fadeInUp, staggerContainer } from '@constants/animations';
 
 export default function StatusSection() {
   const reduce = useReducedMotion();

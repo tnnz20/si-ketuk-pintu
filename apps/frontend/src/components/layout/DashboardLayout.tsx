@@ -13,7 +13,7 @@ import {
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { logout } from '../../lib/api/auth';
-import ConfirmDialog from '../shared/ConfirmDialog';
+import ConfirmDialog from '@components/shared/ConfirmDialog';
 
 const titles: [RegExp, string][] = [
   [/^\/dashboard$/, 'Dashboard'],

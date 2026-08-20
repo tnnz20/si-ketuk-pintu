@@ -2,10 +2,10 @@ import { ArrowRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import RequestTable from '../../components/shared/RequestTable';
-import Skeleton from '../../components/shared/Skeleton';
+import RequestTable from '@components/shared/RequestTable';
+import Skeleton from '@components/shared/Skeleton';
 import { getRequests, getStats } from '../../lib/api/requests';
-import type { PaginatedRequestsResponse, StatsResponse } from '../../lib/types/api';
+import type { PaginatedRequestsResponse, StatsResponse } from '@app-types/api';
 
 export default function AdminDashboard() {
   const navigate = useNavigate();

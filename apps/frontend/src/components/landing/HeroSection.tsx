@@ -2,7 +2,7 @@ import { motion, useReducedMotion } from 'motion/react';
 import { ArrowRight, CheckCircle2, Copy, QrCode, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
-import { wordReveal, fadeInUp } from './animations';
+import { wordReveal, fadeInUp } from '@constants/animations';
 import { useMouseTilt } from '../../hooks/useMousePosition';
 
 const headlineWords = ['Sistem', 'Permohonan', 'Kunjungan', 'Tamu'];

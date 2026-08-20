@@ -1,10 +1,8 @@
-export type Status = 'pending' | 'approved' | 'rejected';
+import { statusColors } from '@constants/status';
+import type { Status } from '@app-types/status';
 
-const statusColors = {
-  pending: 'bg-surface-container text-primary',
-  approved: 'bg-secondary-container text-on-secondary-container',
-  rejected: 'bg-error-container text-on-error-container',
-};
+export { type Status } from '@app-types/status';
+
 
 export default function StatusBadge({ status }: { status: Status }) {
   return (

@@ -1,8 +1,8 @@
 import { Toaster } from 'sonner';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import AuthGuard from './components/layout/AuthGuard';
-import DashboardLayout from './components/layout/DashboardLayout';
-import LandingLayout from './components/layout/LandingLayout';
+import AuthGuard from '@components/layout/AuthGuard';
+import DashboardLayout from '@components/layout/DashboardLayout';
+import LandingLayout from '@components/layout/LandingLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminLogin from './pages/admin/AdminLogin';
 import QRScanner from './pages/admin/QRScanner';

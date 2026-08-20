@@ -2,11 +2,11 @@ import { ArrowLeft, Calendar, Eye, FileText, Gavel, History, Users } from 'lucid
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import ConfirmDialog from '../../components/shared/ConfirmDialog';
-import Skeleton from '../../components/shared/Skeleton';
-import StatusBadge from '../../components/shared/StatusBadge';
+import ConfirmDialog from '@components/shared/ConfirmDialog';
+import Skeleton from '@components/shared/Skeleton';
+import StatusBadge from '@components/shared/StatusBadge';
 import { downloadAttachment, getRequestById, updateStatus } from '../../lib/api/requests';
-import type { RequestDetailResponse } from '../../lib/types/api';
+import type { RequestDetailResponse } from '@app-types/api';
 
 export default function RequestDetail() {
   const navigate = useNavigate();
