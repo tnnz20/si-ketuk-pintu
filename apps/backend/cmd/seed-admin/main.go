@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"errors"
 	"os"
 
+	"github.com/sirupsen/logrus"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/config"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
@@ -38,8 +40,20 @@ func main() {
 		Email:    os.Getenv("ADMIN_EMAIL"),
 		Password: os.Getenv("ADMIN_PASSWORD"),
 	}); err != nil {
-		panic(err)
+		if !handleSeedError(err, logger) {
+			panic(err)
+		}
+		return
 	}
 
 	logger.Info("administrator created")
+}
+
+func handleSeedError(err error, logger *logrus.Logger) bool {
+	if errors.Is(err, repository.ErrAdministratorExists) {
+		logger.Info("administrator already exists")
+		return true
+	}
+
+	return false
 }
