@@ -67,7 +67,7 @@ export default function SubmissionSuccess() {
                 <button
                   type="button"
                   onClick={copyToken}
-                  className="text-on-surface-variant hover:text-primary"
+                  className="text-on-surface-variant hover:text-primary cursor-pointer"
                   aria-label="Salin token"
                 >
                   {copied ? (
@@ -99,13 +99,13 @@ export default function SubmissionSuccess() {
           <button
             type="button"
             onClick={downloadQr}
-            className="font-label-md flex items-center justify-center gap-2 rounded bg-primary px-6 py-3 text-label-md text-on-primary hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none"
+            className="font-label-md flex items-center justify-center gap-2 rounded bg-primary px-6 py-3 text-label-md text-on-primary hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none cursor-pointer"
           >
             <Download className="h-4 w-4" /> Unduh Kode QR (PNG)
           </button>
           <Link
             to="/"
-            className="font-label-md rounded border border-surface-alt bg-transparent px-6 py-3 text-label-md text-primary hover:bg-surface-container focus:ring-2 focus:ring-primary focus:outline-none"
+            className="font-label-md rounded border border-surface-alt bg-transparent px-6 py-3 text-label-md text-primary hover:bg-surface-container focus:ring-2 focus:ring-primary focus:outline-none cursor-pointer"
           >
             Kembali ke Beranda
           </Link>

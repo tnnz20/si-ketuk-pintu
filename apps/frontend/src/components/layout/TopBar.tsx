@@ -18,7 +18,7 @@ export default function TopBar() {
         <button
           type="button"
           aria-label="Buka navigasi"
-          className="md:hidden"
+          className="md:hidden cursor-pointer"
           onClick={() => setOpen(!open)}
         >
           {open ? <X /> : <Menu />}

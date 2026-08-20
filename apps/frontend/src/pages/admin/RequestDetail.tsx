@@ -74,7 +74,7 @@ export default function RequestDetail() {
       <button
         type="button"
         onClick={() => navigate('/dashboard/requests')}
-        className="mb-6 flex items-center gap-2 text-label-md text-on-surface-variant hover:text-primary"
+        className="mb-6 flex items-center gap-2 text-label-md text-on-surface-variant hover:text-primary cursor-pointer"
       >
         <ArrowLeft className="h-5 w-5" /> Kembali ke Permohonan
       </button>

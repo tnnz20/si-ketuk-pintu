@@ -141,7 +141,7 @@ function ManualTokenForm() {
       <button
         type="submit"
         disabled={!token.trim()}
-        className="rounded bg-primary px-4 py-2 text-label-md text-on-primary disabled:opacity-50"
+        className="rounded bg-primary px-4 py-2 text-label-md text-on-primary cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
       >
         Cari
       </button>

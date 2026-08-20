@@ -376,7 +376,7 @@ export default function SubmissionForm() {
                     <button
                       type="button"
                       onClick={() => toggleSection('instansi')}
-                      className="flex w-full items-center justify-between border-b border-surface-alt bg-surface-container-low px-6 py-4 transition-colors hover:bg-surface-container"
+                      className="flex w-full items-center justify-between border-b border-surface-alt bg-surface-container-low px-6 py-4 transition-colors hover:bg-surface-container cursor-pointer"
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
@@ -485,7 +485,7 @@ export default function SubmissionForm() {
                     <button
                       type="button"
                       onClick={() => toggleSection('kunjungan')}
-                      className="flex w-full items-center justify-between border-b border-surface-alt bg-surface-container-low px-6 py-4 transition-colors hover:bg-surface-container"
+                      className="flex w-full items-center justify-between border-b border-surface-alt bg-surface-container-low px-6 py-4 transition-colors hover:bg-surface-container cursor-pointer"
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
@@ -649,7 +649,7 @@ export default function SubmissionForm() {
                       <button
                         type="button"
                         onClick={addGuest}
-                        className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 font-label text-label-sm font-medium text-white transition-all hover:bg-emerald-700 hover:shadow-md"
+                        className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 font-label text-label-sm font-medium text-white transition-all hover:bg-emerald-700 hover:shadow-md cursor-pointer"
                       >
                         <Plus className="h-4 w-4" />
                         Tambah Tamu
@@ -708,7 +708,7 @@ export default function SubmissionForm() {
                               type="button"
                               onClick={() => removeGuest(index)}
                               disabled={guests.length === 1}
-                              className="flex h-10 w-10 items-center justify-center rounded-lg border border-error/20 text-error transition-all hover:bg-error-container disabled:cursor-not-allowed disabled:opacity-40"
+                              className="flex h-10 w-10 items-center justify-center rounded-lg border border-error/20 text-error transition-all hover:bg-error-container cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -725,7 +725,7 @@ export default function SubmissionForm() {
                           <button
                             type="button"
                             onClick={addGuest}
-                            className="mt-4 flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 font-label text-label-sm font-medium text-white transition-all hover:bg-emerald-700"
+                            className="mt-4 flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 font-label text-label-sm font-medium text-white transition-all hover:bg-emerald-700 cursor-pointer"
                           >
                             <Plus className="h-4 w-4" />
                             Tambah Tamu Pertama

@@ -175,7 +175,7 @@ export default function HeroSection() {
                   <button
                     type="button"
                     onClick={copyToken}
-                    className="rounded-lg p-2 text-on-surface-variant transition-colors hover:bg-emerald-500/10 hover:text-emerald-600"
+                    className="rounded-lg p-2 text-on-surface-variant transition-colors hover:bg-emerald-500/10 hover:text-emerald-600 cursor-pointer"
                     aria-label="Salin token"
                   >
                     {copied ? (

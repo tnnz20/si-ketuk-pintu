@@ -44,7 +44,7 @@ export default function RequestPagination({
             aria-label="Halaman pertama"
             onClick={() => onPageChange(1)}
             disabled={page <= 1}
-            className="hidden h-8 w-8 items-center justify-center rounded border border-outline-variant text-on-surface-variant transition-colors hover:bg-surface-container disabled:opacity-40 sm:flex"
+            className="hidden h-8 w-8 items-center justify-center rounded border border-outline-variant text-on-surface-variant transition-colors hover:bg-surface-container cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 sm:flex"
           >
             <ChevronsLeft className="h-4 w-4" />
           </button>
@@ -53,7 +53,7 @@ export default function RequestPagination({
             aria-label="Halaman sebelumnya"
             onClick={() => onPageChange((p) => Math.max(1, p - 1))}
             disabled={page <= 1}
-            className="flex h-8 w-8 items-center justify-center rounded border border-outline-variant text-on-surface-variant transition-colors hover:bg-surface-container disabled:opacity-40"
+            className="flex h-8 w-8 items-center justify-center rounded border border-outline-variant text-on-surface-variant transition-colors hover:bg-surface-container cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -62,7 +62,7 @@ export default function RequestPagination({
             aria-label="Halaman berikutnya"
             onClick={() => onPageChange((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}
-            className="flex h-8 w-8 items-center justify-center rounded border border-outline-variant text-on-surface-variant transition-colors hover:bg-surface-container disabled:opacity-40"
+            className="flex h-8 w-8 items-center justify-center rounded border border-outline-variant text-on-surface-variant transition-colors hover:bg-surface-container cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -71,7 +71,7 @@ export default function RequestPagination({
             aria-label="Halaman terakhir"
             onClick={() => onPageChange(totalPages)}
             disabled={page >= totalPages}
-            className="hidden h-8 w-8 items-center justify-center rounded border border-outline-variant text-on-surface-variant transition-colors hover:bg-surface-container disabled:opacity-40 sm:flex"
+            className="hidden h-8 w-8 items-center justify-center rounded border border-outline-variant text-on-surface-variant transition-colors hover:bg-surface-container cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 sm:flex"
           >
             <ChevronsRight className="h-4 w-4" />
           </button>

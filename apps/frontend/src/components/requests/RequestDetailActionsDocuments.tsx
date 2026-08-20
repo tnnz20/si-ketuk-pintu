@@ -27,14 +27,14 @@ export default function RequestActionsDocuments({
           <button
             type="button"
             onClick={() => onStatusChange('approved')}
-            className="w-full rounded border border-primary bg-primary py-3 text-label-md text-on-primary"
+            className="w-full rounded border border-primary bg-primary py-3 text-label-md text-on-primary cursor-pointer"
           >
             Setujui Permohonan
           </button>
           <button
             type="button"
             onClick={() => onStatusChange('rejected')}
-            className="w-full rounded border border-surface-alt bg-surface-container-lowest py-3 text-label-md text-error"
+            className="w-full rounded border border-surface-alt bg-surface-container-lowest py-3 text-label-md text-error cursor-pointer"
           >
             Tolak Permohonan
           </button>
@@ -50,7 +50,7 @@ export default function RequestActionsDocuments({
             type="button"
             onClick={() => onPreview(doc.attachment_type)}
             title="Klik untuk pratinjau di tab baru"
-            className="mb-3 flex w-full items-center justify-between gap-2 rounded border border-surface-alt p-3 text-left hover:bg-surface-container"
+            className="mb-3 flex w-full items-center justify-between gap-2 rounded border border-surface-alt p-3 text-left hover:bg-surface-container cursor-pointer"
           >
             <span className="truncate">{doc.original_name}</span>
             <Eye className="h-5 w-5 shrink-0" />

@@ -314,7 +314,7 @@ export default function AdminLogin() {
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
                     aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
-                    className="absolute top-1/2 right-3 -translate-y-1/2 rounded p-0.5 text-outline transition-colors hover:text-on-surface"
+                    className="absolute top-1/2 right-3 -translate-y-1/2 rounded p-0.5 text-outline transition-colors hover:text-on-surface cursor-pointer"
                   >
                     {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
@@ -328,7 +328,7 @@ export default function AdminLogin() {
                 type="submit"
                 disabled={isLoading}
                 whileTap={reduce ? undefined : { scale: 0.98 }}
-                className="group font-label-md mt-1 flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-label-md font-semibold text-on-primary shadow-[0_8px_20px_-8px_rgba(26,28,22,0.5)] transition-all hover:shadow-[0_12px_28px_-8px_rgba(26,28,22,0.55)] disabled:cursor-not-allowed disabled:opacity-70"
+                className="group font-label-md mt-1 flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 text-label-md font-semibold text-on-primary shadow-[0_8px_20px_-8px_rgba(26,28,22,0.5)] transition-all hover:shadow-[0_12px_28px_-8px_rgba(26,28,22,0.55)] cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {isLoading ? (
                   <>

@@ -27,7 +27,7 @@ export default function RequestActionMenu({
       >
         <button
           type="button"
-          className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-surface"
+          className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-surface cursor-pointer"
           onClick={() => {
             onClose();
             onViewDetail(menu.row.id);
@@ -37,14 +37,14 @@ export default function RequestActionMenu({
         </button>
         <button
           type="button"
-          className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-surface"
+          className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-surface cursor-pointer"
           onClick={() => onCopyToken(menu.row)}
         >
           <Copy className="h-4 w-4" /> Copy Token
         </button>
         <button
           type="button"
-          className="flex w-full items-center gap-2 px-3 py-2 text-left text-error hover:bg-surface"
+          className="flex w-full items-center gap-2 px-3 py-2 text-left text-error hover:bg-surface cursor-pointer"
           onClick={() => onDelete(menu.row)}
         >
           <Trash2 className="h-4 w-4" /> Hapus

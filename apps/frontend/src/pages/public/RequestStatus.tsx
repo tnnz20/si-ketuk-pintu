@@ -159,7 +159,7 @@ export default function RequestStatus() {
                     type="button"
                     onClick={() => preview(doc)}
                     title="Click to preview in new tab"
-                    className="group w-full rounded-lg border border-surface-alt p-3 text-left transition-colors hover:bg-surface-container"
+                    className="group w-full rounded-lg border border-surface-alt p-3 text-left transition-colors hover:bg-surface-container cursor-pointer"
                   >
                     <span className="font-label-md mb-1 block text-xs font-medium tracking-wider text-on-surface-variant uppercase">
                       {attachmentLabels[doc.attachment_type] || doc.attachment_type}
@@ -190,7 +190,7 @@ export default function RequestStatus() {
             </p>
             <button
               type="button"
-              className="font-label-md w-full rounded border border-outline px-4 py-2 text-label-md text-on-surface hover:bg-surface-container"
+              className="font-label-md w-full rounded border border-outline px-4 py-2 text-label-md text-on-surface hover:bg-surface-container cursor-pointer"
             >
               Contact Support
             </button>

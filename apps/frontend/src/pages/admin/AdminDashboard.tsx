@@ -67,7 +67,7 @@ export default function AdminDashboard() {
           <button
             type="button"
             onClick={() => navigate('/dashboard/requests')}
-            className="flex items-center gap-2 text-label-md font-bold text-primary"
+            className="flex items-center gap-2 text-label-md font-bold text-primary cursor-pointer"
           >
             Lihat Semua <ArrowRight className="h-4 w-4" />
           </button>

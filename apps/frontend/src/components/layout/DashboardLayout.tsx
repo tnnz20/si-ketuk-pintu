@@ -131,7 +131,7 @@ export default function DashboardLayout() {
                   type="button"
                   onClick={() => setMobileOpen(false)}
                   aria-label="Tutup menu"
-                  className="text-on-surface-variant"
+                  className="text-on-surface-variant cursor-pointer"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -141,7 +141,7 @@ export default function DashboardLayout() {
                 <button
                   type="button"
                   onClick={() => setConfirmLogout(true)}
-                  className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-label-md font-bold text-on-primary"
+                  className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-label-md font-bold text-on-primary cursor-pointer"
                 >
                   <LogOut className="h-5 w-5" />
                   <span>Log Out</span>
@@ -159,7 +159,7 @@ export default function DashboardLayout() {
               type="button"
               onClick={() => setMobileOpen(true)}
               aria-label="Buka menu"
-              className="text-on-surface-variant md:hidden"
+              className="text-on-surface-variant md:hidden cursor-pointer"
             >
               <Menu className="h-6 w-6" />
             </button>
@@ -167,7 +167,7 @@ export default function DashboardLayout() {
               type="button"
               onClick={() => setCollapsed(!collapsed)}
               aria-label={collapsed ? 'Buka sidebar' : 'Tutup sidebar'}
-              className="hidden h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container md:flex"
+              className="hidden h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container md:flex cursor-pointer"
             >
               {collapsed ? (
                 <PanelLeftOpen className="h-5 w-5" />
@@ -181,7 +181,7 @@ export default function DashboardLayout() {
             <button
               type="button"
               onClick={() => navigate('/dashboard/scanner')}
-              className="flex h-10 items-center gap-2 rounded-lg border border-outline-variant px-4 text-label-md font-medium text-on-surface-variant transition-colors hover:bg-surface-container"
+              className="flex h-10 items-center gap-2 rounded-lg border border-outline-variant px-4 text-label-md font-medium text-on-surface-variant transition-colors hover:bg-surface-container cursor-pointer"
             >
               <QrCode className="h-5 w-5" />
               <span className="hidden sm:inline">Scanner</span>
@@ -189,7 +189,7 @@ export default function DashboardLayout() {
             <button
               type="button"
               onClick={() => setConfirmLogout(true)}
-              className="flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-label-md font-bold text-on-primary"
+              className="flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-label-md font-bold text-on-primary cursor-pointer"
             >
               <LogOut className="h-5 w-5" />
               <span className="hidden sm:inline">Log Out</span>

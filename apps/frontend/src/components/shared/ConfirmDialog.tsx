@@ -29,7 +29,7 @@ export default function ConfirmDialog({
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className="rounded border border-outline px-4 py-2 text-label-md"
+            className="rounded border border-outline px-4 py-2 text-label-md cursor-pointer disabled:cursor-not-allowed"
           >
             Batal
           </button>
@@ -37,7 +37,7 @@ export default function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={loading}
-            className="rounded bg-primary px-4 py-2 text-label-md text-on-primary"
+            className="rounded bg-primary px-4 py-2 text-label-md text-on-primary cursor-pointer disabled:cursor-not-allowed"
           >
             {loading ? 'Memproses...' : action}
           </button>

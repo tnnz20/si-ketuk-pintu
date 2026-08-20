@@ -18,7 +18,7 @@ export function FormNavigation({
         type="button"
         onClick={onPrevious}
         disabled={currentStep === 1}
-        className="flex items-center justify-center gap-2 rounded-xl border border-outline px-6 py-3.5 font-label text-label-md font-medium text-on-surface transition-all hover:bg-surface-container disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex items-center justify-center gap-2 rounded-xl border border-outline px-6 py-3.5 font-label text-label-md font-medium text-on-surface transition-all hover:bg-surface-container cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
       >
         <ArrowLeft className="h-4 w-4" />
         Sebelumnya
@@ -27,7 +27,7 @@ export function FormNavigation({
         <button
           type="button"
           onClick={onNext}
-          className="group flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-8 py-3.5 font-label text-label-md font-semibold text-white transition-all hover:shadow-lg hover:shadow-emerald-600/25 active:scale-[0.98]"
+          className="group flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-8 py-3.5 font-label text-label-md font-semibold text-white transition-all hover:shadow-lg hover:shadow-emerald-600/25 active:scale-[0.98] cursor-pointer"
         >
           Selanjutnya
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -37,7 +37,7 @@ export function FormNavigation({
           type="button"
           onClick={onSubmit}
           disabled={isSubmitting}
-          className="group relative flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-emerald-600 px-8 py-3.5 font-label text-label-md font-semibold text-white transition-all hover:shadow-xl hover:shadow-emerald-600/25 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+          className="group relative flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-emerald-600 px-8 py-3.5 font-label text-label-md font-semibold text-white transition-all hover:shadow-xl hover:shadow-emerald-600/25 active:scale-[0.98] cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
         >
           {isSubmitting ? (
             <>
