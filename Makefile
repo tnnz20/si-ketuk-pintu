@@ -7,21 +7,16 @@ MIGRATE_VERSION := v4.19.1
 MIGRATE_CLI := go run -tags postgres github.com/golang-migrate/migrate/v4/cmd/migrate@$(MIGRATE_VERSION)
 
 .DEFAULT_GOAL := help
-.PHONY: help check-env check-engine compose-up compose-down compose-stop compose-down-v compose-logs run fe fe-build fe-lint fe-format-check fe-prettier fe-preview frontend-install frontend-dev frontend-build frontend-lint frontend-format-check frontend-prettier frontend-preview build test test-unit test-migrations migrate-up migrate-down migrate-version migrate-create seed-admin
+.PHONY: help check-env check-engine compose-up compose-down compose-stop compose-down-v compose-logs be-run be-build tidy be-test be-test-unit be-test-migrations fe-dev fe-install fe-build fe-lint fe-format-check fe-prettier fe-preview migrate-up migrate-down migrate-version migrate-create seed-admin
 
 help:
 	@echo "Backend:"
-	@echo "  ENGINE=podman|docker  Select Compose engine (default: podman)"
-	@echo "  compose-up           Start PostgreSQL"
-	@echo "  compose-down         Stop PostgreSQL"
-	@echo "  compose-stop         Stop Compose containers"
-	@echo "  compose-down-v       Stop and remove containers and volumes"
-	@echo "  compose-logs         Follow PostgreSQL logs"
-	@echo "  run                  Start backend on http://localhost:8080"
-	@echo "  build                Build backend"
-	@echo "  test                 Run all tests"
-	@echo "  test-unit            Run unit tests"
-	@echo "  test-migrations      Run integration tests"
+	@echo "  be-run               Start backend on http://localhost:8080"
+	@echo "  be-build             Build backend"
+	@echo "  tidy                 Tidy backend Go dependencies"
+	@echo "  be-test              Run all tests"
+	@echo "  be-test-unit         Run unit tests"
+	@echo "  be-test-migrations   Run integration tests"
 	@echo "  migrate-up           Apply migrations"
 	@echo "  migrate-down         Rollback migrations"
 	@echo "  migrate-version      Show migration version"
@@ -29,19 +24,21 @@ help:
 	@echo "  seed-admin           Seed first admin user"
 	@echo ""
 	@echo "Frontend:"
-	@echo "  frontend-install     Install frontend dependencies"
-	@echo "  frontend-dev         Start frontend dev server"
-	@echo "  frontend-build       Build frontend"
-	@echo "  frontend-lint        Run ESLint"
-	@echo "  frontend-format-check Check code format"
-	@echo "  frontend-prettier    Format frontend files"
-	@echo "  frontend-preview     Preview production build"
-	@echo "  fe                   Start frontend dev server"
+	@echo "  fe-dev               Start frontend dev server"
+	@echo "  fe-install           Install frontend dependencies"
 	@echo "  fe-build             Build frontend"
 	@echo "  fe-lint              Run ESLint"
 	@echo "  fe-format-check      Check code format"
 	@echo "  fe-prettier          Format frontend files"
 	@echo "  fe-preview            Preview production build"
+	@echo ""
+	@echo "Docker:"
+	@echo "  Set ENGINE=podman|docker before command (default: podman)"
+	@echo "  compose-up           Start PostgreSQL container"
+	@echo "  compose-stop         Stop containers; keep containers and volumes"
+	@echo "  compose-down         Stop/remove containers and network; keep volumes"
+	@echo "  compose-down-v       Stop/remove containers, network, and volumes"
+	@echo "  compose-logs         Follow PostgreSQL container logs"
 
 check-env:
 	@test -f $(ENV_FILE) || (echo "Copy $(BACKEND_DIR)/.env.example to $(ENV_FILE) first."; exit 1)
@@ -64,46 +61,42 @@ compose-down-v: check-env check-engine
 compose-logs: check-env check-engine
 	$(COMPOSE) logs -f postgres
 
-run: check-env
+be-run: check-env
 	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/web
 
-build:
+be-build:
 	go -C $(BACKEND_DIR) build ./...
 
-frontend-install:
-	npm --prefix $(FRONTEND_DIR) install
+tidy:
+	go -C $(BACKEND_DIR) mod tidy
 
-frontend-dev:
+fe-dev:
 	npm --prefix $(FRONTEND_DIR) run dev
 
-frontend-build:
+fe-install:
+	npm --prefix $(FRONTEND_DIR) install
+
+fe-build:
 	npm --prefix $(FRONTEND_DIR) run build
 
-frontend-lint:
+fe-lint:
 	npm --prefix $(FRONTEND_DIR) run lint
 
-frontend-format-check:
+fe-format-check:
 	npm --prefix $(FRONTEND_DIR) run format:check
 
-frontend-prettier:
+fe-prettier:
 	npm --prefix $(FRONTEND_DIR) run prettier
 
-frontend-preview:
+fe-preview:
 	npm --prefix $(FRONTEND_DIR) run preview
 
-fe: frontend-dev
-fe-build: frontend-build
-fe-lint: frontend-lint
-fe-format-check: frontend-format-check
-fe-prettier: frontend-prettier
-fe-preview: frontend-preview
+be-test: be-test-unit be-test-migrations
 
-test: test-unit test-migrations
-
-test-unit:
+be-test-unit:
 	go -C $(BACKEND_DIR) test ./internal/...
 
-test-migrations: check-env compose-up
+be-test-migrations: check-env compose-up
 	@set -a; . $(ENV_FILE); set +a; \
 	$(COMPOSE) exec -T postgres psql -U "$$POSTGRES_USER" -d postgres -c "DROP DATABASE IF EXISTS \"$$TEST_POSTGRES_DB\";"; \
 	$(COMPOSE) exec -T postgres psql -U "$$POSTGRES_USER" -d postgres -c "CREATE DATABASE \"$$TEST_POSTGRES_DB\";"; \
