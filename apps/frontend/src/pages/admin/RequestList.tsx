@@ -11,6 +11,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import ConfirmDialog from '../../components/shared/ConfirmDialog';
+import { Select } from '../../components/shared/Select';
 import Skeleton from '../../components/shared/Skeleton';
 import StatusBadge from '../../components/shared/StatusBadge';
 import { deleteRequest, getRequests } from '../../lib/api/requests';
@@ -95,7 +96,7 @@ export default function RequestList() {
           placeholder="Cari permohonan berdasarkan token"
           className="rounded border border-surface-alt bg-white p-3"
         />
-        <select
+        <Select
           value={status}
           onChange={(event) => {
             setStatus(event.target.value);
@@ -107,7 +108,7 @@ export default function RequestList() {
           <option value="pending">Pending</option>
           <option value="approved">Approved</option>
           <option value="rejected">Rejected</option>
-        </select>
+        </Select>
         <input
           value={date}
           onChange={(event) => {
@@ -171,7 +172,7 @@ export default function RequestList() {
         <div className="flex flex-col gap-4 border-t border-outline-variant px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-2 text-label-md text-on-surface-variant">
             <span>Baris per halaman</span>
-            <select
+            <Select
               value={pageSize}
               onChange={(event) => {
                 setPageSize(Number(event.target.value));
@@ -184,7 +185,7 @@ export default function RequestList() {
                   {size}
                 </option>
               ))}
-            </select>
+            </Select>
           </div>
           <div className="flex items-center justify-between gap-4 lg:justify-end">
             <span className="text-label-md text-on-surface-variant">

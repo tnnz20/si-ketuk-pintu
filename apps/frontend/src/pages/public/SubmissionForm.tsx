@@ -27,6 +27,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { fadeInUp, staggerContainer } from '../../components/landing/animations';
+import { Select } from '../../components/shared/Select';
 import { createVisitRequest } from '../../lib/api/requests';
 import { guestSchema, visitRequestSchema } from '../../schemas/visitRequest';
 
@@ -1006,11 +1007,12 @@ function TimePicker({ value, onChange }: { value: string; onChange: (value: stri
 
   return (
     <div className="flex items-center gap-2">
-      <select
+      <Select
         value={hour || ''}
         onChange={(e) => onChange(`${e.target.value}:${minute ?? '00'}`)}
         aria-label="Jam"
-        className="font-body-md flex-1 rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+        wrapperClassName="flex-1"
+        className="font-body-md rounded-xl border border-outline-variant bg-surface pl-4 py-3 text-body-md transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
       >
         <option value="" disabled>
           Jam
@@ -1020,13 +1022,14 @@ function TimePicker({ value, onChange }: { value: string; onChange: (value: stri
             {h}
           </option>
         ))}
-      </select>
+      </Select>
       <span className="font-body-md text-on-surface-variant">:</span>
-      <select
+      <Select
         value={minute || ''}
         onChange={(e) => onChange(`${hour ?? '00'}:${e.target.value}`)}
         aria-label="Menit"
-        className="font-body-md flex-1 rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+        wrapperClassName="flex-1"
+        className="font-body-md rounded-xl border border-outline-variant bg-surface pl-4 py-3 text-body-md transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
       >
         <option value="" disabled>
           Menit
@@ -1036,7 +1039,7 @@ function TimePicker({ value, onChange }: { value: string; onChange: (value: stri
             {m}
           </option>
         ))}
-      </select>
+      </Select>
     </div>
   );
 }
