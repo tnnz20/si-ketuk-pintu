@@ -11,11 +11,9 @@ export default function TopBar() {
           <img
             src="/assets/logo.webp"
             alt="Logo Si Ketuk Pintu"
-            className="h-10 w-10 rounded-full object-contain"
+            className="xs:h-24 xs:w-24 h-36 w-36 rounded-full object-contain"
           />
-          <span className="hidden font-headline-md text-headline-md font-bold md:block">
-            Si Ketuk Pintu
-          </span>
+     
         </Link>
         <button
           type="button"
