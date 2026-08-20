@@ -1,4 +1,4 @@
-import { Eye, FileText, Gavel } from 'lucide-react';
+import { Download, Eye, FileText, Gavel } from 'lucide-react';
 import StatusBadge from '@components/shared/StatusBadge';
 import type { Attachment, VisitRequest } from '@app-types/api';
 
@@ -6,12 +6,16 @@ interface RequestActionsDocumentsProps {
   request: VisitRequest;
   onStatusChange: (status: 'approved' | 'rejected') => void;
   onPreview: (type: Attachment['attachment_type']) => void;
+  onGeneratePdf: () => void;
+  generating: boolean;
 }
 
 export default function RequestActionsDocuments({
   request,
   onStatusChange,
   onPreview,
+  onGeneratePdf,
+  generating,
 }: RequestActionsDocumentsProps) {
   return (
     <aside className="space-y-6 lg:w-1/3">
@@ -39,6 +43,14 @@ export default function RequestActionsDocuments({
             Tolak Permohonan
           </button>
         </div>
+        <button
+          type="button"
+          onClick={onGeneratePdf}
+          disabled={generating}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded border border-primary py-3 text-label-md text-primary cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Download className="h-5 w-5" /> Unduh Surat Permohonan
+        </button>
       </section>
       <section className="rounded-lg border border-surface-alt bg-surface-container-lowest p-6">
         <h2 className="mb-4 flex items-center gap-2 text-label-md font-bold">

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import ConfirmDialog from '@components/shared/ConfirmDialog';
+import LoadingOverlay from '@components/shared/LoadingOverlay';
 import Skeleton from '@components/shared/Skeleton';
 import RequestActionsDocuments from '@components/requests/RequestDetailActionsDocuments';
 import RequestAuditHistory from '@components/requests/RequestDetailAuditHistory';
@@ -10,6 +11,7 @@ import RequestDetails from '@components/requests/RequestDetailDetails';
 import RequestGuests from '@components/requests/RequestDetailGuests';
 import RequestSummary from '@components/requests/RequestDetailSummary';
 import { downloadAttachment, getRequestById, updateStatus } from '../../lib/api/requests';
+import { generateVisitRequestPdf } from '../../lib/pdf/visitRequestPdf';
 import type { RequestDetailResponse } from '@app-types/api';
 
 export default function RequestDetail() {
@@ -18,6 +20,7 @@ export default function RequestDetail() {
   const [data, setData] = useState<RequestDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [confirm, setConfirm] = useState<'approved' | 'rejected'>();
+  const [generating, setGenerating] = useState(false);
 
   const load = useCallback(() => {
     if (!id) return;
@@ -54,6 +57,19 @@ export default function RequestDetail() {
     }
   }
 
+  function generatePdf() {
+    if (generating || !data) return;
+    setGenerating(true);
+    try {
+      generateVisitRequestPdf(data.request);
+      toast.success('Surat permohonan berhasil diunduh.');
+    } catch {
+      toast.error('Gagal membuat surat permohonan.');
+    } finally {
+      setGenerating(false);
+    }
+  }
+
   if (loading)
     return (
       <div className="p-10">
@@ -87,10 +103,13 @@ export default function RequestDetail() {
         </div>
         <RequestActionsDocuments
           request={request}
-          onStatusChange={setConfirm}
-          onPreview={preview}
-        />
+           onStatusChange={setConfirm}
+           onPreview={preview}
+           onGeneratePdf={generatePdf}
+           generating={generating}
+         />
       </div>
+      {generating && <LoadingOverlay />}
       {confirm && (
         <ConfirmDialog
           title="Apakah Anda yakin?"
