@@ -5,7 +5,7 @@ Initial Go backend foundation for the Government Visitor Request Platform.
 ## Local setup
 
 1. Copy `apps/backend/.env.example` to `apps/backend/.env` and replace the example PostgreSQL password.
-2. Run `make compose-up`.
+2. Run `make compose-up` (uses Podman by default; use `make compose-up ENGINE=docker` for Docker).
 3. Run `make migrate-up`.
 4. Set `ADMIN_USERNAME`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD` in `apps/backend/.env`, then run `make seed-admin` once.
 5. Run `make run` and check `http://localhost:8080/healthz` and `http://localhost:8080/readyz`.
@@ -42,5 +42,6 @@ Run `make help` for all available commands. The most common are:
 - `make frontend-format-check` — check frontend formatting.
 - `make frontend-prettier` — format frontend source with Prettier.
 - `make frontend-preview` — preview frontend production build.
+- `make fe`, `make fe-build`, `make fe-lint`, `make fe-format-check`, `make fe-prettier`, and `make fe-preview` — shorthand frontend commands.
 
 `apps/backend/db/migrations` is the database source of truth. GORM is used for database access only and does not run automatic schema migrations.
