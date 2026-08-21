@@ -61,6 +61,8 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 			requests.PATCH("/:id/status", deps.AdminRequestController.UpdateStatus)
 			requests.DELETE("/:id", deps.AdminRequestController.Delete)
 			requests.GET("/:id/attachments/:type", deps.AdminRequestController.DownloadAttachment)
+			requests.POST("/:id/approval-letter", deps.AdminRequestController.UploadApprovalLetter)
+			requests.DELETE("/:id/approval-letter", deps.AdminRequestController.DeleteApprovalLetter)
 		}
 	}
 

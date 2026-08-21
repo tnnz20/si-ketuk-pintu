@@ -68,9 +68,19 @@ export function downloadQR(token: string): Promise<Blob> {
   return api(`/public/requests/${token}/qr`);
 }
 
+export function uploadApprovalLetter(id: string, blob: Blob): Promise<unknown> {
+  const form = new FormData();
+  form.append('file', blob, 'surat_persetujuan.pdf');
+  return api(`/admin/requests/${id}/approval-letter`, { method: 'POST', body: form });
+}
+
+export function deleteApprovalLetter(id: string): Promise<{ message: string }> {
+  return api(`/admin/requests/${id}/approval-letter`, { method: 'DELETE' });
+}
+
 export function downloadAttachment(
   id: string,
-  type: 'surat_kunjungan' | 'surat_tugas',
+  type: 'surat_kunjungan' | 'surat_tugas' | 'surat_persetujuan',
 ): Promise<Blob> {
   return api(`/admin/requests/${id}/attachments/${type}`);
 }

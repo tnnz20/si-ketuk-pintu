@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import ConfirmDialog from '@components/shared/ConfirmDialog';
+import ApprovalLetterDialog from '@components/requests/ApprovalLetterDialog';
 import LoadingOverlay from '@components/shared/LoadingOverlay';
 import Skeleton from '@components/shared/Skeleton';
 import RequestActionsDocuments from '@components/requests/RequestDetailActionsDocuments';
@@ -10,7 +11,8 @@ import RequestAuditHistory from '@components/requests/RequestDetailAuditHistory'
 import RequestDetails from '@components/requests/RequestDetailDetails';
 import RequestGuests from '@components/requests/RequestDetailGuests';
 import RequestSummary from '@components/requests/RequestDetailSummary';
-import { downloadAttachment, getRequestById, updateStatus } from '../../lib/api/requests';
+import { deleteApprovalLetter, downloadAttachment, getRequestById, updateStatus, uploadApprovalLetter } from '../../lib/api/requests';
+import { generateApprovalLetterPdf } from '../../lib/pdf/approvalLetterPdf';
 import { generateVisitRequestPdf } from '../../lib/pdf/visitRequestPdf';
 import type { RequestDetailResponse } from '@app-types/api';
 
@@ -21,6 +23,9 @@ export default function RequestDetail() {
   const [loading, setLoading] = useState(true);
   const [confirm, setConfirm] = useState<'approved' | 'rejected'>();
   const [generating, setGenerating] = useState(false);
+  const [approvalDialog, setApprovalDialog] = useState(false);
+  const [approvalBusy, setApprovalBusy] = useState(false);
+  const [deleteApprovalConfirm, setDeleteApprovalConfirm] = useState(false);
 
   const load = useCallback(() => {
     if (!id) return;
@@ -47,13 +52,63 @@ export default function RequestDetail() {
     }
   }
 
-  async function preview(type: 'surat_kunjungan' | 'surat_tugas') {
+  async function preview(type: 'surat_kunjungan' | 'surat_tugas' | 'surat_persetujuan') {
+    if (type === 'surat_persetujuan') return downloadApproval();
     if (!id) return;
     try {
       const blob = await downloadAttachment(id, type);
       window.open(URL.createObjectURL(blob), '_blank', 'noopener,noreferrer');
     } catch {
       toast.error('Gagal membuka dokumen.');
+    }
+  }
+
+  async function generateApproval(input: { nomor: string; sifat: string }) {
+    if (!id || !data) return;
+    setApprovalBusy(true);
+    try {
+      const blob = await generateApprovalLetterPdf(data.request, input);
+      await uploadApprovalLetter(id, blob);
+      setApprovalDialog(false);
+      toast.success('Surat persetujuan berhasil dibuat.');
+      load();
+    } catch {
+      toast.error('Gagal membuat surat persetujuan.');
+    } finally {
+      setApprovalBusy(false);
+    }
+  }
+
+  async function downloadApproval() {
+    if (!id) return;
+    setApprovalBusy(true);
+    try {
+      const blob = await downloadAttachment(id, 'surat_persetujuan');
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'surat_persetujuan.pdf';
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error('Gagal mengunduh surat persetujuan.');
+    } finally {
+      setApprovalBusy(false);
+    }
+  }
+
+  async function removeApproval() {
+    if (!id) return;
+    setDeleteApprovalConfirm(false);
+    setApprovalBusy(true);
+    try {
+      await deleteApprovalLetter(id);
+      toast.success('Surat persetujuan dihapus.');
+      load();
+    } catch {
+      toast.error('Gagal menghapus surat persetujuan.');
+    } finally {
+      setApprovalBusy(false);
     }
   }
 
@@ -105,11 +160,26 @@ export default function RequestDetail() {
           request={request}
            onStatusChange={setConfirm}
            onPreview={preview}
-           onGeneratePdf={generatePdf}
-           generating={generating}
-         />
+            onGeneratePdf={generatePdf}
+            onApprovalGenerate={() => setApprovalDialog(true)}
+            onApprovalDownload={downloadApproval}
+            onApprovalDelete={() => setDeleteApprovalConfirm(true)}
+            generating={generating}
+            approvalBusy={approvalBusy}
+          />
       </div>
-      {generating && <LoadingOverlay />}
+      {(generating || approvalBusy) && <LoadingOverlay />}
+      {approvalDialog && <ApprovalLetterDialog open loading={approvalBusy} onSubmit={generateApproval} onCancel={() => setApprovalDialog(false)} />}
+      {deleteApprovalConfirm && (
+        <ConfirmDialog
+          title="Hapus surat persetujuan?"
+          description="File surat persetujuan akan dihapus dari penyimpanan."
+          action="Hapus"
+          loading={approvalBusy}
+          onCancel={() => setDeleteApprovalConfirm(false)}
+          onConfirm={removeApproval}
+        />
+      )}
       {confirm && (
         <ConfirmDialog
           title="Apakah Anda yakin?"

@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -176,6 +177,10 @@ func (c *AdminRequestController) UpdateStatus(ginContext *gin.Context) {
 			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})
 			return
 		}
+		if strings.Contains(err.Error(), "status transition") {
+			ginContext.JSON(http.StatusConflict, model.ErrorResponse{Error: err.Error()})
+			return
+		}
 
 		c.logger.WithError(err).Error("failed to update visit request status")
 		_ = ginContext.Error(err)
@@ -207,6 +212,50 @@ func (c *AdminRequestController) Delete(ginContext *gin.Context) {
 	ginContext.JSON(http.StatusOK, gin.H{"message": "Permohonan berhasil dihapus"})
 }
 
+func (c *AdminRequestController) UploadApprovalLetter(ginContext *gin.Context) {
+	id, err := uuid.Parse(ginContext.Param("id"))
+	if err != nil {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
+		return
+	}
+	file, header, err := ginContext.Request.FormFile("file")
+	if err != nil {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "file is required"})
+		return
+	}
+	defer file.Close()
+
+	attachment, err := c.visitRequestUsecase.SaveApprovalLetter(ginContext.Request.Context(), id, usecase.FileInput{
+		Reader: file, Filename: header.Filename, Size: header.Size,
+	})
+	if err != nil {
+		if errors.Is(err, repository.ErrVisitRequestNotFound) {
+			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})
+			return
+		}
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
+		return
+	}
+	ginContext.JSON(http.StatusCreated, gin.H{"attachment": attachment})
+}
+
+func (c *AdminRequestController) DeleteApprovalLetter(ginContext *gin.Context) {
+	id, err := uuid.Parse(ginContext.Param("id"))
+	if err != nil {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
+		return
+	}
+	if err := c.visitRequestUsecase.DeleteApprovalLetter(ginContext.Request.Context(), id); err != nil {
+		if errors.Is(err, usecase.ErrApprovalLetterNotFound) || errors.Is(err, repository.ErrAttachmentNotFound) || errors.Is(err, repository.ErrVisitRequestNotFound) {
+			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "approval letter not found"})
+			return
+		}
+		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "failed to delete approval letter"})
+		return
+	}
+	ginContext.JSON(http.StatusOK, gin.H{"message": "approval letter deleted"})
+}
+
 func (c *AdminRequestController) DownloadAttachment(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
@@ -216,7 +265,7 @@ func (c *AdminRequestController) DownloadAttachment(ginContext *gin.Context) {
 	}
 
 	attachmentType := ginContext.Param("type")
-	if attachmentType != "surat_kunjungan" && attachmentType != "surat_tugas" {
+	if attachmentType != "surat_kunjungan" && attachmentType != "surat_tugas" && attachmentType != "surat_persetujuan" {
 		c.logger.WithField("attachmentType", attachmentType).Warn("invalid attachment type")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "attachment type must be surat_kunjungan or surat_tugas"})
 		return
@@ -232,6 +281,11 @@ func (c *AdminRequestController) DownloadAttachment(ginContext *gin.Context) {
 		c.logger.WithError(err).Error("failed to find visit request for attachment download")
 		_ = ginContext.Error(err)
 		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
+		return
+	}
+
+	if attachmentType == "surat_persetujuan" && visitRequest.Status != "approved" {
+		ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "approval letter not found"})
 		return
 	}
 

@@ -21,6 +21,7 @@ func TestSavePDFStoresByAttachmentType(t *testing.T) {
 	}{
 		{attachmentType: "surat_kunjungan", directory: "surat-kunjungan"},
 		{attachmentType: "surat_tugas", directory: "surat-tugas"},
+		{attachmentType: "surat_persetujuan", directory: "surat-persetujuan"},
 	} {
 		attachment, err := usecase.savePDF(uuid.New(), test.attachmentType, FileInput{
 			Reader:   bytes.NewReader([]byte("%PDF-1.4\n%1234567890")),

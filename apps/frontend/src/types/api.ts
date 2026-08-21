@@ -5,7 +5,7 @@ export interface Guest {
 }
 
 export interface Attachment {
-  attachment_type: 'surat_kunjungan' | 'surat_tugas';
+  attachment_type: 'surat_kunjungan' | 'surat_tugas' | 'surat_persetujuan';
   original_name: string;
   content_type: string;
   size_bytes: number;
