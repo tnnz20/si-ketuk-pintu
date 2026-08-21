@@ -24,6 +24,32 @@ func NewVisitRequestRepository(database *gorm.DB, logger *logrus.Logger) *VisitR
 	return &VisitRequestRepository{database: database, logger: logger}
 }
 
+func (r *VisitRequestRepository) CreateAttachment(ctx context.Context, attachment *entity.Attachment) error {
+	if err := r.database.WithContext(ctx).Create(attachment).Error; err != nil {
+		return fmt.Errorf("create attachment: %w", err)
+	}
+	return nil
+}
+
+func (r *VisitRequestRepository) FindAttachment(ctx context.Context, visitRequestID uuid.UUID, attachmentType string) (*entity.Attachment, error) {
+	var attachment entity.Attachment
+	err := r.database.WithContext(ctx).Where("visit_request_id = ? AND attachment_type = ?", visitRequestID, attachmentType).First(&attachment).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("find attachment: %w", err)
+	}
+	return &attachment, nil
+}
+
+func (r *VisitRequestRepository) DeleteAttachment(ctx context.Context, attachment *entity.Attachment) error {
+	if err := r.database.WithContext(ctx).Delete(&entity.Attachment{}, attachment.ID).Error; err != nil {
+		return fmt.Errorf("delete attachment: %w", err)
+	}
+	return nil
+}
+
 func (r *VisitRequestRepository) Create(ctx context.Context, visitRequest *entity.VisitRequest) error {
 	return r.database.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(visitRequest).Error; err != nil {
@@ -133,6 +159,21 @@ func (r *VisitRequestRepository) List(
 	}
 
 	return visitRequests, total, nil
+}
+
+func (r *VisitRequestRepository) UpdateSchedule(ctx context.Context, id uuid.UUID, date time.Time, timeValue string) error {
+	result := r.database.WithContext(ctx).Model(&entity.VisitRequest{}).Where("id = ?", id).Updates(map[string]any{
+		"tanggal_kunjungan": date,
+		"jam_kunjungan":     timeValue,
+		"updated_at":        time.Now(),
+	})
+	if result.Error != nil {
+		return fmt.Errorf("update visit request schedule: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return ErrVisitRequestNotFound
+	}
+	return nil
 }
 
 func (r *VisitRequestRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status string) error {

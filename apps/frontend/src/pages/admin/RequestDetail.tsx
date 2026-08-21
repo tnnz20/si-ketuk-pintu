@@ -3,13 +3,19 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import ConfirmDialog from '@components/shared/ConfirmDialog';
+import ApprovalLetterDialog from '@components/requests/ApprovalLetterDialog';
+import RescheduleDialog from '@components/requests/RescheduleDialog';
+import LoadingOverlay from '@components/shared/LoadingOverlay';
 import Skeleton from '@components/shared/Skeleton';
 import RequestActionsDocuments from '@components/requests/RequestDetailActionsDocuments';
 import RequestAuditHistory from '@components/requests/RequestDetailAuditHistory';
 import RequestDetails from '@components/requests/RequestDetailDetails';
 import RequestGuests from '@components/requests/RequestDetailGuests';
 import RequestSummary from '@components/requests/RequestDetailSummary';
-import { downloadAttachment, getRequestById, updateStatus } from '../../lib/api/requests';
+import { deleteApprovalLetter, deleteRescheduleLetter, downloadAttachment, getRequestById, rescheduleRequest, updateStatus, uploadApprovalLetter, uploadRescheduleLetter } from '../../lib/api/requests';
+import { generateApprovalLetterPdf } from '../../lib/pdf/approvalLetterPdf';
+import { generateRescheduleLetterPdf } from '../../lib/pdf/rescheduleLetterPdf';
+import { generateVisitRequestPdf } from '../../lib/pdf/visitRequestPdf';
 import type { RequestDetailResponse } from '@app-types/api';
 
 export default function RequestDetail() {
@@ -18,6 +24,12 @@ export default function RequestDetail() {
   const [data, setData] = useState<RequestDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [confirm, setConfirm] = useState<'approved' | 'rejected'>();
+  const [generating, setGenerating] = useState(false);
+  const [approvalDialog, setApprovalDialog] = useState(false);
+  const [approvalBusy, setApprovalBusy] = useState(false);
+  const [deleteApprovalConfirm, setDeleteApprovalConfirm] = useState(false);
+  const [rescheduleDialog, setRescheduleDialog] = useState(false);
+  const [deleteRescheduleConfirm, setDeleteRescheduleConfirm] = useState(false);
 
   const load = useCallback(() => {
     if (!id) return;
@@ -44,13 +56,104 @@ export default function RequestDetail() {
     }
   }
 
-  async function preview(type: 'surat_kunjungan' | 'surat_tugas') {
+  async function preview(type: 'surat_kunjungan' | 'surat_tugas' | 'surat_persetujuan') {
+    if (type === 'surat_persetujuan') return downloadApproval();
     if (!id) return;
     try {
       const blob = await downloadAttachment(id, type);
       window.open(URL.createObjectURL(blob), '_blank', 'noopener,noreferrer');
     } catch {
       toast.error('Gagal membuka dokumen.');
+    }
+  }
+
+  async function generateApproval(input: { nomor: string; sifat: string }) {
+    if (!id || !data) return;
+    setApprovalBusy(true);
+    try {
+      const blob = await generateApprovalLetterPdf(data.request, input);
+      await uploadApprovalLetter(id, blob);
+      setApprovalDialog(false);
+      toast.success('Surat persetujuan berhasil dibuat.');
+      load();
+    } catch {
+      toast.error('Gagal membuat surat persetujuan.');
+    } finally {
+      setApprovalBusy(false);
+    }
+  }
+
+  async function generateReschedule(input: { nomor: string; sifat: string; tanggal_kunjungan: string; jam_kunjungan: string }) {
+    if (!id || !data) return;
+    setApprovalBusy(true);
+    const oldSchedule = { tanggal_kunjungan: data.request.tanggal_kunjungan, jam_kunjungan: data.request.jam_kunjungan };
+    try {
+      const blob = await generateRescheduleLetterPdf(data.request, oldSchedule, input, { nomor: input.nomor, sifat: input.sifat });
+      await rescheduleRequest(id, { tanggal_kunjungan: input.tanggal_kunjungan, jam_kunjungan: input.jam_kunjungan });
+      await uploadRescheduleLetter(id, blob);
+      setRescheduleDialog(false);
+      toast.success('Surat reschedule berhasil dibuat.');
+      load();
+    } catch {
+      toast.error('Gagal membuat surat reschedule.');
+    } finally { setApprovalBusy(false); }
+  }
+
+  async function downloadReschedule() {
+    if (!id) return;
+    setApprovalBusy(true);
+    try { const blob = await downloadAttachment(id, 'surat_reschedule'); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = 'surat_reschedule.pdf'; link.click(); URL.revokeObjectURL(url); } catch { toast.error('Gagal mengunduh surat reschedule.'); } finally { setApprovalBusy(false); }
+  }
+
+  async function removeReschedule() {
+    if (!id) return;
+    setDeleteRescheduleConfirm(false); setApprovalBusy(true);
+    try { await deleteRescheduleLetter(id); toast.success('Surat reschedule dihapus.'); load(); } catch { toast.error('Gagal menghapus surat reschedule.'); } finally { setApprovalBusy(false); }
+  }
+
+  async function downloadApproval() {
+    if (!id) return;
+    setApprovalBusy(true);
+    try {
+      const blob = await downloadAttachment(id, 'surat_persetujuan');
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'surat_persetujuan.pdf';
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error('Gagal mengunduh surat persetujuan.');
+    } finally {
+      setApprovalBusy(false);
+    }
+  }
+
+  async function removeApproval() {
+    if (!id) return;
+    setDeleteApprovalConfirm(false);
+    setApprovalBusy(true);
+    try {
+      await deleteApprovalLetter(id);
+      toast.success('Surat persetujuan dihapus.');
+      load();
+    } catch {
+      toast.error('Gagal menghapus surat persetujuan.');
+    } finally {
+      setApprovalBusy(false);
+    }
+  }
+
+  function generatePdf() {
+    if (generating || !data) return;
+    setGenerating(true);
+    try {
+      generateVisitRequestPdf(data.request);
+      toast.success('Surat permohonan berhasil diunduh.');
+    } catch {
+      toast.error('Gagal membuat surat permohonan.');
+    } finally {
+      setGenerating(false);
     }
   }
 
@@ -87,10 +190,33 @@ export default function RequestDetail() {
         </div>
         <RequestActionsDocuments
           request={request}
-          onStatusChange={setConfirm}
-          onPreview={preview}
-        />
+           onStatusChange={setConfirm}
+           onPreview={preview}
+            onGeneratePdf={generatePdf}
+            onApprovalGenerate={() => setApprovalDialog(true)}
+            onApprovalDownload={downloadApproval}
+            onApprovalDelete={() => setDeleteApprovalConfirm(true)}
+            onRescheduleGenerate={() => setRescheduleDialog(true)}
+            onRescheduleDownload={downloadReschedule}
+            onRescheduleDelete={() => setDeleteRescheduleConfirm(true)}
+            generating={generating}
+            approvalBusy={approvalBusy}
+          />
       </div>
+      {(generating || approvalBusy) && <LoadingOverlay />}
+      {approvalDialog && <ApprovalLetterDialog open loading={approvalBusy} onSubmit={generateApproval} onCancel={() => setApprovalDialog(false)} />}
+      {rescheduleDialog && <RescheduleDialog open loading={approvalBusy} onSubmit={generateReschedule} onCancel={() => setRescheduleDialog(false)} />}
+      {deleteRescheduleConfirm && <ConfirmDialog title="Hapus surat reschedule?" description="File surat reschedule akan dihapus." action="Hapus" loading={approvalBusy} onCancel={() => setDeleteRescheduleConfirm(false)} onConfirm={removeReschedule} />}
+      {deleteApprovalConfirm && (
+        <ConfirmDialog
+          title="Hapus surat persetujuan?"
+          description="File surat persetujuan akan dihapus dari penyimpanan."
+          action="Hapus"
+          loading={approvalBusy}
+          onCancel={() => setDeleteApprovalConfirm(false)}
+          onConfirm={removeApproval}
+        />
+      )}
       {confirm && (
         <ConfirmDialog
           title="Apakah Anda yakin?"

@@ -1,10 +1,12 @@
-import { Clock, Eye, FileText, HelpCircle, Info, Users } from 'lucide-react';
+import { Clock, Download, Eye, FileText, HelpCircle, Info, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { statusDetailColors } from '@constants/status';
+import LoadingOverlay from '../../components/shared/LoadingOverlay';
 import RequestNotFoundState from '../../components/requests/RequestNotFoundState';
 import { downloadAttachmentByToken, getRequestByToken } from '../../lib/api/requests';
+import { generateVisitRequestPdf } from '../../lib/pdf/visitRequestPdf';
 import type { Attachment, VisitRequest } from '@app-types/api';
 
 export default function RequestStatus() {
@@ -12,6 +14,7 @@ export default function RequestStatus() {
   const [request, setRequest] = useState<VisitRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     if (!token) return;
@@ -29,6 +32,7 @@ export default function RequestStatus() {
   async function preview(doc: Attachment) {
     if (!token) return;
     try {
+      if (doc.attachment_type === 'surat_persetujuan' || doc.attachment_type === 'surat_reschedule') return;
       const blob = await downloadAttachmentByToken(token, doc.attachment_type);
       window.open(URL.createObjectURL(blob), '_blank', 'noopener,noreferrer');
     } catch {
@@ -40,6 +44,19 @@ export default function RequestStatus() {
     return <div className="py-16 text-center text-on-surface-variant">Loading request...</div>;
   if (error || !request) {
     return <RequestNotFoundState token={token || ''} backToHomeIcon="help-circle" />;
+  }
+
+  function generatePdf() {
+    if (generating) return;
+    setGenerating(true);
+    try {
+      generateVisitRequestPdf(request!);
+      toast.success('Surat permohonan berhasil diunduh.');
+    } catch {
+      toast.error('Gagal membuat surat permohonan.');
+    } finally {
+      setGenerating(false);
+    }
   }
 
   return (
@@ -148,8 +165,16 @@ export default function RequestStatus() {
           </section>
         </div>
         <div className="space-y-gutter">
-          <section className="rounded-xl border border-surface-alt bg-surface-container-lowest p-6">
-            <h3 className="mb-4 flex items-center gap-2 border-b border-surface-alt pb-2 font-headline-md text-base text-headline-md text-on-surface">
+           <section className="rounded-xl border border-surface-alt bg-surface-container-lowest p-6">
+             <button
+               type="button"
+               onClick={generatePdf}
+               disabled={generating}
+               className="mb-5 flex w-full items-center justify-center gap-2 rounded border border-primary py-3 text-label-md text-primary cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+             >
+               <Download className="h-5 w-5" /> Unduh Surat Permohonan
+             </button>
+             <h3 className="mb-4 flex items-center gap-2 border-b border-surface-alt pb-2 font-headline-md text-base text-headline-md text-on-surface">
               <FileText className="h-5 w-5" /> Submitted Documents
             </h3>
             <ul className="mt-4 space-y-4">
@@ -197,6 +222,7 @@ export default function RequestStatus() {
           </section>
         </div>
       </div>
+      {generating && <LoadingOverlay />}
     </div>
   );
 }
