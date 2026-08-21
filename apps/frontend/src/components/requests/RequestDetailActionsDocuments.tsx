@@ -81,7 +81,7 @@ export default function RequestActionsDocuments({
         <h2 className="mb-4 flex items-center gap-2 text-label-md font-bold">
           <FileText className="h-5 w-5" /> Dokumen Terlampir
         </h2>
-        {request.attachments.map((doc) => (
+        {request.attachments.filter((doc) => doc.attachment_type !== 'surat_persetujuan').map((doc) => (
           <button
             key={doc.attachment_type}
             type="button"
