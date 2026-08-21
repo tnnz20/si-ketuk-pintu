@@ -2,14 +2,95 @@ package usecase
 
 import (
 	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/entity"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/model"
 )
+
+type statusStoreStub struct {
+	request *entity.VisitRequest
+	updated string
+}
+
+func (s *statusStoreStub) Create(context.Context, *entity.VisitRequest) error         { return nil }
+func (s *statusStoreStub) CreateAttachment(context.Context, *entity.Attachment) error { return nil }
+func (s *statusStoreStub) FindAttachment(context.Context, uuid.UUID, string) (*entity.Attachment, error) {
+	return nil, nil
+}
+func (s *statusStoreStub) DeleteAttachment(context.Context, *entity.Attachment) error { return nil }
+func (s *statusStoreStub) FindByToken(context.Context, string) (*entity.VisitRequest, error) {
+	return nil, nil
+}
+func (s *statusStoreStub) FindByID(context.Context, uuid.UUID) (*entity.VisitRequest, error) {
+	return s.request, nil
+}
+func (s *statusStoreStub) List(context.Context, model.ListFilter) ([]entity.VisitRequest, int64, error) {
+	return nil, 0, nil
+}
+func (s *statusStoreStub) UpdateStatus(_ context.Context, _ uuid.UUID, status string) error {
+	s.updated = status
+	return nil
+}
+func (s *statusStoreStub) UpdateSchedule(context.Context, uuid.UUID, time.Time, string) error {
+	return nil
+}
+func (s *statusStoreStub) Stats(context.Context, time.Time) (int64, int64, int64, error) {
+	return 0, 0, 0, nil
+}
+func (s *statusStoreStub) Delete(context.Context, uuid.UUID) error           { return nil }
+func (s *statusStoreStub) TokenExists(context.Context, string) (bool, error) { return false, nil }
+
+type auditStub struct {
+	event *entity.AuditEvent
+	err   error
+}
+
+func (s *auditStub) Create(_ context.Context, event *entity.AuditEvent) error {
+	s.event = event
+	return s.err
+}
+
+func TestUpdateStatusCreatesAuditEvent(t *testing.T) {
+	store := &statusStoreStub{request: &entity.VisitRequest{Status: "pending"}}
+	audit := &auditStub{}
+	usecase := NewVisitRequestUsecase(store, audit, logrus.New(), t.TempDir(), time.UTC)
+	id := uuid.New()
+	if err := usecase.UpdateStatus(context.Background(), UpdateStatusInput{VisitRequestID: id, NewStatus: "approved", AdministratorID: 7}); err != nil {
+		t.Fatal(err)
+	}
+	if audit.event == nil || audit.event.Action != "status_changed" {
+		t.Fatalf("audit event = %#v", audit.event)
+	}
+	var previous, next map[string]string
+	if err := json.Unmarshal(audit.event.PreviousValue, &previous); err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(audit.event.NewValue, &next); err != nil {
+		t.Fatal(err)
+	}
+	if previous["status"] != "pending" || next["status"] != "approved" {
+		t.Fatalf("status audit = %#v -> %#v", previous, next)
+	}
+}
+
+func TestUpdateStatusReturnsAuditError(t *testing.T) {
+	store := &statusStoreStub{request: &entity.VisitRequest{Status: "pending"}}
+	audit := &auditStub{err: errors.New("audit failed")}
+	usecase := NewVisitRequestUsecase(store, audit, logrus.New(), t.TempDir(), time.UTC)
+	if err := usecase.UpdateStatus(context.Background(), UpdateStatusInput{VisitRequestID: uuid.New(), NewStatus: "rejected", AdministratorID: 7}); err == nil {
+		t.Fatal("expected audit error")
+	}
+}
 
 func TestSavePDFStoresByAttachmentType(t *testing.T) {
 	uploadDir := t.TempDir()

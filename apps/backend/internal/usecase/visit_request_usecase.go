@@ -340,7 +340,7 @@ func (u *VisitRequestUsecase) UpdateStatus(ctx context.Context, input UpdateStat
 
 	previousValue, _ := json.Marshal(map[string]string{"status": previousStatus})
 	newValue, _ := json.Marshal(map[string]string{"status": input.NewStatus})
-	_ = u.auditor.Create(ctx, &entity.AuditEvent{
+	if err := u.auditor.Create(ctx, &entity.AuditEvent{
 		VisitRequestID:  &input.VisitRequestID,
 		AdministratorID: &input.AdministratorID,
 		ActorType:       "administrator",
@@ -348,7 +348,10 @@ func (u *VisitRequestUsecase) UpdateStatus(ctx context.Context, input UpdateStat
 		PreviousValue:   previousValue,
 		NewValue:        newValue,
 		OccurredAt:      time.Now().In(u.timeZone),
-	})
+	}); err != nil {
+		u.logger.WithError(err).Error("failed to create status change audit event")
+		return fmt.Errorf("create status change audit event: %w", err)
+	}
 
 	return nil
 }
