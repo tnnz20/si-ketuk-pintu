@@ -12,6 +12,9 @@ interface RequestActionsDocumentsProps {
   onApprovalGenerate: () => void;
   onApprovalDownload: () => void;
   onApprovalDelete: () => void;
+  onRescheduleGenerate: () => void;
+  onRescheduleDownload: () => void;
+  onRescheduleDelete: () => void;
   generating: boolean;
   approvalBusy: boolean;
 }
@@ -24,6 +27,9 @@ export default function RequestActionsDocuments({
   onApprovalGenerate,
   onApprovalDownload,
   onApprovalDelete,
+  onRescheduleGenerate,
+  onRescheduleDownload,
+  onRescheduleDelete,
   generating,
   approvalBusy,
 }: RequestActionsDocumentsProps) {
@@ -64,7 +70,13 @@ export default function RequestActionsDocuments({
           <Download className="h-5 w-5" /> Unduh Surat Permohonan
         </button>
        </section>
-       {request.status === 'approved' && (
+        {request.status === 'pending' && (
+          <section className="rounded-lg border border-surface-alt bg-surface-container-lowest p-6">
+            <h2 className="mb-4 flex items-center gap-2 text-label-md font-bold"><FileText className="h-5 w-5" /> Surat Reschedule</h2>
+            {request.attachments.some((attachment) => attachment.attachment_type === 'surat_reschedule') ? <div className="flex gap-2"><button type="button" onClick={onRescheduleDownload} disabled={approvalBusy} className="flex flex-1 items-center justify-center gap-2 rounded border border-primary py-3 text-primary">Unduh</button><button type="button" onClick={onRescheduleDelete} disabled={approvalBusy} className="rounded border border-error px-3 text-error"><Trash2 className="h-5 w-5" /></button></div> : <button type="button" onClick={onRescheduleGenerate} disabled={approvalBusy} className="w-full rounded border border-primary py-3 text-primary">Jadwalkan Ulang</button>}
+          </section>
+        )}
+        {request.status === 'approved' && (
          <section className="rounded-lg border border-surface-alt bg-surface-container-lowest p-6">
            <h2 className="mb-4 flex items-center gap-2 text-label-md font-bold"><FileText className="h-5 w-5" /> Surat Persetujuan</h2>
            {request.attachments.some((attachment) => attachment.attachment_type === 'surat_persetujuan') ? (
@@ -81,12 +93,12 @@ export default function RequestActionsDocuments({
         <h2 className="mb-4 flex items-center gap-2 text-label-md font-bold">
           <FileText className="h-5 w-5" /> Dokumen Terlampir
         </h2>
-        {request.attachments.filter((doc) => doc.attachment_type !== 'surat_persetujuan').map((doc) => (
+        {request.attachments.filter((doc) => doc.attachment_type !== 'surat_persetujuan' && doc.attachment_type !== 'surat_reschedule').map((doc) => (
           <button
             key={doc.attachment_type}
             type="button"
             onClick={() => {
-              if (doc.attachment_type !== 'surat_persetujuan') onPreview(doc.attachment_type);
+              if (doc.attachment_type === 'surat_kunjungan' || doc.attachment_type === 'surat_tugas') onPreview(doc.attachment_type);
             }}
             title="Klik untuk pratinjau di tab baru"
             className="mb-3 flex w-full items-center justify-between gap-2 rounded border border-surface-alt p-3 text-left hover:bg-surface-container cursor-pointer"

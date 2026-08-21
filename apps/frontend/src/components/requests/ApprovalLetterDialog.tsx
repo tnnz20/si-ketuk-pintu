@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { z } from 'zod';
 import type { FormEvent } from 'react';
 import Dialog from '@components/shared/Dialog';
+import { Select } from '@components/shared/Select';
 
 const schema = z.object({
   nomor: z.string().trim().min(1, 'Nomor wajib diisi.'),
-  sifat: z.string().trim().min(1, 'Sifat wajib diisi.'),
+  sifat: z.enum(['Biasa', 'Penting', 'Sangat Penting']),
 });
 
 interface Props {
@@ -40,7 +41,7 @@ export default function ApprovalLetterDialog({ open, loading, onSubmit, onCancel
           {errors.nomor && <span className="mt-1 block text-sm text-error">{errors.nomor}</span>}
         </label>
         <label className="mt-4 block text-label-md">Sifat
-          <input value={sifat} onChange={(event) => setSifat(event.target.value)} className="mt-2 w-full rounded border border-outline px-3 py-2" disabled={loading} />
+          <Select value={sifat} onChange={(event) => setSifat(event.target.value)} className="mt-2 rounded border border-outline px-3 py-2" disabled={loading}><option value="">Pilih sifat</option><option>Biasa</option><option>Penting</option><option>Sangat Penting</option></Select>
           {errors.sifat && <span className="mt-1 block text-sm text-error">{errors.sifat}</span>}
         </label>
         <div className="mt-6 flex justify-end gap-3">

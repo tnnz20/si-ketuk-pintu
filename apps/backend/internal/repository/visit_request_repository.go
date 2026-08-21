@@ -161,6 +161,21 @@ func (r *VisitRequestRepository) List(
 	return visitRequests, total, nil
 }
 
+func (r *VisitRequestRepository) UpdateSchedule(ctx context.Context, id uuid.UUID, date time.Time, timeValue string) error {
+	result := r.database.WithContext(ctx).Model(&entity.VisitRequest{}).Where("id = ?", id).Updates(map[string]any{
+		"tanggal_kunjungan": date,
+		"jam_kunjungan":     timeValue,
+		"updated_at":        time.Now(),
+	})
+	if result.Error != nil {
+		return fmt.Errorf("update visit request schedule: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return ErrVisitRequestNotFound
+	}
+	return nil
+}
+
 func (r *VisitRequestRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status string) error {
 	result := r.database.WithContext(ctx).
 		Model(&entity.VisitRequest{}).

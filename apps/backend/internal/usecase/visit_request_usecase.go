@@ -33,6 +33,8 @@ var ErrInvalidPDF = errors.New("file must be a valid PDF")
 var ErrApprovalLetterNotAllowed = errors.New("approval letter requires approved request")
 var ErrApprovalLetterExists = errors.New("approval letter already exists")
 var ErrApprovalLetterNotFound = errors.New("approval letter not found")
+var ErrRescheduleLetterNotAllowed = errors.New("reschedule letter requires pending request")
+var ErrRescheduleLetterNotFound = errors.New("reschedule letter not found")
 
 type VisitRequestStore interface {
 	Create(ctx context.Context, visitRequest *entity.VisitRequest) error
@@ -43,6 +45,7 @@ type VisitRequestStore interface {
 	FindByID(ctx context.Context, id uuid.UUID) (*entity.VisitRequest, error)
 	List(ctx context.Context, filter model.ListFilter) ([]entity.VisitRequest, int64, error)
 	UpdateStatus(ctx context.Context, id uuid.UUID, status string) error
+	UpdateSchedule(ctx context.Context, id uuid.UUID, date time.Time, timeValue string) error
 	Stats(ctx context.Context, now time.Time) (int64, int64, int64, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	TokenExists(ctx context.Context, token string) (bool, error)
@@ -55,6 +58,13 @@ type AuditEventCreator interface {
 type UpdateStatusInput struct {
 	VisitRequestID  uuid.UUID
 	NewStatus       string
+	AdministratorID int64
+}
+
+type RescheduleInput struct {
+	VisitRequestID  uuid.UUID
+	NewDate         time.Time
+	NewTime         string
 	AdministratorID int64
 }
 
@@ -226,6 +236,48 @@ func (u *VisitRequestUsecase) SaveApprovalLetter(ctx context.Context, requestID 
 	return attachment, nil
 }
 
+func (u *VisitRequestUsecase) SaveRescheduleLetter(ctx context.Context, requestID uuid.UUID, file FileInput) (*entity.Attachment, error) {
+	request, err := u.store.FindByID(ctx, requestID)
+	if err != nil {
+		return nil, err
+	}
+	if request.Status != "pending" {
+		return nil, ErrRescheduleLetterNotAllowed
+	}
+	if existing, err := u.store.FindAttachment(ctx, requestID, "surat_reschedule"); err == nil && existing != nil {
+		_ = os.Remove(filepath.Join(u.uploadDir, filepath.FromSlash(existing.StorageKey)))
+		if err := u.store.DeleteAttachment(ctx, existing); err != nil {
+			return nil, err
+		}
+	} else if err != nil {
+		return nil, err
+	}
+	attachment, err := u.savePDF(requestID, "surat_reschedule", file)
+	if err != nil {
+		return nil, err
+	}
+	attachment.VisitRequestID = requestID
+	if err := u.store.CreateAttachment(ctx, attachment); err != nil {
+		_ = os.Remove(filepath.Join(u.uploadDir, filepath.FromSlash(attachment.StorageKey)))
+		return nil, err
+	}
+	return attachment, nil
+}
+
+func (u *VisitRequestUsecase) DeleteRescheduleLetter(ctx context.Context, requestID uuid.UUID) error {
+	attachment, err := u.store.FindAttachment(ctx, requestID, "surat_reschedule")
+	if err != nil {
+		return err
+	}
+	if attachment == nil {
+		return ErrRescheduleLetterNotFound
+	}
+	if err := os.Remove(filepath.Join(u.uploadDir, filepath.FromSlash(attachment.StorageKey))); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("delete reschedule letter file: %w", err)
+	}
+	return u.store.DeleteAttachment(ctx, attachment)
+}
+
 func (u *VisitRequestUsecase) DeleteApprovalLetter(ctx context.Context, requestID uuid.UUID) error {
 	attachment, err := u.store.FindAttachment(ctx, requestID, "surat_persetujuan")
 	if err != nil {
@@ -238,6 +290,36 @@ func (u *VisitRequestUsecase) DeleteApprovalLetter(ctx context.Context, requestI
 		return fmt.Errorf("delete approval letter file: %w", err)
 	}
 	return u.store.DeleteAttachment(ctx, attachment)
+}
+
+func (u *VisitRequestUsecase) Reschedule(ctx context.Context, input RescheduleInput) error {
+	request, err := u.store.FindByID(ctx, input.VisitRequestID)
+	if err != nil {
+		return err
+	}
+	if request.Status != "pending" {
+		return fmt.Errorf("only pending requests can be rescheduled")
+	}
+	previousValue, _ := json.Marshal(map[string]string{
+		"tanggal_kunjungan": request.TanggalKunjungan.Format("2006-01-02"),
+		"jam_kunjungan":     request.JamKunjungan,
+	})
+	newValue, _ := json.Marshal(map[string]string{
+		"tanggal_kunjungan": input.NewDate.Format("2006-01-02"),
+		"jam_kunjungan":     input.NewTime,
+	})
+	if err := u.store.UpdateSchedule(ctx, input.VisitRequestID, input.NewDate, input.NewTime); err != nil {
+		return err
+	}
+	return u.auditor.Create(ctx, &entity.AuditEvent{
+		VisitRequestID:  &input.VisitRequestID,
+		AdministratorID: &input.AdministratorID,
+		ActorType:       "administrator",
+		Action:          "schedule_rescheduled",
+		PreviousValue:   previousValue,
+		NewValue:        newValue,
+		OccurredAt:      time.Now().In(u.timeZone),
+	})
 }
 
 func (u *VisitRequestUsecase) UpdateStatus(ctx context.Context, input UpdateStatusInput) error {
@@ -327,6 +409,8 @@ func (u *VisitRequestUsecase) savePDF(
 		directory = "surat-tugas"
 	case "surat_persetujuan":
 		directory = "surat-persetujuan"
+	case "surat_reschedule":
+		directory = "surat-reschedule"
 	default:
 		err := fmt.Errorf("unsupported attachment type: %s", attachmentType)
 		u.logger.WithError(err).Error("unsupported attachment type in savePDF")

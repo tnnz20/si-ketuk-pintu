@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import ConfirmDialog from '@components/shared/ConfirmDialog';
 import ApprovalLetterDialog from '@components/requests/ApprovalLetterDialog';
+import RescheduleDialog from '@components/requests/RescheduleDialog';
 import LoadingOverlay from '@components/shared/LoadingOverlay';
 import Skeleton from '@components/shared/Skeleton';
 import RequestActionsDocuments from '@components/requests/RequestDetailActionsDocuments';
@@ -11,8 +12,9 @@ import RequestAuditHistory from '@components/requests/RequestDetailAuditHistory'
 import RequestDetails from '@components/requests/RequestDetailDetails';
 import RequestGuests from '@components/requests/RequestDetailGuests';
 import RequestSummary from '@components/requests/RequestDetailSummary';
-import { deleteApprovalLetter, downloadAttachment, getRequestById, updateStatus, uploadApprovalLetter } from '../../lib/api/requests';
+import { deleteApprovalLetter, deleteRescheduleLetter, downloadAttachment, getRequestById, rescheduleRequest, updateStatus, uploadApprovalLetter, uploadRescheduleLetter } from '../../lib/api/requests';
 import { generateApprovalLetterPdf } from '../../lib/pdf/approvalLetterPdf';
+import { generateRescheduleLetterPdf } from '../../lib/pdf/rescheduleLetterPdf';
 import { generateVisitRequestPdf } from '../../lib/pdf/visitRequestPdf';
 import type { RequestDetailResponse } from '@app-types/api';
 
@@ -26,6 +28,8 @@ export default function RequestDetail() {
   const [approvalDialog, setApprovalDialog] = useState(false);
   const [approvalBusy, setApprovalBusy] = useState(false);
   const [deleteApprovalConfirm, setDeleteApprovalConfirm] = useState(false);
+  const [rescheduleDialog, setRescheduleDialog] = useState(false);
+  const [deleteRescheduleConfirm, setDeleteRescheduleConfirm] = useState(false);
 
   const load = useCallback(() => {
     if (!id) return;
@@ -77,6 +81,34 @@ export default function RequestDetail() {
     } finally {
       setApprovalBusy(false);
     }
+  }
+
+  async function generateReschedule(input: { nomor: string; sifat: string; tanggal_kunjungan: string; jam_kunjungan: string }) {
+    if (!id || !data) return;
+    setApprovalBusy(true);
+    const oldSchedule = { tanggal_kunjungan: data.request.tanggal_kunjungan, jam_kunjungan: data.request.jam_kunjungan };
+    try {
+      const blob = await generateRescheduleLetterPdf(data.request, oldSchedule, input, { nomor: input.nomor, sifat: input.sifat });
+      await rescheduleRequest(id, { tanggal_kunjungan: input.tanggal_kunjungan, jam_kunjungan: input.jam_kunjungan });
+      await uploadRescheduleLetter(id, blob);
+      setRescheduleDialog(false);
+      toast.success('Surat reschedule berhasil dibuat.');
+      load();
+    } catch {
+      toast.error('Gagal membuat surat reschedule.');
+    } finally { setApprovalBusy(false); }
+  }
+
+  async function downloadReschedule() {
+    if (!id) return;
+    setApprovalBusy(true);
+    try { const blob = await downloadAttachment(id, 'surat_reschedule'); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = url; link.download = 'surat_reschedule.pdf'; link.click(); URL.revokeObjectURL(url); } catch { toast.error('Gagal mengunduh surat reschedule.'); } finally { setApprovalBusy(false); }
+  }
+
+  async function removeReschedule() {
+    if (!id) return;
+    setDeleteRescheduleConfirm(false); setApprovalBusy(true);
+    try { await deleteRescheduleLetter(id); toast.success('Surat reschedule dihapus.'); load(); } catch { toast.error('Gagal menghapus surat reschedule.'); } finally { setApprovalBusy(false); }
   }
 
   async function downloadApproval() {
@@ -164,12 +196,17 @@ export default function RequestDetail() {
             onApprovalGenerate={() => setApprovalDialog(true)}
             onApprovalDownload={downloadApproval}
             onApprovalDelete={() => setDeleteApprovalConfirm(true)}
+            onRescheduleGenerate={() => setRescheduleDialog(true)}
+            onRescheduleDownload={downloadReschedule}
+            onRescheduleDelete={() => setDeleteRescheduleConfirm(true)}
             generating={generating}
             approvalBusy={approvalBusy}
           />
       </div>
       {(generating || approvalBusy) && <LoadingOverlay />}
       {approvalDialog && <ApprovalLetterDialog open loading={approvalBusy} onSubmit={generateApproval} onCancel={() => setApprovalDialog(false)} />}
+      {rescheduleDialog && <RescheduleDialog open loading={approvalBusy} onSubmit={generateReschedule} onCancel={() => setRescheduleDialog(false)} />}
+      {deleteRescheduleConfirm && <ConfirmDialog title="Hapus surat reschedule?" description="File surat reschedule akan dihapus." action="Hapus" loading={approvalBusy} onCancel={() => setDeleteRescheduleConfirm(false)} onConfirm={removeReschedule} />}
       {deleteApprovalConfirm && (
         <ConfirmDialog
           title="Hapus surat persetujuan?"

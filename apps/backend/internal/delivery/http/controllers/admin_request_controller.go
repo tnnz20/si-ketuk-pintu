@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -212,6 +213,77 @@ func (c *AdminRequestController) Delete(ginContext *gin.Context) {
 	ginContext.JSON(http.StatusOK, gin.H{"message": "Permohonan berhasil dihapus"})
 }
 
+func (c *AdminRequestController) Reschedule(ginContext *gin.Context) {
+	id, err := uuid.Parse(ginContext.Param("id"))
+	if err != nil {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
+		return
+	}
+	var input model.RescheduleRequest
+	if err := ginContext.ShouldBindJSON(&input); err != nil {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
+		return
+	}
+	date, err := time.Parse("2006-01-02", input.TanggalKunjungan)
+	if err != nil {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid tanggal_kunjungan"})
+		return
+	}
+	administratorID, _ := ginContext.Get(middleware.AdministratorIDKey)
+	if err := c.visitRequestUsecase.Reschedule(ginContext.Request.Context(), usecase.RescheduleInput{
+		VisitRequestID: id, NewDate: date, NewTime: input.JamKunjungan, AdministratorID: administratorID.(int64),
+	}); err != nil {
+		if errors.Is(err, repository.ErrVisitRequestNotFound) {
+			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})
+			return
+		}
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
+		return
+	}
+	ginContext.JSON(http.StatusOK, gin.H{"message": "schedule rescheduled"})
+}
+
+func (c *AdminRequestController) UploadRescheduleLetter(ginContext *gin.Context) {
+	id, err := uuid.Parse(ginContext.Param("id"))
+	if err != nil {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
+		return
+	}
+	file, header, err := ginContext.Request.FormFile("file")
+	if err != nil {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "file is required"})
+		return
+	}
+	defer file.Close()
+	attachment, err := c.visitRequestUsecase.SaveRescheduleLetter(ginContext.Request.Context(), id, usecase.FileInput{Reader: file, Filename: header.Filename, Size: header.Size})
+	if err != nil {
+		if errors.Is(err, repository.ErrVisitRequestNotFound) {
+			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})
+			return
+		}
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
+		return
+	}
+	ginContext.JSON(http.StatusCreated, gin.H{"attachment": attachment})
+}
+
+func (c *AdminRequestController) DeleteRescheduleLetter(ginContext *gin.Context) {
+	id, err := uuid.Parse(ginContext.Param("id"))
+	if err != nil {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
+		return
+	}
+	if err := c.visitRequestUsecase.DeleteRescheduleLetter(ginContext.Request.Context(), id); err != nil {
+		if errors.Is(err, repository.ErrAttachmentNotFound) || errors.Is(err, usecase.ErrRescheduleLetterNotFound) {
+			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "reschedule letter not found"})
+			return
+		}
+		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "failed to delete reschedule letter"})
+		return
+	}
+	ginContext.JSON(http.StatusOK, gin.H{"message": "reschedule letter deleted"})
+}
+
 func (c *AdminRequestController) UploadApprovalLetter(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
@@ -265,7 +337,7 @@ func (c *AdminRequestController) DownloadAttachment(ginContext *gin.Context) {
 	}
 
 	attachmentType := ginContext.Param("type")
-	if attachmentType != "surat_kunjungan" && attachmentType != "surat_tugas" && attachmentType != "surat_persetujuan" {
+	if attachmentType != "surat_kunjungan" && attachmentType != "surat_tugas" && attachmentType != "surat_persetujuan" && attachmentType != "surat_reschedule" {
 		c.logger.WithField("attachmentType", attachmentType).Warn("invalid attachment type")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "attachment type must be surat_kunjungan or surat_tugas"})
 		return
@@ -284,7 +356,7 @@ func (c *AdminRequestController) DownloadAttachment(ginContext *gin.Context) {
 		return
 	}
 
-	if attachmentType == "surat_persetujuan" && visitRequest.Status != "approved" {
+	if (attachmentType == "surat_persetujuan" && visitRequest.Status != "approved") || (attachmentType == "surat_reschedule" && visitRequest.Status != "pending") {
 		ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "approval letter not found"})
 		return
 	}

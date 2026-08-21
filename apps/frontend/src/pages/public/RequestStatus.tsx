@@ -32,7 +32,7 @@ export default function RequestStatus() {
   async function preview(doc: Attachment) {
     if (!token) return;
     try {
-      if (doc.attachment_type === 'surat_persetujuan') return;
+      if (doc.attachment_type === 'surat_persetujuan' || doc.attachment_type === 'surat_reschedule') return;
       const blob = await downloadAttachmentByToken(token, doc.attachment_type);
       window.open(URL.createObjectURL(blob), '_blank', 'noopener,noreferrer');
     } catch {
