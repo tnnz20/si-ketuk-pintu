@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -13,8 +14,8 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		panic("usage: migrate [up|down|version]")
+	if len(os.Args) < 2 || len(os.Args) > 3 {
+		panic("usage: migrate [up|down|version|force VERSION]")
 	}
 
 	applicationConfig, err := config.Load()
@@ -33,7 +34,12 @@ func main() {
 	}
 	defer migrator.Close()
 
-	if err := execute(migrator, os.Args[1]); err != nil {
+	command := os.Args[1]
+	if command == "force" && len(os.Args) != 3 {
+		panic("usage: migrate force VERSION")
+	}
+
+	if err := execute(migrator, command, os.Args[2:]); err != nil {
 		panic(err)
 	}
 }
@@ -47,12 +53,18 @@ func migrationSourceURL() (string, error) {
 	return "file://" + filepath.ToSlash(migrationDirectory), nil
 }
 
-func execute(migrator *migrate.Migrate, command string) error {
+func execute(migrator *migrate.Migrate, command string, args []string) error {
 	switch command {
 	case "up":
 		return ignoreNoChange(migrator.Up())
 	case "down":
 		return ignoreNoChange(migrator.Steps(-1))
+	case "force":
+		version, err := strconv.Atoi(args[0])
+		if err != nil || version < 0 {
+			return fmt.Errorf("invalid migration version %q", args[0])
+		}
+		return migrator.Force(version)
 	case "version":
 		version, dirty, err := migrator.Version()
 		if errors.Is(err, migrate.ErrNilVersion) {
