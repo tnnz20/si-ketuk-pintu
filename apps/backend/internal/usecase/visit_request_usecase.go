@@ -268,6 +268,18 @@ func (u *VisitRequestUsecase) savePDF(
 	attachmentType string,
 	file FileInput,
 ) (*entity.Attachment, error) {
+	var directory string
+	switch attachmentType {
+	case "surat_kunjungan":
+		directory = "surat-kunjungan"
+	case "surat_tugas":
+		directory = "surat-tugas"
+	default:
+		err := fmt.Errorf("unsupported attachment type: %s", attachmentType)
+		u.logger.WithError(err).Error("unsupported attachment type in savePDF")
+		return nil, err
+	}
+
 	if file.Size > maxPDFSize {
 		err := fmt.Errorf("%s: file exceeds 5 MB limit", attachmentType)
 		u.logger.WithError(err).Error("file size exceeds limit in savePDF")
@@ -297,12 +309,25 @@ func (u *VisitRequestUsecase) savePDF(
 	checksumHex := hex.EncodeToString(checksum[:])
 
 	filename := fmt.Sprintf("%s_%d.pdf", attachmentType, time.Now().UnixNano())
-	if err := os.MkdirAll(u.uploadDir, 0o750); err != nil {
-		u.logger.WithError(err).Error("failed to ensure upload directory exists")
-		return nil, fmt.Errorf("create upload directory %s: %w", u.uploadDir, err)
+	storageDir := filepath.Join(u.uploadDir, directory)
+	if err := os.MkdirAll(storageDir, 0o750); err != nil {
+		u.logger.WithError(err).Error("failed to ensure attachment directory exists")
+		return nil, fmt.Errorf("create attachment directory %s: %w", storageDir, err)
 	}
-	fullPath := filepath.Join(u.uploadDir, filename)
-	storageKey := filename
+
+	info, err := os.Stat(storageDir)
+	if err != nil {
+		u.logger.WithError(err).Error("failed to inspect attachment directory")
+		return nil, fmt.Errorf("inspect attachment directory %s: %w", storageDir, err)
+	}
+	if !info.IsDir() {
+		err := fmt.Errorf("attachment path is not a directory: %s", storageDir)
+		u.logger.WithError(err).Error("invalid attachment directory")
+		return nil, err
+	}
+
+	fullPath := filepath.Join(storageDir, filename)
+	storageKey := filepath.ToSlash(filepath.Join(directory, filename))
 	if err := os.WriteFile(fullPath, content, 0o640); err != nil {
 		u.logger.WithError(err).Error("failed to write file")
 		return nil, fmt.Errorf("write %s: %w", attachmentType, err)
