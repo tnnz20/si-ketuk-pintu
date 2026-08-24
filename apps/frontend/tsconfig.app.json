@@ -1,5 +1,5 @@
 {
-  "files": ["./src/app.tsx", "./src/main.tsx", "./src/vite-env.d.ts"],
+  "include": ["src"],
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "paths": {

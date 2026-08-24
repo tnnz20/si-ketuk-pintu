@@ -1,28 +1,41 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import ConfirmDialog from '@components/shared/ConfirmDialog';
 import RequestActionMenu from '@components/requests/RequestActionMenu';
 import RequestFilters from '@components/requests/RequestFilters';
 import RequestPagination from '@components/requests/RequestPagination';
 import RequestTableContent from '@components/requests/RequestTableContent';
-import { deleteRequest, getRequests } from '../../lib/api/requests';
-import type { PaginatedRequestsResponse } from '@app-types/api';
+import { deleteRequest, getRequests, getStats } from '../../lib/api/requests';
+import type { PaginatedRequestsResponse, StatsResponse } from '@app-types/api';
 
 type RequestRow = PaginatedRequestsResponse['data'][number];
 
 export default function RequestList() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [requests, setRequests] = useState<PaginatedRequestsResponse['data']>([]);
+  const [stats, setStats] = useState<StatsResponse>();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [totalPages, setTotalPages] = useState(1);
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('');
+  const [totalCount, setTotalCount] = useState(0);
+
+  const initialSearch = searchParams.get('search') ?? '';
+  const initialStatus = searchParams.get('status') ?? '';
+
+  const [search, setSearch] = useState(initialSearch);
+  const [status, setStatus] = useState(initialStatus);
   const [date, setDate] = useState('');
   const [loading, setLoading] = useState(true);
   const [menu, setMenu] = useState<{ row: RequestRow; left: number; top: number }>();
   const [confirmDelete, setConfirmDelete] = useState<RequestRow>();
+
+  // Fetch Stats for accurate counts on filter pills
+  useEffect(() => {
+    getStats().then(setStats).catch(() => {});
+  }, []);
 
   const load = useCallback(() => {
     setLoading(true);
@@ -30,8 +43,9 @@ export default function RequestList() {
       .then((result) => {
         setRequests(result.data);
         setTotalPages(result.total_pages);
+        setTotalCount(result.total);
       })
-      .catch(() => toast.error('Gagal memuat permohonan.'))
+      .catch(() => toast.error('Gagal memuat daftar permohonan.'))
       .finally(() => setLoading(false));
   }, [page, pageSize, search, status, date]);
 
@@ -58,7 +72,7 @@ export default function RequestList() {
   function openMenu(event: React.MouseEvent, row: RequestRow) {
     event.stopPropagation();
     const rect = event.currentTarget.getBoundingClientRect();
-    setMenu({ row, left: Math.min(rect.right, window.innerWidth - 176), top: rect.bottom + 8 });
+    setMenu({ row, left: Math.min(rect.right, window.innerWidth - 190), top: rect.bottom + 8 });
   }
 
   async function copyToken(row: RequestRow) {
@@ -71,59 +85,105 @@ export default function RequestList() {
     }
   }
 
-  const resetPage = (setter: (value: string) => void, value: string) => {
-    setter(value);
+  const handleStatusChange = (val: string) => {
+    setStatus(val);
     setPage(1);
+    const newParams = new URLSearchParams(searchParams);
+    if (val) newParams.set('status', val);
+    else newParams.delete('status');
+    setSearchParams(newParams);
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    setPage(1);
+    const newParams = new URLSearchParams(searchParams);
+    if (val) newParams.set('search', val);
+    else newParams.delete('search');
+    setSearchParams(newParams);
   };
 
   return (
-    <>
-      <header className="mb-8">
-        <h1 className="font-display text-3xl font-bold text-primary">Manajemen Permohonan</h1>
-        <p className="mt-2 text-on-surface-variant">Tinjau dan kelola permohonan kunjungan.</p>
-      </header>
-      <RequestFilters
-        search={search}
-        status={status}
-        date={date}
-        onSearchChange={(value) => resetPage(setSearch, value)}
-        onStatusChange={(value) => resetPage(setStatus, value)}
-        onDateChange={(value) => resetPage(setDate, value)}
-      />
-      <section className="overflow-hidden rounded-lg border border-outline-variant bg-surface-container-lowest">
+    <div className="space-y-5 animate-fade-in">
+      {/* Table Container Card */}
+      <div className="bg-civic-surface p-5 sm:p-6 rounded-3xl border border-civic-border soft-shadow space-y-4">
+        {/* Card Header & Title */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-civic-border pb-4">
+          <div>
+            <h3 className="font-extrabold text-base sm:text-lg text-civic-dark">
+              Manajemen Permohonan
+            </h3>
+            <p className="text-xs text-civic-muted font-medium mt-0.5">
+              Daftar permohonan masuk yang terdaftar di Si Ketuk Pintu
+            </p>
+          </div>
+
+          <div className="text-xs font-bold text-civic-muted">
+            Total Data: <span className="text-civic-dark font-extrabold">{totalCount}</span>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <RequestFilters
+          search={search}
+          status={status}
+          date={date}
+          counts={
+            stats
+              ? {
+                  total: stats.total_requests,
+                  pending: stats.pending_approval,
+                }
+              : undefined
+          }
+          onSearchChange={handleSearchChange}
+          onStatusChange={handleStatusChange}
+          onDateChange={(val: string) => {
+            setDate(val);
+            setPage(1);
+          }}
+        />
+
+        {/* Table Content */}
         <RequestTableContent requests={requests} loading={loading} onOpenMenu={openMenu} />
+
+        {/* Pagination */}
         <RequestPagination
           page={page}
           pageSize={pageSize}
           totalPages={totalPages}
           onPageChange={setPage}
-          onPageSizeChange={(value) => {
+          onPageSizeChange={(value: number) => {
             setPageSize(value);
             setPage(1);
           }}
         />
-      </section>
+      </div>
+
+      {/* Floating Action Menu */}
       {menu && (
         <RequestActionMenu
           menu={menu}
           onClose={() => setMenu(undefined)}
-          onViewDetail={(id) => navigate(`/dashboard/requests/${id}`)}
+          onViewDetail={(id: string) => navigate(`/dashboard/requests/${id}`)}
           onCopyToken={copyToken}
-          onDelete={(row) => {
+          onDelete={(row: RequestRow) => {
             setConfirmDelete(row);
             setMenu(undefined);
           }}
         />
       )}
+
+      {/* Delete Confirmation */}
       {confirmDelete && (
         <ConfirmDialog
           title="Hapus permohonan ini?"
-          description="Aksi ini tidak dapat dibatalkan. Permohonan akan dihapus permanen."
+          description={`Aksi ini tidak dapat dibatalkan. Permohonan ${confirmDelete.token} akan dihapus secara permanen.`}
           action="Hapus"
           onCancel={() => setConfirmDelete(undefined)}
           onConfirm={runDelete}
         />
       )}
-    </>
+    </div>
   );
 }

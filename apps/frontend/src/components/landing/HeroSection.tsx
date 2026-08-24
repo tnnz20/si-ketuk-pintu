@@ -65,7 +65,7 @@ export default function HeroSection() {
           </motion.div>
 
           {/* Headline with word stagger */}
-          <h1 className="text-headline-lg-mobile font-display leading-[1.1] tracking-tight text-on-surface md:text-[56px] md:leading-[1.05]">
+          <h1 className="text-headline-lg-mobile font-display leading-[1.1] tracking-tight text-on-surface md:text-display-lg md:leading-[1.05]">
             {headlineWords.map((word, i) => (
               <motion.span
                 key={word}

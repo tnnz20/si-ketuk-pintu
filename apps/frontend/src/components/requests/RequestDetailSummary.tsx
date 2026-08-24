@@ -8,27 +8,40 @@ interface RequestSummaryProps {
 
 export default function RequestSummary({ request }: RequestSummaryProps) {
   return (
-    <section className="rounded-lg border border-surface-alt bg-surface-container-lowest p-6">
-      <span className="mb-2 inline-flex rounded bg-surface-container px-2 py-1 text-label-sm text-on-surface-variant">
-        {request.token}
-      </span>
-      <h1 className="mb-1 font-display text-3xl font-bold text-primary">
-        {request.tema_kunjungan}
-      </h1>
-      <p className="text-on-surface-variant">{request.nama_instansi}</p>
-      <div className="mt-6 grid gap-4 border-t border-surface-alt pt-4 md:grid-cols-2">
-        <div>
-          <p className="mb-1 text-label-sm text-on-surface-variant">Tanggal Kunjungan</p>
-          <p className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-outline" /> {request.tanggal_kunjungan}{' '}
-            {request.jam_kunjungan}
+    <div className="bg-civic-surface p-6 rounded-3xl border border-civic-border soft-shadow space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="bg-civic-neutralFill text-civic-dark text-label-sm font-extrabold tracking-wider px-2.5 py-1 rounded-lg border border-civic-border font-mono">
+              {request.token}
+            </span>
+            <StatusBadge status={request.status} />
+          </div>
+
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-civic-dark tracking-tight leading-snug">
+            {request.tema_kunjungan}
+          </h2>
+
+          <p className="text-xs sm:text-sm text-civic-muted font-medium">
+            Pengirim: <strong className="text-civic-dark">{request.nama_instansi}</strong>
           </p>
         </div>
-        <div>
-          <p className="mb-1 text-label-sm text-on-surface-variant">Status</p>
-          <StatusBadge status={request.status} />
+
+        {/* Tanggal Kunjungan Box */}
+        <div className="bg-civic-cardFill p-3.5 rounded-2xl border border-civic-border flex items-center gap-3 shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-civic-neutralFill text-civic-dark flex items-center justify-center font-bold">
+            <Calendar className="w-4 h-4" />
+          </div>
+          <div>
+            <p className="text-2xs text-civic-muted font-bold uppercase tracking-wider">
+              Tanggal Kunjungan
+            </p>
+            <p className="text-xs font-extrabold text-civic-dark">
+              {request.tanggal_kunjungan} {request.jam_kunjungan}
+            </p>
+          </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 }
