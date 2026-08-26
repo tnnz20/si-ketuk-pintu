@@ -1,4 +1,4 @@
-import { ArrowRight, FileText, Inbox } from 'lucide-react';
+import { ArrowRight, Eye, FileText, Inbox } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
   Empty,
@@ -9,6 +9,7 @@ import {
 } from '@components/shared/Empty';
 import Skeleton from '@components/shared/Skeleton';
 import StatusBadge from '@components/shared/StatusBadge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@components/shared/Tooltip';
 import type { PaginatedRequestsResponse } from '@app-types/api';
 
 type RequestItem = PaginatedRequestsResponse['data'][number];
@@ -50,11 +51,13 @@ export default function RecentRequests({ requests, loading }: RecentRequestsProp
       );
     }
 
-    return requests.slice(0, 5).map((request) => (
+    return [...requests]
+      .sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
+      .slice(0, 5)
+      .map((request) => (
       <tr
         key={request.id}
-        className="hover:bg-civic-cardFill transition-colors group cursor-pointer"
-        onClick={() => navigate(`/dashboard/requests/${request.id}`)}
+        className="hover:bg-civic-cardFill transition-colors"
       >
         {/* No. Ref / Token */}
         <td className="py-3.5 px-4 font-bold text-civic-dark whitespace-nowrap">
@@ -73,16 +76,19 @@ export default function RecentRequests({ requests, loading }: RecentRequestsProp
           <StatusBadge status={request.status} />
         </td>
         <td className="py-3.5 px-4 text-right whitespace-nowrap">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/dashboard/requests/${request.id}`);
-            }}
-            className="bg-civic-dark hover:bg-civic-darkHover text-white px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer shadow-sm text-xs"
-          >
-            Detail
-          </button>
+          <Tooltip>
+            <TooltipTrigger>
+              <button
+                type="button"
+                aria-label={`Lihat Detail ${request.nama_instansi}`}
+                onClick={() => navigate(`/dashboard/requests/${request.id}`)}
+                className="p-1.5 rounded-xl text-civic-muted hover:text-civic-dark hover:bg-civic-neutral-fill transition-colors cursor-pointer"
+              >
+                <Eye className="w-4 h-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Lihat Detail</TooltipContent>
+          </Tooltip>
         </td>
       </tr>
     ));
