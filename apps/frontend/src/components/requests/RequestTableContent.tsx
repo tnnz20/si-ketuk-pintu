@@ -1,7 +1,7 @@
 import { MoreHorizontal } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import Skeleton from '@components/shared/Skeleton';
 import StatusBadge from '@components/shared/StatusBadge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@components/shared/Tooltip';
 import type { PaginatedRequestsResponse } from '@app-types/api';
 
 type RequestRow = PaginatedRequestsResponse['data'][number];
@@ -17,10 +17,8 @@ export default function RequestTableContent({
   loading,
   onOpenMenu,
 }: RequestTableContentProps) {
-  const navigate = useNavigate();
-
   return (
-    <div className="overflow-x-auto">
+    <div className="w-full">
       <table className="w-full text-left border-collapse text-xs">
         <thead>
           <tr className="border-b border-civic-border text-civic-muted font-bold uppercase tracking-wider text-2xs">
@@ -35,8 +33,8 @@ export default function RequestTableContent({
         </thead>
         <tbody className="divide-y divide-civic-border text-civic-dark font-medium">
           {loading ? (
-            Array.from({ length: 5 }).map((_, i) => (
-              <tr key={i}>
+            Array.from({ length: 5 }, (_, i) => `skeleton-${i}`).map((key) => (
+              <tr key={key}>
                 <td colSpan={7} className="py-4 px-4">
                   <Skeleton className="h-6 w-full rounded-xl" />
                 </td>
@@ -52,12 +50,11 @@ export default function RequestTableContent({
             requests.map((request) => (
               <tr
                 key={request.id}
-                onClick={() => navigate(`/dashboard/requests/${request.id}`)}
-                className="hover:bg-civic-cardFill transition-colors cursor-pointer group"
+                className="hover:bg-civic-cardFill transition-colors group"
               >
                 {/* No. Ref / Token */}
-                <td className="py-3.5 px-4 font-bold text-civic-dark whitespace-nowrap">
-                  <span className="bg-civic-cardFill px-2.5 py-1 rounded-lg border border-civic-border/70 font-mono text-label-sm group-hover:bg-white transition-colors">
+                <td className="py-3.5 px-4 font-bold text-civic-dark">
+                  <span className="inline-block bg-civic-cardFill px-2.5 py-1 rounded-lg border border-civic-border/70 font-mono text-label-sm group-hover:bg-white transition-colors">
                     {request.token}
                   </span>
                 </td>
@@ -73,7 +70,7 @@ export default function RequestTableContent({
                 </td>
 
                 {/* Tanggal Kunjungan */}
-                <td className="py-3.5 px-4 font-semibold whitespace-nowrap">
+                <td className="py-3.5 px-4 font-semibold">
                   {request.tanggal_kunjungan}
                 </td>
 
@@ -83,35 +80,33 @@ export default function RequestTableContent({
                 </td>
 
                 {/* Jumlah Tamu */}
-                <td className="py-3.5 px-4 font-bold whitespace-nowrap">
+                <td className="py-3.5 px-4 font-bold">
                   <span className="bg-civic-neutralFill text-civic-dark px-2 py-0.5 rounded-md text-2xs">
                     {request.jumlah_tamu} Org
                   </span>
                 </td>
 
                 {/* Status */}
-                <td className="py-3.5 px-4 whitespace-nowrap">
+                <td className="py-3.5 px-4">
                   <StatusBadge status={request.status} />
                 </td>
 
                 {/* Actions */}
-                <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                  <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/dashboard/requests/${request.id}`)}
-                      className="bg-civic-dark hover:bg-civic-darkHover text-white px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer shadow-sm text-xs"
-                    >
-                      Detail
-                    </button>
-                    <button
-                      type="button"
-                      aria-label="Aksi lainnya"
-                      onClick={(e) => onOpenMenu(e, request)}
-                      className="p-1.5 rounded-xl text-civic-muted hover:text-civic-dark hover:bg-civic-neutralFill transition-colors cursor-pointer"
-                    >
-                      <MoreHorizontal className="w-4 h-4" />
-                    </button>
+                <td className="py-3.5 px-4 text-right">
+                  <div className="flex items-center justify-end">
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <button
+                          type="button"
+                          aria-label={`Aksi untuk ${request.nama_instansi}`}
+                          onClick={(e) => onOpenMenu(e, request)}
+                          className="p-1.5 rounded-xl text-civic-muted hover:text-civic-dark hover:bg-civic-neutralFill transition-colors cursor-pointer"
+                        >
+                          <MoreHorizontal className="w-4 h-4" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>Aksi lainnya</TooltipContent>
+                    </Tooltip>
                   </div>
                 </td>
               </tr>
