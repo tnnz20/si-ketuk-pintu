@@ -42,7 +42,7 @@ export default function CTASection() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.3 }}
           custom={1}
-          className="text-headline-lg-mobile mb-6 font-display leading-tight text-on-surface md:text-display-lg-mobile md:leading-[1.15]"
+          className="mb-6 font-display text-headline-lg-mobile leading-tight text-on-surface md:text-display-lg-mobile md:leading-[1.15]"
         >
           Siap Mengajukan Kunjungan Anda?
         </motion.h2>

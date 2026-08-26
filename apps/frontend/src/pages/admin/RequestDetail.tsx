@@ -66,9 +66,7 @@ export default function RequestDetail() {
     try {
       await updateStatus(id, confirm);
       toast.success(
-        confirm === 'approved'
-          ? 'Permohonan berhasil DISETUJUI!'
-          : 'Permohonan telah DITOLAK.',
+        confirm === 'approved' ? 'Permohonan berhasil DISETUJUI!' : 'Permohonan telah DITOLAK.',
       );
       setConfirm(undefined);
       load();
@@ -242,15 +240,15 @@ export default function RequestDetail() {
 
   if (loading) {
     return (
-      <div className="space-y-5 animate-fade-in">
+      <div className="animate-fade-in space-y-5">
         <Skeleton className="h-10 w-48 rounded-2xl" />
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-          <div className="lg:col-span-8 space-y-5">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+          <div className="space-y-5 lg:col-span-8">
             <Skeleton className="h-44 w-full rounded-3xl" />
             <Skeleton className="h-56 w-full rounded-3xl" />
             <Skeleton className="h-44 w-full rounded-3xl" />
           </div>
-          <div className="lg:col-span-4 space-y-5">
+          <div className="space-y-5 lg:col-span-4">
             <Skeleton className="h-60 w-full rounded-3xl" />
             <Skeleton className="h-44 w-full rounded-3xl" />
           </div>
@@ -261,12 +259,14 @@ export default function RequestDetail() {
 
   if (!data) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 bg-civic-surface rounded-3xl border border-civic-border soft-shadow text-center space-y-3">
-        <p className="text-sm font-bold text-rose-600">Permohonan tidak ditemukan atau telah dihapus.</p>
+      <div className="soft-shadow flex flex-col items-center justify-center space-y-3 rounded-3xl border border-civic-border bg-civic-surface p-12 text-center">
+        <p className="text-sm font-bold text-rose-600">
+          Permohonan tidak ditemukan atau telah dihapus.
+        </p>
         <button
           type="button"
           onClick={() => navigate('/dashboard/requests')}
-          className="bg-civic-dark text-white px-4 py-2 rounded-xl text-xs font-bold"
+          className="rounded-xl bg-civic-dark px-4 py-2 text-xs font-bold text-white"
         >
           Kembali ke Permohonan
         </button>
@@ -277,27 +277,27 @@ export default function RequestDetail() {
   const { request } = data;
 
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="animate-fade-in space-y-5">
       {/* Navigation Breadcrumb & Back Link */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <button
           type="button"
           onClick={() => navigate('/dashboard/requests')}
-          className="inline-flex items-center gap-2 text-xs font-bold text-civic-dark hover:opacity-80 bg-civic-surface px-3.5 py-2 rounded-xl border border-civic-border soft-shadow transition-all cursor-pointer w-fit"
+          className="soft-shadow inline-flex w-fit cursor-pointer items-center gap-2 rounded-xl border border-civic-border bg-civic-surface px-3.5 py-2 text-xs font-bold text-civic-dark transition-all hover:opacity-80"
         >
-          <ArrowLeft className="w-3.5 h-3.5" />
+          <ArrowLeft className="h-3.5 w-3.5" />
           <span>Kembali ke Permohonan</span>
         </button>
 
-        <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-civic-neutralFill text-civic-dark border border-civic-border/70 font-mono w-fit">
+        <span className="bg-civic-neutralFill w-fit rounded-full border border-civic-border/70 px-3 py-1 font-mono text-xs font-extrabold text-civic-dark">
           ID Ref: {request.token}
         </span>
       </div>
 
       {/* Main Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
         {/* LEFT COLUMN (Span 8): Primary Data & Documents */}
-        <div className="lg:col-span-8 space-y-5">
+        <div className="space-y-5 lg:col-span-8">
           <RequestSummary request={request} />
           <RequestDetails request={request} />
           <RequestGuests guests={request.guests || []} />
@@ -305,7 +305,7 @@ export default function RequestDetail() {
         </div>
 
         {/* RIGHT COLUMN (Span 4): Admin Actions, Attached Docs & Mini Calendar */}
-        <div className="lg:col-span-4 space-y-5">
+        <div className="space-y-5 lg:col-span-4">
           <RequestActionsDocuments
             request={request}
             onStatusChange={setConfirm}

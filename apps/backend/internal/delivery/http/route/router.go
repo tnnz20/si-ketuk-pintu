@@ -67,6 +67,14 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 			requests.DELETE("/:id/approval-letter", deps.AdminRequestController.DeleteApprovalLetter)
 			requests.POST("/:id/reschedule-letter", deps.AdminRequestController.UploadRescheduleLetter)
 			requests.DELETE("/:id/reschedule-letter", deps.AdminRequestController.DeleteRescheduleLetter)
+
+			archives := protected.Group("/archives")
+			archives.GET("", deps.AdminRequestController.ListArchives)
+			archives.POST("/:id/documentations", deps.AdminRequestController.UploadDocumentations)
+			archives.DELETE("/:id/documentations/:attachment_id", deps.AdminRequestController.DeleteDocumentation)
+			archives.POST("/:id/daftar-absen", deps.AdminRequestController.UploadDaftarAbsen)
+			archives.DELETE("/:id/daftar-absen", deps.AdminRequestController.DeleteDaftarAbsen)
+			archives.GET("/:id/attachments/:attachment_type/:attachment_id", deps.AdminRequestController.DownloadArchiveAttachment)
 		}
 	}
 

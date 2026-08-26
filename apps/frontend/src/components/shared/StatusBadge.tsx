@@ -16,7 +16,7 @@ export default function StatusBadge({ status, showDot = true, className = '' }: 
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-2xs sm:text-xs font-extrabold tracking-wide ${colorClass} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-2xs font-extrabold tracking-wide sm:text-xs ${colorClass} ${className}`}
     >
       {showDot && <span className={`h-1.5 w-1.5 rounded-full ${dotColor}`} />}
       <span>{label}</span>

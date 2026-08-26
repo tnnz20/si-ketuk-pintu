@@ -26,6 +26,7 @@ type GuestResponse struct {
 }
 
 type AttachmentResponse struct {
+	ID             int64  `json:"id"`
 	AttachmentType string `json:"attachment_type"`
 	OriginalName   string `json:"original_name"`
 	ContentType    string `json:"content_type"`

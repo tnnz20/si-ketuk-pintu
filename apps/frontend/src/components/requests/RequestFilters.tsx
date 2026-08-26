@@ -42,7 +42,7 @@ export default function RequestFilters({
   ];
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 pb-1">
+    <div className="flex flex-col justify-between gap-3.5 pb-1 md:flex-row md:items-center">
       {/* Status Filter Tabs */}
       <div className="flex flex-wrap items-center gap-2">
         {statusTabs.map((tab) => {
@@ -52,12 +52,12 @@ export default function RequestFilters({
               key={tab.key}
               type="button"
               onClick={() => onStatusChange(tab.key)}
-              className={`px-3.5 py-1.5 text-xs font-extrabold rounded-xl transition-all cursor-pointer ${
+              className={`cursor-pointer rounded-xl px-3.5 py-1.5 text-xs font-extrabold transition-all ${
                 isActive
                   ? 'bg-civic-dark text-white shadow-sm'
                   : tab.customClass
-                  ? `${tab.customClass} border border-civic-border/70 hover:opacity-90`
-                  : 'bg-civic-cardFill text-civic-muted border border-civic-border hover:text-civic-dark hover:bg-civic-neutralFill'
+                    ? `${tab.customClass} border border-civic-border/70 hover:opacity-90`
+                    : 'bg-civic-cardFill hover:bg-civic-neutralFill border border-civic-border text-civic-muted hover:text-civic-dark'
               }`}
             >
               <span>{tab.label}</span>
@@ -68,24 +68,24 @@ export default function RequestFilters({
       </div>
 
       {/* Search & Date Pickers */}
-      <div className="flex flex-col sm:flex-row items-center gap-2.5">
+      <div className="flex flex-col items-center gap-2.5 sm:flex-row">
         {/* Search */}
         <div className="relative w-full sm:w-64">
-          <Search className="w-4 h-4 text-civic-muted absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-civic-muted" />
           <input
             type="text"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Cari token atau instansi..."
-            className="w-full bg-civic-surface text-xs pl-10 pr-8 py-2 rounded-xl border border-civic-border focus:outline-none focus:border-civic-dark soft-shadow transition-all text-civic-dark"
+            className="soft-shadow w-full rounded-xl border border-civic-border bg-civic-surface py-2 pr-8 pl-10 text-xs text-civic-dark transition-all focus:border-civic-dark focus:outline-none"
           />
           {search && (
             <button
               type="button"
               onClick={() => onSearchChange('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-civic-muted hover:text-civic-dark p-0.5 cursor-pointer"
+              className="absolute top-1/2 right-2.5 -translate-y-1/2 cursor-pointer p-0.5 text-civic-muted hover:text-civic-dark"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
@@ -96,7 +96,7 @@ export default function RequestFilters({
             type="date"
             value={date}
             onChange={(e) => onDateChange(e.target.value)}
-            className="w-full bg-civic-surface text-xs px-3 py-2 rounded-xl border border-civic-border focus:outline-none focus:border-civic-dark soft-shadow transition-all text-civic-dark cursor-pointer"
+            className="soft-shadow w-full cursor-pointer rounded-xl border border-civic-border bg-civic-surface px-3 py-2 text-xs text-civic-dark transition-all focus:border-civic-dark focus:outline-none"
           />
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
+  Archive,
   Building2,
   FileText,
   LayoutDashboard,
@@ -25,6 +26,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
   { icon: FileText, label: 'Manajemen Permohonan', path: '/dashboard/requests' },
+  { icon: Archive, label: 'Arsip Permohonan', path: '/dashboard/archives' },
   { icon: QrCode, label: 'Scanner Tiket Tamu', path: '/dashboard/scanner' },
 ];
 
@@ -147,7 +149,9 @@ export default function DashboardLayout() {
                       <h1 className="text-base leading-none font-bold tracking-tight text-civic-dark">
                         Portal Admin
                       </h1>
-                      <p className="mt-1 text-label-sm font-medium text-civic-muted">Si Ketuk Pintu</p>
+                      <p className="mt-1 text-label-sm font-medium text-civic-muted">
+                        Si Ketuk Pintu
+                      </p>
                     </div>
                   </div>
                   <button

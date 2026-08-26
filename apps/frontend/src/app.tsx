@@ -4,6 +4,8 @@ import AuthGuard from '@components/layout/AuthGuard';
 import DashboardLayout from '@components/layout/DashboardLayout';
 import LandingLayout from '@components/layout/LandingLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import Archives from './pages/admin/Archives';
+import ArchiveDetail from './pages/admin/ArchiveDetail';
 import Login from './pages/auth/Login';
 import QRScanner from './pages/admin/QRScanner';
 import RequestDetail from './pages/admin/RequestDetail';
@@ -29,6 +31,8 @@ function App() {
             <Route path="/dashboard" element={<AdminDashboard />} />
             <Route path="/dashboard/requests" element={<RequestList />} />
             <Route path="/dashboard/requests/:id" element={<RequestDetail />} />
+            <Route path="/dashboard/archives" element={<Archives />} />
+            <Route path="/dashboard/archives/:id" element={<ArchiveDetail />} />
             <Route path="/dashboard/scanner" element={<QRScanner />} />
           </Route>
         </Route>

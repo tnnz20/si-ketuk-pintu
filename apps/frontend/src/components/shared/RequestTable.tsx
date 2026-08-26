@@ -62,7 +62,7 @@ export default function RequestTable({ requests, onViewDetail }: RequestTablePro
                     type="button"
                     aria-label="Aksi permohonan"
                     onClick={(event) => openMenu(event, row)}
-                    className="inline-flex rounded-full p-2 transition-colors hover:bg-surface-container cursor-pointer"
+                    className="inline-flex cursor-pointer rounded-full p-2 transition-colors hover:bg-surface-container"
                   >
                     <MoreHorizontal className="h-5 w-5 text-on-surface-variant" />
                   </button>
@@ -81,7 +81,7 @@ export default function RequestTable({ requests, onViewDetail }: RequestTablePro
           >
             <button
               type="button"
-              className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-surface cursor-pointer"
+              className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left hover:bg-surface"
               onClick={() => {
                 setMenu(undefined);
                 onViewDetail(menu.row.id);

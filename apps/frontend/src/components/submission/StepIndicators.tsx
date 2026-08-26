@@ -28,7 +28,7 @@ export function StepIndicators({
               type="button"
               onClick={() => completed && onSelect(step.id)}
               disabled={currentStep <= step.id}
-              className={`flex items-center gap-2 rounded-full px-4 py-2 transition-all cursor-pointer disabled:cursor-not-allowed ${currentStep === step.id ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/25' : completed ? 'bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20' : 'bg-surface-container text-on-surface-variant'}`}
+              className={`flex cursor-pointer items-center gap-2 rounded-full px-4 py-2 transition-all disabled:cursor-not-allowed ${currentStep === step.id ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/25' : completed ? 'bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20' : 'bg-surface-container text-on-surface-variant'}`}
             >
               {completed ? <CheckCircle2 className="h-4 w-4" /> : <step.icon className="h-4 w-4" />}
               <span className="font-label text-label-sm font-medium whitespace-nowrap">

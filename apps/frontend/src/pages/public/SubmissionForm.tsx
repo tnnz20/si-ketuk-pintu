@@ -286,7 +286,7 @@ export default function SubmissionForm() {
                     Formulir Pengajuan Online
                   </span>
                 </div>
-                <h1 className="text-headline-lg-mobile font-display leading-tight text-on-surface md:text-display-lg-mobile md:leading-[1.15]">
+                <h1 className="font-display text-headline-lg-mobile leading-tight text-on-surface md:text-display-lg-mobile md:leading-[1.15]">
                   Ajukan Permohonan
                   <br />
                   <span className="text-emerald-600">Kunjungan Resmi</span>
@@ -376,7 +376,7 @@ export default function SubmissionForm() {
                     <button
                       type="button"
                       onClick={() => toggleSection('instansi')}
-                      className="flex w-full items-center justify-between border-b border-surface-alt bg-surface-container-low px-6 py-4 transition-colors hover:bg-surface-container cursor-pointer"
+                      className="flex w-full cursor-pointer items-center justify-between border-b border-surface-alt bg-surface-container-low px-6 py-4 transition-colors hover:bg-surface-container"
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
@@ -485,7 +485,7 @@ export default function SubmissionForm() {
                     <button
                       type="button"
                       onClick={() => toggleSection('kunjungan')}
-                      className="flex w-full items-center justify-between border-b border-surface-alt bg-surface-container-low px-6 py-4 transition-colors hover:bg-surface-container cursor-pointer"
+                      className="flex w-full cursor-pointer items-center justify-between border-b border-surface-alt bg-surface-container-low px-6 py-4 transition-colors hover:bg-surface-container"
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
@@ -649,7 +649,7 @@ export default function SubmissionForm() {
                       <button
                         type="button"
                         onClick={addGuest}
-                        className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 font-label text-label-sm font-medium text-white transition-all hover:bg-emerald-700 hover:shadow-md cursor-pointer"
+                        className="flex cursor-pointer items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 font-label text-label-sm font-medium text-white transition-all hover:bg-emerald-700 hover:shadow-md"
                       >
                         <Plus className="h-4 w-4" />
                         Tambah Tamu
@@ -708,7 +708,7 @@ export default function SubmissionForm() {
                               type="button"
                               onClick={() => removeGuest(index)}
                               disabled={guests.length === 1}
-                              className="flex h-10 w-10 items-center justify-center rounded-lg border border-error/20 text-error transition-all hover:bg-error-container cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border border-error/20 text-error transition-all hover:bg-error-container disabled:cursor-not-allowed disabled:opacity-40"
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -725,7 +725,7 @@ export default function SubmissionForm() {
                           <button
                             type="button"
                             onClick={addGuest}
-                            className="mt-4 flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 font-label text-label-sm font-medium text-white transition-all hover:bg-emerald-700 cursor-pointer"
+                            className="mt-4 flex cursor-pointer items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 font-label text-label-sm font-medium text-white transition-all hover:bg-emerald-700"
                           >
                             <Plus className="h-4 w-4" />
                             Tambah Tamu Pertama
@@ -818,7 +818,7 @@ export default function SubmissionForm() {
 
       {/* Side info panel - only visible on desktop */}
       <aside className="fixed right-8 bottom-8 hidden max-w-xs rounded-2xl border border-surface-alt bg-surface-container-lowest p-4 shadow-lg xl:block">
-        <h4 className="mb-3 font-headline-md text-headline-md text-on-surface">Butuh Bantuan?</h4>
+        <h4 className="font-headline-md mb-3 text-headline-md text-on-surface">Butuh Bantuan?</h4>
         <p className="font-body-md mb-4 text-body-md text-on-surface-variant">
           Jika Anda mengalami kesulitan dalam mengisi formulir, silakan hubungi tim dukungan kami.
         </p>

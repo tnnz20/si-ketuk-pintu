@@ -132,61 +132,61 @@ export default function QRScanner() {
   }, []);
 
   return (
-    <div className="max-w-xl mx-auto space-y-5 animate-fade-in">
+    <div className="animate-fade-in mx-auto max-w-xl space-y-5">
       {/* Header */}
-      <div className="text-center sm:text-left space-y-1">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-civic-neutralFill border border-civic-border text-civic-dark text-xs font-extrabold mb-2">
-          <QrCode className="w-3.5 h-3.5" />
+      <div className="space-y-1 text-center sm:text-left">
+        <div className="bg-civic-neutralFill mb-2 inline-flex items-center gap-2 rounded-full border border-civic-border px-3 py-1 text-xs font-extrabold text-civic-dark">
+          <QrCode className="h-3.5 w-3.5" />
           <span>Scanner Portal Admin</span>
         </div>
-        <h1 className="text-2xl font-extrabold text-civic-dark tracking-tight">
+        <h1 className="text-2xl font-extrabold tracking-tight text-civic-dark">
           Pindai QR Tiket Tamu
         </h1>
-        <p className="text-xs text-civic-muted font-medium">
+        <p className="text-xs font-medium text-civic-muted">
           Arahkan kamera ke tiket QR permohonan kunjungan untuk verifikasi langsung.
         </p>
       </div>
 
       {/* Main Scanner Container */}
-      <div className="bg-civic-surface p-5 sm:p-6 rounded-3xl border border-civic-border soft-shadow space-y-4">
-        <div className="flex items-center gap-2 bg-civic-cardFill p-3 rounded-2xl border border-civic-border text-xs text-civic-dark font-medium">
-          <ScanLine className="h-4 w-4 text-civic-muted shrink-0" />
+      <div className="soft-shadow space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-5 sm:p-6">
+        <div className="bg-civic-cardFill flex items-center gap-2 rounded-2xl border border-civic-border p-3 text-xs font-medium text-civic-dark">
+          <ScanLine className="h-4 w-4 shrink-0 text-civic-muted" />
           <span>Posisikan QR Code di dalam kotak fokus kamera.</span>
         </div>
 
         {/* Viewfinder Area */}
         {cameraUnsupported ? (
-          <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-rose-200 bg-civic-rejectedBg p-8 text-center">
-            <CameraOff className="h-8 w-8 text-civic-rejectedText" />
-            <p className="text-xs font-bold text-civic-rejectedText">
+          <div className="bg-civic-rejectedBg flex flex-col items-center justify-center gap-3 rounded-2xl border border-rose-200 p-8 text-center">
+            <CameraOff className="text-civic-rejectedText h-8 w-8" />
+            <p className="text-civic-rejectedText text-xs font-bold">
               Perangkat atau browser Anda tidak mendukung akses kamera langsung.
             </p>
           </div>
         ) : cameraError ? (
-          <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-rose-200 bg-civic-rejectedBg p-8 text-center">
-            <CameraOff className="h-8 w-8 text-civic-rejectedText" />
-            <p className="text-xs font-bold text-civic-rejectedText">{cameraError}</p>
+          <div className="bg-civic-rejectedBg flex flex-col items-center justify-center gap-3 rounded-2xl border border-rose-200 p-8 text-center">
+            <CameraOff className="text-civic-rejectedText h-8 w-8" />
+            <p className="text-civic-rejectedText text-xs font-bold">{cameraError}</p>
           </div>
         ) : (
-          <div className="relative rounded-2xl overflow-hidden border border-civic-border bg-black/95 aspect-square max-w-sm mx-auto flex items-center justify-center shadow-inner">
+          <div className="relative mx-auto flex aspect-square max-w-sm items-center justify-center overflow-hidden rounded-2xl border border-civic-border bg-black/95 shadow-inner">
             {/* Real Camera Stream Target */}
             <div
               id="qr-reader"
-              className="w-full h-full [&_video]:w-full [&_video]:h-full [&_video]:object-cover [&_canvas]:!hidden [&_#qr-canvas-visible]:!hidden [&_img]:!hidden"
+              className="h-full w-full [&_#qr-canvas-visible]:!hidden [&_canvas]:!hidden [&_img]:!hidden [&_video]:h-full [&_video]:w-full [&_video]:object-cover"
             />
 
             {/* Custom Sleek Overlay Corner Indicators */}
             {isScanningActive && (
-              <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                <div className="w-56 h-56 relative">
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <div className="relative h-56 w-56">
                   {/* Top-Left Corner */}
-                  <div className="absolute top-0 left-0 w-8 h-8 border-t-3 border-l-3 border-white rounded-tl-xl shadow-sm" />
+                  <div className="absolute top-0 left-0 h-8 w-8 rounded-tl-xl border-t-3 border-l-3 border-white shadow-sm" />
                   {/* Top-Right Corner */}
-                  <div className="absolute top-0 right-0 w-8 h-8 border-t-3 border-r-3 border-white rounded-tr-xl shadow-sm" />
+                  <div className="absolute top-0 right-0 h-8 w-8 rounded-tr-xl border-t-3 border-r-3 border-white shadow-sm" />
                   {/* Bottom-Left Corner */}
-                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b-3 border-l-3 border-white rounded-bl-xl shadow-sm" />
+                  <div className="absolute bottom-0 left-0 h-8 w-8 rounded-bl-xl border-b-3 border-l-3 border-white shadow-sm" />
                   {/* Bottom-Right Corner */}
-                  <div className="absolute bottom-0 right-0 w-8 h-8 border-b-3 border-r-3 border-white rounded-br-xl shadow-sm" />
+                  <div className="absolute right-0 bottom-0 h-8 w-8 rounded-br-xl border-r-3 border-b-3 border-white shadow-sm" />
                 </div>
               </div>
             )}
@@ -195,12 +195,12 @@ export default function QRScanner() {
       </div>
 
       {/* Manual Input Fallback */}
-      <div className="bg-civic-surface p-5 sm:p-6 rounded-3xl border border-civic-border soft-shadow space-y-3.5">
-        <h2 className="text-sm font-extrabold text-civic-dark flex items-center gap-2">
+      <div className="soft-shadow space-y-3.5 rounded-3xl border border-civic-border bg-civic-surface p-5 sm:p-6">
+        <h2 className="flex items-center gap-2 text-sm font-extrabold text-civic-dark">
           <Camera className="h-4 w-4 text-civic-muted" />
           <span>Kamera Tidak Tersedia?</span>
         </h2>
-        <p className="text-xs text-civic-muted font-medium">
+        <p className="text-xs font-medium text-civic-muted">
           Masukkan nomor token referensi secara manual untuk membuka detail permohonan.
         </p>
 
@@ -232,18 +232,18 @@ function ManualTokenForm() {
   return (
     <form className="flex gap-2.5 pt-1" onSubmit={handleSubmit}>
       <div className="relative flex-1">
-        <Search className="w-4 h-4 text-civic-muted absolute left-3.5 top-1/2 -translate-y-1/2" />
+        <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-civic-muted" />
         <input
           value={token}
           onChange={(event) => setToken(event.target.value)}
           placeholder="Contoh: SKP-20260819-KYK4D"
-          className="w-full bg-civic-cardFill text-xs pl-10 pr-4 py-2.5 rounded-2xl border border-civic-border focus:outline-none focus:border-civic-dark text-civic-dark font-mono transition-all"
+          className="bg-civic-cardFill w-full rounded-2xl border border-civic-border py-2.5 pr-4 pl-10 font-mono text-xs text-civic-dark transition-all focus:border-civic-dark focus:outline-none"
         />
       </div>
       <button
         type="submit"
         disabled={!token.trim() || loading}
-        className="rounded-2xl bg-civic-dark hover:bg-civic-darkHover px-5 py-2.5 text-xs font-extrabold text-white cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 transition-all shadow-sm shrink-0"
+        className="hover:bg-civic-darkHover shrink-0 cursor-pointer rounded-2xl bg-civic-dark px-5 py-2.5 text-xs font-extrabold text-white shadow-sm transition-all disabled:cursor-not-allowed disabled:opacity-50"
       >
         {loading ? 'Mencari...' : 'Cari Data'}
       </button>

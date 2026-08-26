@@ -62,7 +62,7 @@ export default function ProcessSection() {
           <motion.h2
             variants={reduce ? undefined : fadeInUp}
             custom={1}
-            className="text-headline-lg-mobile mb-4 max-w-2xl font-display leading-tight text-on-surface md:text-headline-lg"
+            className="mb-4 max-w-2xl font-display text-headline-lg-mobile leading-tight text-on-surface md:text-headline-lg"
           >
             Tiga Langkah Mudah Menuju Kunjungan yang Lancar
           </motion.h2>
@@ -101,7 +101,7 @@ export default function ProcessSection() {
                 </div>
 
                 {/* Content */}
-                <h3 className="mb-3 font-headline-md text-headline-md text-on-surface">
+                <h3 className="font-headline-md mb-3 text-headline-md text-on-surface">
                   {step.title}
                 </h3>
                 <p className="font-body-md text-body-md leading-relaxed text-on-surface-variant">

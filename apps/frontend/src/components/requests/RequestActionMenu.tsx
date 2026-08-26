@@ -8,7 +8,8 @@ interface RequestActionMenuProps {
   onClose: () => void;
   onViewDetail: (id: string) => void;
   onCopyToken: (row: RequestRow) => void;
-  onDelete: (row: RequestRow) => void;
+  onDelete?: (row: RequestRow) => void;
+  showDelete?: boolean;
 }
 
 export default function RequestActionMenu({
@@ -17,17 +18,18 @@ export default function RequestActionMenu({
   onViewDetail,
   onCopyToken,
   onDelete,
+  showDelete = true,
 }: RequestActionMenuProps) {
   return (
     <>
       <div className="fixed inset-0 z-40" onClick={onClose} />
       <div
-        className="fixed z-50 w-44 rounded-2xl border border-civic-border bg-civic-surface p-1.5 text-left soft-shadow space-y-0.5 animate-fade-in shadow-xl"
+        className="soft-shadow animate-fade-in fixed z-50 w-44 space-y-0.5 rounded-2xl border border-civic-border bg-civic-surface p-1.5 text-left shadow-xl"
         style={{ left: menu.left, top: menu.top }}
       >
         <button
           type="button"
-          className="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-civic-dark hover:bg-civic-cardFill transition-colors cursor-pointer"
+          className="hover:bg-civic-cardFill flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-civic-dark transition-colors"
           onClick={() => {
             onClose();
             onViewDetail(menu.row.id);
@@ -38,21 +40,25 @@ export default function RequestActionMenu({
         </button>
         <button
           type="button"
-          className="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-civic-dark hover:bg-civic-cardFill transition-colors cursor-pointer"
+          className="hover:bg-civic-cardFill flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-civic-dark transition-colors"
           onClick={() => onCopyToken(menu.row)}
         >
           <Copy className="h-3.5 w-3.5 text-civic-muted" />
           <span>Salin Token</span>
         </button>
-        <div className="my-1 border-t border-civic-border" />
-        <button
-          type="button"
-          className="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-civic-rejectedText hover:bg-civic-rejectedBg transition-colors cursor-pointer"
-          onClick={() => onDelete(menu.row)}
-        >
-          <Trash2 className="h-3.5 w-3.5 text-civic-rejectedText" />
-          <span>Hapus</span>
-        </button>
+        {showDelete && onDelete && (
+          <>
+            <div className="my-1 border-t border-civic-border" />
+            <button
+              type="button"
+              className="text-civic-rejectedText hover:bg-civic-rejectedBg flex w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold transition-colors"
+              onClick={() => onDelete(menu.row)}
+            >
+              <Trash2 className="text-civic-rejectedText h-3.5 w-3.5" />
+              <span>Hapus</span>
+            </button>
+          </>
+        )}
       </div>
     </>
   );

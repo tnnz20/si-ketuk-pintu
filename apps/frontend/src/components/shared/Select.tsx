@@ -11,7 +11,7 @@ export function Select({ className, wrapperClassName, children, ...props }: Sele
       <select {...props} className={`w-full appearance-none pr-10 ${className ?? ''}`}>
         {children}
       </select>
-      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-on-surface-variant" />
+      <ChevronDown className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 text-on-surface-variant" />
     </div>
   );
 }

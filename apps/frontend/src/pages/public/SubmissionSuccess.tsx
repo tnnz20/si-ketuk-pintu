@@ -45,15 +45,15 @@ export default function SubmissionSuccess() {
         <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-secondary-container text-on-secondary-container">
           <CheckCircle className="h-10 w-10" />
         </div>
-        <h1 className="text-headline-lg-mobile mb-4 font-headline-lg text-primary md:text-headline-lg">
-           Pengajuan Berhasil
+        <h1 className="font-headline-lg mb-4 text-headline-lg-mobile text-primary md:text-headline-lg">
+          Pengajuan Berhasil
         </h1>
         <p className="font-body-md mb-8 text-body-md text-on-surface-variant">
           Pengajuan kunjungan Anda telah berhasil dicatat dengan aman di sistem Si Ketuk Pintu.
         </p>
         <div className="relative mb-8 rounded-lg border border-surface-alt bg-surface-container-low p-6">
           <p className="font-label-sm mb-2 text-label-sm tracking-wider text-on-surface-variant uppercase">
-             Token Kunjungan Anda
+            Token Kunjungan Anda
           </p>
           <div className="flex items-center justify-center gap-4">
             <span
@@ -67,7 +67,7 @@ export default function SubmissionSuccess() {
                 <button
                   type="button"
                   onClick={copyToken}
-                  className="text-on-surface-variant hover:text-primary cursor-pointer"
+                  className="cursor-pointer text-on-surface-variant hover:text-primary"
                   aria-label="Salin token"
                 >
                   {copied ? (
@@ -92,20 +92,20 @@ export default function SubmissionSuccess() {
             )}
           </div>
           <p className="font-body-md max-w-sm text-body-md text-on-surface-variant">
-             Simpan token dan kode QR Anda untuk memeriksa status kunjungan nanti di meja keamanan.
+            Simpan token dan kode QR Anda untuk memeriksa status kunjungan nanti di meja keamanan.
           </p>
         </div>
         <div className="flex flex-col justify-center gap-4 sm:flex-row">
           <button
             type="button"
             onClick={downloadQr}
-            className="font-label-md flex items-center justify-center gap-2 rounded bg-primary px-6 py-3 text-label-md text-on-primary hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none cursor-pointer"
+            className="font-label-md flex cursor-pointer items-center justify-center gap-2 rounded bg-primary px-6 py-3 text-label-md text-on-primary hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none"
           >
             <Download className="h-4 w-4" /> Unduh Kode QR (PNG)
           </button>
           <Link
             to="/"
-            className="font-label-md rounded border border-surface-alt bg-transparent px-6 py-3 text-label-md text-primary hover:bg-surface-container focus:ring-2 focus:ring-primary focus:outline-none cursor-pointer"
+            className="font-label-md cursor-pointer rounded border border-surface-alt bg-transparent px-6 py-3 text-label-md text-primary hover:bg-surface-container focus:ring-2 focus:ring-primary focus:outline-none"
           >
             Kembali ke Beranda
           </Link>

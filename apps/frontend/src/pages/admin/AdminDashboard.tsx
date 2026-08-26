@@ -35,9 +35,9 @@ export default function AdminDashboard() {
   }, []);
 
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="animate-fade-in space-y-5">
       <SummaryCards stats={stats} requests={requests} loading={loading} />
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
         <RequestsChart />
         <TodaySchedule requests={requests} />
       </div>

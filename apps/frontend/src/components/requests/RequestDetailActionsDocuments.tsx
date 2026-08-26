@@ -112,8 +112,8 @@ export default function RequestDetailActionsDocuments({
   );
 
   const mainAttachments = (request.attachments || []).filter(
-    (doc) =>
-      doc.attachment_type !== 'surat_persetujuan' && doc.attachment_type !== 'surat_reschedule',
+    (doc): doc is Attachment & { attachment_type: OriginalAttachmentType } =>
+      doc.attachment_type === 'surat_kunjungan' || doc.attachment_type === 'surat_tugas',
   );
 
   return (

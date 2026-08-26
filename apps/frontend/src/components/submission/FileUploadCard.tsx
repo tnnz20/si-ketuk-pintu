@@ -47,7 +47,7 @@ export function FileUploadCard({
                 window.open(URL.createObjectURL(file), '_blank', 'noopener,noreferrer')
               }
               title="Klik untuk pratinjau di tab baru"
-              className="mb-1 max-w-full truncate font-label text-label-md font-medium text-emerald-700 underline decoration-emerald-500/30 underline-offset-2 transition-colors hover:decoration-emerald-700 cursor-pointer"
+              className="mb-1 max-w-full cursor-pointer truncate font-label text-label-md font-medium text-emerald-700 underline decoration-emerald-500/30 underline-offset-2 transition-colors hover:decoration-emerald-700"
             >
               {file.name}
             </button>
@@ -57,7 +57,7 @@ export function FileUploadCard({
             <button
               type="button"
               onClick={() => onFileChange(undefined)}
-              className="font-label text-label-sm text-error underline decoration-error/30 underline-offset-2 transition-colors hover:decoration-error cursor-pointer"
+              className="cursor-pointer font-label text-label-sm text-error underline decoration-error/30 underline-offset-2 transition-colors hover:decoration-error"
             >
               Hapus file
             </button>

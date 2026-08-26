@@ -7,16 +7,16 @@ interface RequestGuestsProps {
 
 export default function RequestDetailGuests({ guests }: RequestGuestsProps) {
   return (
-    <div className="bg-civic-surface p-6 rounded-3xl border border-civic-border soft-shadow space-y-4">
+    <div className="soft-shadow space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-6">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-civic-border pb-3">
         <div className="flex items-center gap-2">
-          <Users className="w-4 h-4 text-civic-muted" />
-          <h3 className="font-extrabold text-base text-civic-dark">
+          <Users className="h-4 w-4 text-civic-muted" />
+          <h3 className="text-base font-extrabold text-civic-dark">
             Daftar Tamu ({guests.length})
           </h3>
         </div>
-        <span className="bg-civic-neutralFill text-civic-dark text-xs font-extrabold px-3 py-1 rounded-full border border-civic-border">
+        <span className="bg-civic-neutralFill rounded-full border border-civic-border px-3 py-1 text-xs font-extrabold text-civic-dark">
           Terdaftar
         </span>
       </div>
@@ -24,26 +24,26 @@ export default function RequestDetailGuests({ guests }: RequestGuestsProps) {
       {/* Guest List */}
       <div className="space-y-2.5">
         {guests.length === 0 ? (
-          <p className="text-xs text-civic-muted text-center py-4">
+          <p className="py-4 text-center text-xs text-civic-muted">
             Tidak ada data daftar tamu terlampir.
           </p>
         ) : (
           guests.map((guest, index) => (
             <div
               key={`${guest.guest_order || index}-${guest.nama}`}
-              className="flex items-center justify-between p-3.5 bg-civic-cardFill rounded-2xl border border-civic-border hover:border-civic-dark/40 transition-colors"
+              className="bg-civic-cardFill flex items-center justify-between rounded-2xl border border-civic-border p-3.5 transition-colors hover:border-civic-dark/40"
             >
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-civic-neutralFill text-civic-dark flex items-center justify-center text-xs font-extrabold border border-civic-border/60 shrink-0">
+                <div className="bg-civic-neutralFill flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-civic-border/60 text-xs font-extrabold text-civic-dark">
                   {guest.guest_order || index + 1}
                 </div>
                 <div>
                   <h4 className="text-xs font-extrabold text-civic-dark">{guest.nama}</h4>
-                  <p className="text-label-sm text-civic-muted font-medium">{guest.jabatan}</p>
+                  <p className="text-label-sm font-medium text-civic-muted">{guest.jabatan}</p>
                 </div>
               </div>
 
-              <span className="bg-civic-approvedBg text-civic-approvedText text-2xs font-extrabold px-2.5 py-1 rounded-lg">
+              <span className="bg-civic-approvedBg text-civic-approvedText rounded-lg px-2.5 py-1 text-2xs font-extrabold">
                 Aktif
               </span>
             </div>

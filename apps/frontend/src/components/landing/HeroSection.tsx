@@ -65,7 +65,7 @@ export default function HeroSection() {
           </motion.div>
 
           {/* Headline with word stagger */}
-          <h1 className="text-headline-lg-mobile font-display leading-[1.1] tracking-tight text-on-surface md:text-display-lg md:leading-[1.05]">
+          <h1 className="font-display text-headline-lg-mobile leading-[1.1] tracking-tight text-on-surface md:text-display-lg md:leading-[1.05]">
             {headlineWords.map((word, i) => (
               <motion.span
                 key={word}
@@ -175,7 +175,7 @@ export default function HeroSection() {
                   <button
                     type="button"
                     onClick={copyToken}
-                    className="rounded-lg p-2 text-on-surface-variant transition-colors hover:bg-emerald-500/10 hover:text-emerald-600 cursor-pointer"
+                    className="cursor-pointer rounded-lg p-2 text-on-surface-variant transition-colors hover:bg-emerald-500/10 hover:text-emerald-600"
                     aria-label="Salin token"
                   >
                     {copied ? (
