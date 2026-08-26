@@ -39,7 +39,7 @@ export default function TopBar() {
             Cek Status
           </a>
           <Link
-            to="/admin/login"
+            to="/login"
             className="rounded-lg bg-emerald-600 px-5 py-2 font-label text-label-md font-medium text-white transition-all hover:bg-emerald-700 hover:shadow-md"
           >
             Masuk Admin

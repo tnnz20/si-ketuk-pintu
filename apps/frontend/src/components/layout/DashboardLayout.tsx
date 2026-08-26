@@ -39,7 +39,7 @@ export default function DashboardLayout() {
     setConfirmLogout(false);
     logout();
     toast.success('Berhasil keluar dari sesi admin.');
-    navigate('/admin/login');
+    navigate('/login');
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {

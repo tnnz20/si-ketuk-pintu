@@ -4,7 +4,7 @@ import AuthGuard from '@components/layout/AuthGuard';
 import DashboardLayout from '@components/layout/DashboardLayout';
 import LandingLayout from '@components/layout/LandingLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminLogin from './pages/admin/AdminLogin';
+import Login from './pages/auth/Login';
 import QRScanner from './pages/admin/QRScanner';
 import RequestDetail from './pages/admin/RequestDetail';
 import RequestList from './pages/admin/RequestList';
@@ -19,11 +19,11 @@ function App() {
       <Routes>
         <Route element={<LandingLayout />}>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/submit" element={<SubmissionForm />} />
+          <Route path="/form" element={<SubmissionForm />} />
           <Route path="/status/:token" element={<RequestStatus />} />
           <Route path="/success" element={<SubmissionSuccess />} />
         </Route>
-        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/login" element={<Login />} />
         <Route element={<AuthGuard />}>
           <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<AdminDashboard />} />

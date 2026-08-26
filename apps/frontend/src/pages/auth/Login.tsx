@@ -34,7 +34,7 @@ const features = [
   },
 ];
 
-export default function AdminLogin() {
+export default function Login() {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);

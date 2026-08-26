@@ -3,7 +3,7 @@ import { isAuthenticated } from '../../lib/api/auth';
 
 export default function AuthGuard() {
   if (!isAuthenticated()) {
-    return <Navigate to="/admin/login" replace />;
+    return <Navigate to="/login" replace />;
   }
   return <Outlet />;
 }

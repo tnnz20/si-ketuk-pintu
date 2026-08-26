@@ -112,7 +112,7 @@ export default function HeroSection() {
             className="mt-10 flex flex-col gap-4 sm:flex-row"
           >
             <Link
-              to="/submit"
+              to="/form"
               className="group relative flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-emerald-600 px-8 py-4 font-label text-label-md text-white transition-all hover:shadow-lg hover:shadow-emerald-600/25 active:scale-[0.98]"
             >
               <span className="relative z-10">Ajukan Kunjungan</span>

@@ -67,7 +67,7 @@ export default function CTASection() {
           className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
         >
           <Link
-            to="/submit"
+            to="/form"
             className="group relative flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-emerald-600 px-10 py-5 font-label text-label-md font-semibold text-white transition-all hover:shadow-xl hover:shadow-emerald-600/25 active:scale-[0.98]"
           >
             <span className="relative z-10">Ajukan Sekarang</span>
