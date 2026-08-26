@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isFutureDate } from '@lib/dateTime';
 
 export const guestSchema = z.object({
   nama: z.string().min(1, 'Nama tamu wajib diisi'),
@@ -19,11 +20,7 @@ export const visitRequestSchema = z.object({
   tanggal_kunjungan: z
     .string()
     .min(1, 'Tanggal kunjungan wajib diisi')
-    .refine((val) => {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return new Date(val) > today;
-    }, 'Tanggal kunjungan harus di masa depan'),
+    .refine((val) => isFutureDate(val), 'Tanggal kunjungan harus di masa depan'),
   jam_kunjungan: z
     .string()
     .min(1, 'Jam kunjungan wajib diisi')

@@ -8,6 +8,7 @@ import RequestNotFoundState from '../../components/requests/RequestNotFoundState
 import { downloadAttachmentByToken, getRequestByToken } from '../../lib/api/requests';
 import { generateVisitRequestPdf } from '../../lib/pdf/visitRequestPdf';
 import type { Attachment, VisitRequest } from '@app-types/api';
+import { formatDate, formatLongDate } from '@lib/dateTime';
 
 export default function RequestStatus() {
   const { token } = useParams();
@@ -32,7 +33,8 @@ export default function RequestStatus() {
   async function preview(doc: Attachment) {
     if (!token) return;
     try {
-      if (doc.attachment_type === 'surat_persetujuan' || doc.attachment_type === 'surat_reschedule') return;
+      if (doc.attachment_type === 'surat_persetujuan' || doc.attachment_type === 'surat_reschedule')
+        return;
       const blob = await downloadAttachmentByToken(token, doc.attachment_type);
       window.open(URL.createObjectURL(blob), '_blank', 'noopener,noreferrer');
     } catch {
@@ -66,12 +68,11 @@ export default function RequestStatus() {
           <p className="font-label-sm mb-2 text-label-sm tracking-widest text-on-surface-variant uppercase">
             Request Token
           </p>
-          <h1 className="font-headline-lg-mobile text-headline-lg-mobile mb-4 text-on-surface md:font-headline-lg md:text-headline-lg">
+          <h1 className="font-headline-lg-mobile md:font-headline-lg mb-4 text-headline-lg-mobile text-on-surface md:text-headline-lg">
             {request.token}
           </h1>
           <div className="font-label-sm inline-flex items-center rounded-full border border-outline-variant bg-surface-variant px-3 py-1 text-label-sm text-on-surface-variant">
-            <Clock className="mr-1 h-4 w-4" /> Submitted on{' '}
-            {new Date(request.created_at).toLocaleDateString()}
+            <Clock className="mr-1 h-4 w-4" /> Submitted on {formatDate(request.created_at)}
           </div>
         </div>
         <div className="inline-flex flex-col items-start md:items-end">
@@ -89,7 +90,7 @@ export default function RequestStatus() {
       <div className="grid grid-cols-1 gap-gutter lg:grid-cols-3">
         <div className="space-y-gutter lg:col-span-2">
           <section className="rounded-xl border border-surface-alt bg-surface-container-lowest p-6 md:p-8">
-            <h2 className="mb-6 flex items-center gap-2 border-b border-surface-alt pb-4 font-headline-md text-headline-md text-on-surface">
+            <h2 className="font-headline-md mb-6 flex items-center gap-2 border-b border-surface-alt pb-4 text-headline-md text-on-surface">
               <Info className="h-5 w-5" /> Visit Details
             </h2>
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
@@ -98,7 +99,7 @@ export default function RequestStatus() {
                   Date of Visit
                 </p>
                 <p className="font-body-lg text-body-lg text-on-surface">
-                  {request.tanggal_kunjungan}
+                  {formatLongDate(request.tanggal_kunjungan)}
                 </p>
               </div>
               <div>
@@ -130,7 +131,7 @@ export default function RequestStatus() {
             </div>
           </section>
           <section className="rounded-xl border border-surface-alt bg-surface-container-lowest p-6 md:p-8">
-            <h2 className="mb-6 flex items-center gap-2 border-b border-surface-alt pb-4 font-headline-md text-headline-md text-on-surface">
+            <h2 className="font-headline-md mb-6 flex items-center gap-2 border-b border-surface-alt pb-4 text-headline-md text-on-surface">
               <Users className="h-5 w-5" /> Registered Guests
             </h2>
             <div className="overflow-x-auto">
@@ -165,16 +166,16 @@ export default function RequestStatus() {
           </section>
         </div>
         <div className="space-y-gutter">
-           <section className="rounded-xl border border-surface-alt bg-surface-container-lowest p-6">
-             <button
-               type="button"
-               onClick={generatePdf}
-               disabled={generating}
-               className="mb-5 flex w-full items-center justify-center gap-2 rounded border border-primary py-3 text-label-md text-primary cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-             >
-               <Download className="h-5 w-5" /> Unduh Surat Permohonan
-             </button>
-             <h3 className="mb-4 flex items-center gap-2 border-b border-surface-alt pb-2 font-headline-md text-base text-headline-md text-on-surface">
+          <section className="rounded-xl border border-surface-alt bg-surface-container-lowest p-6">
+            <button
+              type="button"
+              onClick={generatePdf}
+              disabled={generating}
+              className="mb-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded border border-primary py-3 text-label-md text-primary disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Download className="h-5 w-5" /> Unduh Surat Permohonan
+            </button>
+            <h3 className="font-headline-md mb-4 flex items-center gap-2 border-b border-surface-alt pb-2 text-base text-headline-md text-on-surface">
               <FileText className="h-5 w-5" /> Submitted Documents
             </h3>
             <ul className="mt-4 space-y-4">
@@ -184,7 +185,7 @@ export default function RequestStatus() {
                     type="button"
                     onClick={() => preview(doc)}
                     title="Click to preview in new tab"
-                    className="group w-full rounded-lg border border-surface-alt p-3 text-left transition-colors hover:bg-surface-container cursor-pointer"
+                    className="group w-full cursor-pointer rounded-lg border border-surface-alt p-3 text-left transition-colors hover:bg-surface-container"
                   >
                     <span className="font-label-md mb-1 block text-xs font-medium tracking-wider text-on-surface-variant uppercase">
                       {attachmentLabels[doc.attachment_type] || doc.attachment_type}
@@ -209,13 +210,13 @@ export default function RequestStatus() {
             <h4 className="font-label-md mb-2 text-label-md text-on-surface">
               Need to make changes?
             </h4>
-            <p className="font-body-md mb-4 text-body-md text-sm text-on-surface-variant">
+            <p className="font-body-md mb-4 text-sm text-body-md text-on-surface-variant">
               Modifications are not possible while the request is pending. If you need urgent
               changes, please contact support.
             </p>
             <button
               type="button"
-              className="font-label-md w-full rounded border border-outline px-4 py-2 text-label-md text-on-surface hover:bg-surface-container cursor-pointer"
+              className="font-label-md w-full cursor-pointer rounded border border-outline px-4 py-2 text-label-md text-on-surface hover:bg-surface-container"
             >
               Contact Support
             </button>

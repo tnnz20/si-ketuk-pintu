@@ -1,5 +1,7 @@
 import jsPDF from 'jspdf';
+import { DateTime } from 'luxon';
 import type { VisitRequest } from '@app-types/api';
+import { formatLongDate, WITA_ZONE } from '@lib/dateTime';
 
 const margin = 20;
 const pageWidth = 210;
@@ -8,7 +10,7 @@ const contentWidth = pageWidth - margin * 2;
 
 // Kordinat absolut untuk menjaga struktur tabel/kolom agar sejajar rapi
 const labelX = margin;
-const colonX = margin + 45; 
+const colonX = margin + 45;
 const valueX = colonX + 4;
 const maxValueWidth = pageWidth - margin - valueX;
 const lineHeight = 6;
@@ -25,27 +27,11 @@ const statusExplanations: Record<VisitRequest['status'], string> = {
   rejected: '(Permohonan Ditolak)',
 };
 
-const formatDate = (value: string) =>
-  new Date(value).toLocaleDateString('id-ID', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
+const formatDate = (value: string) => formatLongDate(value);
 
 const formatDateTime = (value: string) => {
-  const date = new Date(value);
-  const datePart = date.toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-  const timePart = date.toLocaleTimeString('id-ID', {
-    hour: '2-digit',
-    minute: '2-digit',
-  }).replace('.', ':');
-  
-  return `${datePart}, ${timePart} WITA`;
+  const date = DateTime.fromISO(value, { locale: 'id' }).setZone(WITA_ZONE);
+  return `${date.toFormat('d MMMM yyyy')}, ${date.toFormat('HH:mm')} WITA`;
 };
 
 export function generateVisitRequestPdf(request: VisitRequest): void {
@@ -82,9 +68,9 @@ export function generateVisitRequestPdf(request: VisitRequest): void {
     // 3. Value (Bisa Multi-baris)
     const lines = pdf.splitTextToSize(String(value), maxValueWidth) as string[];
     pdf.text(lines, valueX, y);
-    
+
     // Tambah jarak Y sesuai dengan jumlah baris teks
-    y += (lines.length * (lineHeight - 1.5)) + 2.5; 
+    y += lines.length * (lineHeight - 1.5) + 2.5;
   };
 
   // --- BARIS DATA KHUSUS STATUS (Normal + Italic) ---
@@ -101,7 +87,7 @@ export function generateVisitRequestPdf(request: VisitRequest): void {
 
     pdf.setFont('helvetica', 'italic');
     pdf.text(explanation, valueX + statusWidth, y);
-    
+
     y += lineHeight + 1;
   };
 
@@ -114,7 +100,7 @@ export function generateVisitRequestPdf(request: VisitRequest): void {
   pdf.setFontSize(18);
   pdf.text('SI KETUK PINTU', pageWidth / 2, y, { align: 'center' });
   y += 8;
-  
+
   pdf.setFontSize(14);
   pdf.text('Surat Permohonan Kunjungan', pageWidth / 2, y, { align: 'center' });
   y += 20; // SPASI ANTARA JUDUL DAN SEKSI PERTAMA
@@ -123,14 +109,18 @@ export function generateVisitRequestPdf(request: VisitRequest): void {
   addSection('Informasi Sistem & Verifikasi');
   addField('ID Registrasi', request.token);
   addField('Waktu Pengajuan', formatDateTime(request.created_at));
-  addFieldMixedStatus('Status Berkas', statusLabels[request.status], statusExplanations[request.status]);
+  addFieldMixedStatus(
+    'Status Berkas',
+    statusLabels[request.status],
+    statusExplanations[request.status],
+  );
 
-  y += 2; 
+  y += 2;
 
   // 3. INFORMASI KUNJUNGAN
   addSection('Informasi Kunjungan');
   addField('Hari/Tanggal', formatDate(request.tanggal_kunjungan));
-  addField('Waktu', `${request.jam_kunjungan} WITA`); 
+  addField('Waktu', `${request.jam_kunjungan} WITA`);
   addField('Tema', request.tema_kunjungan);
   addField('Pimpinan Rombongan', request.pimpinan_rombongan);
   addField('Nama', request.pimpinan_rombongan);
@@ -152,15 +142,15 @@ export function generateVisitRequestPdf(request: VisitRequest): void {
   pdf.setFont('helvetica', 'normal');
   requirements.forEach((req, idx) => {
     const numText = `${idx + 1}.`;
-    const indentX = margin + 6; 
+    const indentX = margin + 6;
     const listTextWidth = pageWidth - margin - indentX;
-    
+
     const lines = pdf.splitTextToSize(req, listTextWidth) as string[];
     ensureSpace(lines.length * (lineHeight - 1));
-    
-    pdf.text(numText, margin, y); 
-    pdf.text(lines, indentX, y); 
-    
+
+    pdf.text(numText, margin, y);
+    pdf.text(lines, indentX, y);
+
     y += lines.length * (lineHeight - 1.5) + 3;
   });
 

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { DateTime } from 'luxon';
 import {
   BarChart3,
   Calendar as CalendarIcon,
@@ -9,25 +10,41 @@ import {
 import { toast } from 'sonner';
 import type { ChartItem, ChartPeriod } from '@app-types/dashboard';
 import type { GraphPoint } from '@app-types/api';
-import { DEFAULT_MONTH, DEFAULT_YEAR, INDO_DAYS, INDO_MONTHS, INDO_MONTHS_SHORT, YEAR_RANGE } from '@constants/dashboard';
+import {
+  DEFAULT_MONTH,
+  DEFAULT_YEAR,
+  INDO_DAYS,
+  INDO_MONTHS,
+  INDO_MONTHS_SHORT,
+  YEAR_RANGE,
+} from '@constants/dashboard';
 import Skeleton from '@components/shared/Skeleton';
+import { WITA_ZONE } from '@lib/dateTime';
 import { getRequestsGraph } from '../../lib/api/requests';
 import MonthCalendarPicker from './MonthCalendarPicker';
 import ChartBars from './ChartBars';
 import ChartSummaryMetrics from './ChartSummaryMetrics';
 
-function buildChartItems(period: ChartPeriod, year: number, month: number, points: GraphPoint[]): ChartItem[] {
+function buildChartItems(
+  period: ChartPeriod,
+  year: number,
+  month: number,
+  points: GraphPoint[],
+): ChartItem[] {
   const countMap = new Map(points.map((p) => [p.period, p.count]));
 
   if (period === 'daily') {
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInMonth =
+      DateTime.fromObject({ year, month: month + 1 }, { zone: WITA_ZONE }).daysInMonth ?? 30;
     return Array.from({ length: daysInMonth }, (_, i) => {
       const day = i + 1;
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const weekday =
+        DateTime.fromObject({ year, month: month + 1, day }, { zone: WITA_ZONE }).weekday % 7;
       return {
         key: dateStr,
         label: `${day}`,
-        subLabel: `${INDO_DAYS[new Date(year, month, day).getDay()]}, ${day} ${INDO_MONTHS[month]} ${year}`,
+        subLabel: `${INDO_DAYS[weekday]}, ${day} ${INDO_MONTHS[month]} ${year}`,
         count: countMap.get(dateStr) ?? 0,
       };
     });
@@ -39,7 +56,8 @@ function buildChartItems(period: ChartPeriod, year: number, month: number, point
       label: m,
       subLabel: `${INDO_MONTHS[idx]} ${year}`,
       count: points.reduce(
-        (acc, p) => acc + (p.period.startsWith(`${year}-${String(idx + 1).padStart(2, '0')}`) ? p.count : 0),
+        (acc, p) =>
+          acc + (p.period.startsWith(`${year}-${String(idx + 1).padStart(2, '0')}`) ? p.count : 0),
         0,
       ),
     }));
@@ -54,17 +72,13 @@ function buildChartItems(period: ChartPeriod, year: number, month: number, point
 }
 
 function todayBarIndex(month: number, year: number, daysInMonth: number): number {
-  const now = new Date();
-  return now.getFullYear() === year && now.getMonth() === month
-    ? Math.min(now.getDate() - 1, daysInMonth - 1)
-    : 0;
+  const now = DateTime.now().setZone(WITA_ZONE);
+  return now.year === year && now.month - 1 === month ? Math.min(now.day - 1, daysInMonth - 1) : 0;
 }
 
 function currentWeekOffset(month: number, year: number): number {
-  const now = new Date();
-  return now.getFullYear() === year && now.getMonth() === month
-    ? Math.floor((now.getDate() - 1) / 7)
-    : 0;
+  const now = DateTime.now().setZone(WITA_ZONE);
+  return now.year === year && now.month - 1 === month ? Math.floor((now.day - 1) / 7) : 0;
 }
 
 export default function RequestsChart() {
@@ -77,7 +91,12 @@ export default function RequestsChart() {
   const [dailyViewRange, setDailyViewRange] = useState<'all_month' | '7_days'>('all_month');
   const [weekOffset, setWeekOffset] = useState<number>(0);
   const [activeBarIndex, setActiveBarIndex] = useState<number>(() =>
-    todayBarIndex(DEFAULT_MONTH, DEFAULT_YEAR, new Date(DEFAULT_YEAR, DEFAULT_MONTH + 1, 0).getDate()),
+    todayBarIndex(
+      DEFAULT_MONTH,
+      DEFAULT_YEAR,
+      DateTime.fromObject({ year: DEFAULT_YEAR, month: DEFAULT_MONTH + 1 }, { zone: WITA_ZONE })
+        .daysInMonth ?? 30,
+    ),
   );
 
   // Calendar Picker Popup State
@@ -122,12 +141,19 @@ export default function RequestsChart() {
       month: chartPeriod === 'daily' ? selectedMonth + 1 : undefined,
     })
       .then((res) => {
-        if (mounted) setChart({ key: requestKey, data: buildChartItems(chartPeriod, selectedYear, selectedMonth, res.data) });
+        if (mounted)
+          setChart({
+            key: requestKey,
+            data: buildChartItems(chartPeriod, selectedYear, selectedMonth, res.data),
+          });
       })
       .catch(() => {
         if (mounted) {
           toast.error('Gagal memuat grafik permohonan.');
-          setChart({ key: requestKey, data: buildChartItems(chartPeriod, selectedYear, selectedMonth, []) });
+          setChart({
+            key: requestKey,
+            data: buildChartItems(chartPeriod, selectedYear, selectedMonth, []),
+          });
         }
       });
     return () => {
@@ -145,8 +171,8 @@ export default function RequestsChart() {
     activeBarIndex >= 0 && activeBarIndex < currentChartData.length
       ? activeBarIndex
       : currentChartData.length > 0
-      ? currentChartData.length - 1
-      : 0;
+        ? currentChartData.length - 1
+        : 0;
 
   // Compute metrics for current chart
   const maxCount = Math.max(...currentChartData.map((d) => d.count), 1);
@@ -160,7 +186,9 @@ export default function RequestsChart() {
   const periodUnit =
     chartPeriod === 'daily' ? 'hari' : chartPeriod === 'monthly' ? 'bulan' : 'tahun';
 
-  const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+  const daysInMonth =
+    DateTime.fromObject({ year: selectedYear, month: selectedMonth + 1 }, { zone: WITA_ZONE })
+      .daysInMonth ?? 30;
   const maxWeekOffset = Math.floor((daysInMonth - 1) / 7);
 
   const handlePeriodChange = (period: ChartPeriod) => {
@@ -209,26 +237,26 @@ export default function RequestsChart() {
   };
 
   return (
-    <div className="lg:col-span-8 bg-civic-surface p-5 sm:p-6 rounded-3xl border border-civic-border soft-shadow space-y-4 relative">
+    <div className="soft-shadow relative space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-5 sm:p-6 lg:col-span-8">
       {/* Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 border-b border-civic-border pb-4">
+      <div className="flex flex-col justify-between gap-3.5 border-b border-civic-border pb-4 md:flex-row md:items-center">
         {/* Title & Description */}
         <div>
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-civic-neutral-fill text-civic-dark flex items-center justify-center shrink-0">
-              <BarChart3 className="w-4 h-4" />
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-civic-neutral-fill text-civic-dark">
+              <BarChart3 className="h-4 w-4" />
             </div>
-            <h3 className="font-extrabold text-base text-civic-dark">Grafik Permohonan Masuk</h3>
+            <h3 className="text-base font-extrabold text-civic-dark">Grafik Permohonan Masuk</h3>
           </div>
-          <p className="text-xs text-civic-muted mt-1 font-medium">
+          <p className="mt-1 text-xs font-medium text-civic-muted">
             Tren permohonan kunjungan instansi
           </p>
         </div>
 
         {/* Controls */}
-        <div className="flex items-center gap-2.5 self-start md:self-auto flex-wrap sm:flex-nowrap">
+        <div className="flex flex-wrap items-center gap-2.5 self-start sm:flex-nowrap md:self-auto">
           {/* Total Count Badge */}
-          <div className="bg-civic-cardFill border border-civic-border px-3 py-1.5 rounded-xl text-xs font-bold text-civic-dark whitespace-nowrap">
+          <div className="bg-civic-cardFill rounded-xl border border-civic-border px-3 py-1.5 text-xs font-bold whitespace-nowrap text-civic-dark">
             Total:{' '}
             <span className="font-extrabold text-civic-dark">
               {totalPeriodCount.toLocaleString('id-ID')} Permohonan
@@ -236,11 +264,11 @@ export default function RequestsChart() {
           </div>
 
           {/* 3-Option Filter Pill Toggle */}
-          <div className="grid grid-cols-3 bg-civic-cardFill p-0.5 rounded-xl border border-civic-border w-64 shrink-0">
+          <div className="bg-civic-cardFill grid w-64 shrink-0 grid-cols-3 rounded-xl border border-civic-border p-0.5">
             <button
               type="button"
               onClick={() => handlePeriodChange('daily')}
-              className={`py-1 text-xs font-extrabold rounded-lg transition-all cursor-pointer text-center ${
+              className={`cursor-pointer rounded-lg py-1 text-center text-xs font-extrabold transition-all ${
                 chartPeriod === 'daily'
                   ? 'bg-civic-dark text-white shadow-sm'
                   : 'text-civic-muted hover:text-civic-dark'
@@ -251,7 +279,7 @@ export default function RequestsChart() {
             <button
               type="button"
               onClick={() => handlePeriodChange('monthly')}
-              className={`py-1 text-xs font-extrabold rounded-lg transition-all cursor-pointer text-center ${
+              className={`cursor-pointer rounded-lg py-1 text-center text-xs font-extrabold transition-all ${
                 chartPeriod === 'monthly'
                   ? 'bg-civic-dark text-white shadow-sm'
                   : 'text-civic-muted hover:text-civic-dark'
@@ -262,7 +290,7 @@ export default function RequestsChart() {
             <button
               type="button"
               onClick={() => handlePeriodChange('yearly')}
-              className={`py-1 text-xs font-extrabold rounded-lg transition-all cursor-pointer text-center ${
+              className={`cursor-pointer rounded-lg py-1 text-center text-xs font-extrabold transition-all ${
                 chartPeriod === 'yearly'
                   ? 'bg-civic-dark text-white shadow-sm'
                   : 'text-civic-muted hover:text-civic-dark'
@@ -275,7 +303,7 @@ export default function RequestsChart() {
       </div>
 
       {/* ================= DATE & MONTH NAVIGATOR (FOR PER HARI & PER BULAN) ================= */}
-      <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-civic-cardFill/80 p-2.5 rounded-2xl border border-civic-border text-xs">
+      <div className="bg-civic-cardFill/80 relative flex flex-col justify-between gap-2.5 rounded-2xl border border-civic-border p-2.5 text-xs sm:flex-row sm:items-center">
         {chartPeriod === 'daily' ? (
           <>
             {/* Month Navigator Controls with Interactive Popover Button */}
@@ -284,9 +312,9 @@ export default function RequestsChart() {
                 type="button"
                 onClick={handlePrevMonth}
                 title="Bulan Sebelumnya"
-                className="p-1.5 rounded-xl bg-civic-surface border border-civic-border text-civic-dark hover:bg-civic-neutral-fill transition-colors cursor-pointer shadow-2xs"
+                className="cursor-pointer rounded-xl border border-civic-border bg-civic-surface p-1.5 text-civic-dark shadow-2xs transition-colors hover:bg-civic-neutral-fill"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="h-4 w-4" />
               </button>
 
               {/* Interactive Calendar Trigger Button */}
@@ -296,14 +324,14 @@ export default function RequestsChart() {
                   setPickerYear(selectedYear);
                   setIsCalendarOpen((prev) => !prev);
                 }}
-                className="flex items-center gap-1.5 px-3 py-1 bg-civic-surface hover:bg-civic-neutral-fill/70 border border-civic-border rounded-xl font-extrabold text-civic-dark cursor-pointer transition-all shadow-2xs group"
+                className="group flex cursor-pointer items-center gap-1.5 rounded-xl border border-civic-border bg-civic-surface px-3 py-1 font-extrabold text-civic-dark shadow-2xs transition-all hover:bg-civic-neutral-fill/70"
               >
-                <CalendarIcon className="w-3.5 h-3.5 text-civic-muted group-hover:text-civic-dark transition-colors" />
+                <CalendarIcon className="h-3.5 w-3.5 text-civic-muted transition-colors group-hover:text-civic-dark" />
                 <span>
                   {INDO_MONTHS[selectedMonth]} {selectedYear}
                 </span>
                 <ChevronDown
-                  className={`w-3 h-3 text-civic-muted transition-transform duration-200 ${
+                  className={`h-3 w-3 text-civic-muted transition-transform duration-200 ${
                     isCalendarOpen ? 'rotate-180 text-civic-dark' : ''
                   }`}
                 />
@@ -313,9 +341,9 @@ export default function RequestsChart() {
                 type="button"
                 onClick={handleNextMonth}
                 title="Bulan Berikutnya"
-                className="p-1.5 rounded-xl bg-civic-surface border border-civic-border text-civic-dark hover:bg-civic-neutral-fill transition-colors cursor-pointer shadow-2xs"
+                className="cursor-pointer rounded-xl border border-civic-border bg-civic-surface p-1.5 text-civic-dark shadow-2xs transition-colors hover:bg-civic-neutral-fill"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="h-4 w-4" />
               </button>
 
               {/* ================= CALENDAR & MONTH-YEAR PICKER POPOVER ================= */}
@@ -332,7 +360,7 @@ export default function RequestsChart() {
 
             {/* Range Toggle: Semua Hari (1-31) vs 7 Hari */}
             <div className="flex items-center gap-2">
-              <div className="flex bg-civic-surface p-0.5 rounded-xl border border-civic-border">
+              <div className="flex rounded-xl border border-civic-border bg-civic-surface p-0.5">
                 <button
                   type="button"
                   onClick={() => {
@@ -340,7 +368,7 @@ export default function RequestsChart() {
                     setWeekOffset(0);
                     setActiveBarIndex(todayBarIndex(selectedMonth, selectedYear, daysInMonth));
                   }}
-                  className={`px-2.5 py-1 text-label-sm font-extrabold rounded-lg transition-all cursor-pointer ${
+                  className={`cursor-pointer rounded-lg px-2.5 py-1 text-label-sm font-extrabold transition-all ${
                     dailyViewRange === 'all_month'
                       ? 'bg-civic-dark text-white shadow-sm'
                       : 'text-civic-muted hover:text-civic-dark'
@@ -357,7 +385,7 @@ export default function RequestsChart() {
                     setWeekOffset(offset);
                     setActiveBarIndex(todayIdx - offset * 7);
                   }}
-                  className={`px-2.5 py-1 text-label-sm font-extrabold rounded-lg transition-all cursor-pointer ${
+                  className={`cursor-pointer rounded-lg px-2.5 py-1 text-label-sm font-extrabold transition-all ${
                     dailyViewRange === '7_days'
                       ? 'bg-civic-dark text-white shadow-sm'
                       : 'text-civic-muted hover:text-civic-dark'
@@ -375,54 +403,54 @@ export default function RequestsChart() {
                     onClick={() => setWeekOffset((prev) => Math.max(0, prev - 1))}
                     disabled={weekOffset === 0}
                     title="Minggu Sebelumnya"
-                    className="p-1 rounded-lg bg-civic-surface border border-civic-border text-civic-dark hover:bg-civic-neutral-fill disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    className="cursor-pointer rounded-lg border border-civic-border bg-civic-surface p-1 text-civic-dark hover:bg-civic-neutral-fill disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    <ChevronLeft className="w-3.5 h-3.5" />
+                    <ChevronLeft className="h-3.5 w-3.5" />
                   </button>
                   <button
                     type="button"
                     onClick={() => setWeekOffset((prev) => Math.min(maxWeekOffset, prev + 1))}
                     disabled={weekOffset >= maxWeekOffset}
                     title="Minggu Berikutnya"
-                    className="p-1 rounded-lg bg-civic-surface border border-civic-border text-civic-dark hover:bg-civic-neutral-fill disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    className="cursor-pointer rounded-lg border border-civic-border bg-civic-surface p-1 text-civic-dark hover:bg-civic-neutral-fill disabled:cursor-not-allowed disabled:opacity-40"
                   >
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    <ChevronRight className="h-3.5 w-3.5" />
                   </button>
                 </div>
               )}
             </div>
           </>
         ) : chartPeriod === 'monthly' ? (
-          <div className="flex items-center justify-between w-full">
+          <div className="flex w-full items-center justify-between">
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setSelectedYear((y) => y - 1)}
-                className="p-1.5 rounded-xl bg-civic-surface border border-civic-border text-civic-dark hover:bg-civic-neutral-fill transition-colors cursor-pointer"
+                className="cursor-pointer rounded-xl border border-civic-border bg-civic-surface p-1.5 text-civic-dark transition-colors hover:bg-civic-neutral-fill"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="h-4 w-4" />
               </button>
-              <div className="px-3 py-1 bg-civic-surface border border-civic-border rounded-xl font-extrabold text-civic-dark">
+              <div className="rounded-xl border border-civic-border bg-civic-surface px-3 py-1 font-extrabold text-civic-dark">
                 Tahun {selectedYear}
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedYear((y) => y + 1)}
-                className="p-1.5 rounded-xl bg-civic-surface border border-civic-border text-civic-dark hover:bg-civic-neutral-fill transition-colors cursor-pointer"
+                className="cursor-pointer rounded-xl border border-civic-border bg-civic-surface p-1.5 text-civic-dark transition-colors hover:bg-civic-neutral-fill"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="h-4 w-4" />
               </button>
             </div>
-            <span className="text-xs text-civic-muted font-medium">
+            <span className="text-xs font-medium text-civic-muted">
               Menampilkan 12 bulan kalender tahun {selectedYear}
             </span>
           </div>
         ) : (
-          <div className="flex items-center justify-between w-full">
+          <div className="flex w-full items-center justify-between">
             <span className="text-xs font-extrabold text-civic-dark">
               Tren Akumulasi Tahunan (2022–2026)
             </span>
-            <span className="text-xs text-civic-muted font-medium">
+            <span className="text-xs font-medium text-civic-muted">
               Rata-rata kenaikan volume +28% / tahun
             </span>
           </div>

@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { DateTime } from 'luxon';
 import { INDO_MONTHS_SHORT } from '@constants/dashboard';
 
 interface MonthCalendarPickerProps {
@@ -23,27 +24,27 @@ export default function MonthCalendarPicker({
   if (!isOpen) return null;
 
   return (
-    <div className="absolute top-full left-0 mt-2 z-50 w-72 bg-civic-surface border border-civic-border rounded-3xl p-4 shadow-2xl space-y-3.5 animate-in fade-in zoom-in-95 duration-150">
+    <div className="animate-in fade-in zoom-in-95 absolute top-full left-0 z-50 mt-2 w-72 space-y-3.5 rounded-3xl border border-civic-border bg-civic-surface p-4 shadow-2xl duration-150">
       {/* Popover Header: Year Navigator */}
       <div className="flex items-center justify-between border-b border-civic-border pb-2.5">
         <span className="text-xs font-extrabold text-civic-dark">Pilih Waktu</span>
-        <div className="flex items-center gap-1 bg-civic-cardFill px-2 py-0.5 rounded-xl border border-civic-border">
+        <div className="bg-civic-cardFill flex items-center gap-1 rounded-xl border border-civic-border px-2 py-0.5">
           <button
             type="button"
             onClick={() => onSelectYear(pickerYear - 1)}
-            className="p-1 rounded-lg hover:bg-civic-neutral-fill text-civic-dark cursor-pointer transition-colors"
+            className="cursor-pointer rounded-lg p-1 text-civic-dark transition-colors hover:bg-civic-neutral-fill"
             title="Tahun Sebelumnya"
           >
-            <ChevronLeft className="w-3.5 h-3.5" />
+            <ChevronLeft className="h-3.5 w-3.5" />
           </button>
-          <span className="font-extrabold text-xs text-civic-dark px-1">{pickerYear}</span>
+          <span className="px-1 text-xs font-extrabold text-civic-dark">{pickerYear}</span>
           <button
             type="button"
             onClick={() => onSelectYear(pickerYear + 1)}
-            className="p-1 rounded-lg hover:bg-civic-neutral-fill text-civic-dark cursor-pointer transition-colors"
+            className="cursor-pointer rounded-lg p-1 text-civic-dark transition-colors hover:bg-civic-neutral-fill"
             title="Tahun Berikutnya"
           >
-            <ChevronRight className="w-3.5 h-3.5" />
+            <ChevronRight className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
@@ -58,10 +59,10 @@ export default function MonthCalendarPicker({
               key={monthName}
               type="button"
               onClick={() => onSelectMonth(idx)}
-              className={`py-2 px-1 text-xs font-extrabold rounded-xl transition-all cursor-pointer text-center ${
+              className={`cursor-pointer rounded-xl px-1 py-2 text-center text-xs font-extrabold transition-all ${
                 isSelected
                   ? 'bg-civic-dark text-white shadow-md'
-                  : 'bg-civic-cardFill hover:bg-civic-neutral-fill text-civic-dark border border-civic-border/70 hover:border-civic-dark/40'
+                  : 'bg-civic-cardFill border border-civic-border/70 text-civic-dark hover:border-civic-dark/40 hover:bg-civic-neutral-fill'
               }`}
             >
               {monthName}
@@ -71,22 +72,22 @@ export default function MonthCalendarPicker({
       </div>
 
       {/* Quick Shortcut Buttons */}
-      <div className="pt-2 border-t border-civic-border flex items-center justify-between gap-2 text-2xs font-extrabold">
+      <div className="flex items-center justify-between gap-2 border-t border-civic-border pt-2 text-2xs font-extrabold">
         <button
           type="button"
           onClick={() => {
-            const now = new Date();
-            onSelectYear(now.getFullYear());
-            onSelectMonth(now.getMonth());
+            const now = DateTime.now();
+            onSelectYear(now.year);
+            onSelectMonth(now.month - 1);
           }}
-          className="px-2.5 py-1 rounded-lg bg-civic-cardFill hover:bg-civic-neutral-fill text-civic-dark border border-civic-border transition-colors cursor-pointer"
+          className="bg-civic-cardFill cursor-pointer rounded-lg border border-civic-border px-2.5 py-1 text-civic-dark transition-colors hover:bg-civic-neutral-fill"
         >
           Bulan Ini
         </button>
         <button
           type="button"
           onClick={onClose}
-          className="px-2.5 py-1 rounded-lg text-civic-muted hover:text-civic-dark transition-colors cursor-pointer"
+          className="cursor-pointer rounded-lg px-2.5 py-1 text-civic-muted transition-colors hover:text-civic-dark"
         >
           Tutup
         </button>

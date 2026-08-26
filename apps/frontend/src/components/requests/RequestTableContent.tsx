@@ -1,9 +1,16 @@
 import { MoreHorizontal, SearchX } from 'lucide-react';
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@components/shared/Empty';
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@components/shared/Empty';
 import Skeleton from '@components/shared/Skeleton';
 import StatusBadge from '@components/shared/StatusBadge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/shared/Tooltip';
 import type { PaginatedRequestsResponse } from '@app-types/api';
+import { formatDate } from '@lib/dateTime';
 
 type RequestRow = PaginatedRequestsResponse['data'][number];
 
@@ -22,7 +29,7 @@ export default function RequestTableContent({
     if (loading) {
       return Array.from({ length: 5 }, (_, i) => `skeleton-${i}`).map((key) => (
         <tr key={key}>
-          <td colSpan={7} className="py-4 px-4">
+          <td colSpan={7} className="px-4 py-4">
             <Skeleton className="h-6 w-full rounded-xl" />
           </td>
         </tr>
@@ -32,7 +39,7 @@ export default function RequestTableContent({
     if (requests.length === 0) {
       return (
         <tr>
-          <td colSpan={7} className="py-12 px-4">
+          <td colSpan={7} className="px-4 py-12">
             <Empty>
               <EmptyHeader>
                 <EmptyMedia variant="icon">
@@ -48,51 +55,44 @@ export default function RequestTableContent({
     }
 
     return requests.map((request) => (
-      <tr
-        key={request.id}
-        className="hover:bg-civic-cardFill transition-colors group"
-      >
+      <tr key={request.id} className="hover:bg-civic-cardFill group transition-colors">
         {/* No. Ref / Token */}
-        <td className="py-3.5 px-4 font-bold text-civic-dark">
-          <span className="inline-block bg-civic-cardFill px-2.5 py-1 rounded-lg border border-civic-border/70 font-mono text-label-sm group-hover:bg-white transition-colors">
+        <td className="px-4 py-3.5 font-bold text-civic-dark">
+          <span className="bg-civic-cardFill inline-block rounded-lg border border-civic-border/70 px-2.5 py-1 font-mono text-label-sm transition-colors group-hover:bg-white">
             {request.token}
           </span>
         </td>
 
         {/* Pengirim / Instansi */}
-        <td className="py-3.5 px-4">
-          <p className="font-bold text-civic-dark truncate max-w-55">
-            {request.nama_instansi}
-          </p>
-          <p className="text-2xs text-civic-muted truncate max-w-55">
-            Dibuat: {new Date(request.created_at).toLocaleDateString('id-ID')}
+        <td className="px-4 py-3.5">
+          <p className="max-w-55 truncate font-bold text-civic-dark">{request.nama_instansi}</p>
+          <p className="max-w-55 truncate text-2xs text-civic-muted">
+            Dibuat: {formatDate(request.created_at)}
           </p>
         </td>
 
         {/* Tanggal Kunjungan */}
-        <td className="py-3.5 px-4 font-semibold">
-          {request.tanggal_kunjungan}
-        </td>
+        <td className="px-4 py-3.5 font-semibold">{request.tanggal_kunjungan}</td>
 
         {/* Pimpinan Rombongan */}
-        <td className="py-3.5 px-4 text-civic-muted truncate max-w-45">
+        <td className="max-w-45 truncate px-4 py-3.5 text-civic-muted">
           {request.pimpinan_rombongan || '-'}
         </td>
 
         {/* Jumlah Tamu */}
-        <td className="py-3.5 px-4 font-bold">
-          <span className="bg-civic-neutralFill text-civic-dark px-2 py-0.5 rounded-md text-2xs">
+        <td className="px-4 py-3.5 font-bold">
+          <span className="bg-civic-neutralFill rounded-md px-2 py-0.5 text-2xs text-civic-dark">
             {request.jumlah_tamu} Org
           </span>
         </td>
 
         {/* Status */}
-        <td className="py-3.5 px-4">
+        <td className="px-4 py-3.5">
           <StatusBadge status={request.status} />
         </td>
 
         {/* Actions */}
-        <td className="py-3.5 px-4 text-right">
+        <td className="px-4 py-3.5 text-right">
           <div className="flex items-center justify-end">
             <Tooltip>
               <TooltipTrigger>
@@ -100,9 +100,9 @@ export default function RequestTableContent({
                   type="button"
                   aria-label={`Aksi untuk ${request.nama_instansi}`}
                   onClick={(e) => onOpenMenu(e, request)}
-                  className="p-1.5 rounded-xl text-civic-muted hover:text-civic-dark hover:bg-civic-neutralFill transition-colors cursor-pointer"
+                  className="hover:bg-civic-neutralFill cursor-pointer rounded-xl p-1.5 text-civic-muted transition-colors hover:text-civic-dark"
                 >
-                  <MoreHorizontal className="w-4 h-4" />
+                  <MoreHorizontal className="h-4 w-4" />
                 </button>
               </TooltipTrigger>
               <TooltipContent>Aksi lainnya</TooltipContent>
@@ -115,19 +115,19 @@ export default function RequestTableContent({
 
   return (
     <div className="w-full">
-      <table className="w-full text-left border-collapse text-xs">
+      <table className="w-full border-collapse text-left text-xs">
         <thead>
-          <tr className="border-b border-civic-border text-civic-muted font-bold uppercase tracking-wider text-2xs">
-            <th className="py-3.5 px-4">No. Ref</th>
-            <th className="py-3.5 px-4">Pengirim / Instansi</th>
-            <th className="py-3.5 px-4">Tanggal Kunjungan</th>
-            <th className="py-3.5 px-4">Pimpinan Rombongan</th>
-            <th className="py-3.5 px-4">Tamu</th>
-            <th className="py-3.5 px-4">Status</th>
-            <th className="py-3.5 px-4 text-right">Aksi</th>
+          <tr className="border-b border-civic-border text-2xs font-bold tracking-wider text-civic-muted uppercase">
+            <th className="px-4 py-3.5">No. Ref</th>
+            <th className="px-4 py-3.5">Pengirim / Instansi</th>
+            <th className="px-4 py-3.5">Tanggal Kunjungan</th>
+            <th className="px-4 py-3.5">Pimpinan Rombongan</th>
+            <th className="px-4 py-3.5">Tamu</th>
+            <th className="px-4 py-3.5">Status</th>
+            <th className="px-4 py-3.5 text-right">Aksi</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-civic-border text-civic-dark font-medium">
+        <tbody className="divide-y divide-civic-border font-medium text-civic-dark">
           {renderBody()}
         </tbody>
       </table>

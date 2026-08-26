@@ -1,5 +1,7 @@
 import jsPDF from 'jspdf';
+import { DateTime } from 'luxon';
 import type { VisitRequest } from '@app-types/api';
+import { formatLongDate, WITA_ZONE } from '@lib/dateTime';
 
 const pageWidth = 210;
 const pageHeight = 297;
@@ -8,16 +10,11 @@ const marginTop = 5;
 const marginBottom = 15;
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleDateString('id-ID', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
+  return formatLongDate(value);
 }
 
 function formatLetterDate() {
-  return new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  return DateTime.now().setZone(WITA_ZONE).setLocale('id').toFormat('d MMMM yyyy');
 }
 
 function loadImage(src: string): Promise<HTMLImageElement> {
@@ -161,11 +158,9 @@ export async function generateApprovalLetterPdf(
   y += 4;
 
   // --- Using the new richParagraph for the bold formatting ---
-  const createdDate = new Date(request.created_at).toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
+  const createdDate = DateTime.fromISO(request.created_at, { locale: 'id' })
+    .setZone(WITA_ZONE)
+    .toFormat('d MMMM yyyy');
 
   richParagraph([
     {
