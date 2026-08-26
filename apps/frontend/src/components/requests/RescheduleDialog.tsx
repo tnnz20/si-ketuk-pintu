@@ -12,18 +12,129 @@ const schema = z.object({
   jam_kunjungan: z.string().min(1, 'Jam wajib diisi.'),
 });
 
-interface Props { open: boolean; loading: boolean; onSubmit: (input: z.infer<typeof schema>) => Promise<void>; onCancel: () => void }
+interface Props {
+  open: boolean;
+  loading: boolean;
+  onSubmit: (input: z.infer<typeof schema>) => Promise<void>;
+  onCancel: () => void;
+}
+
 export default function RescheduleDialog({ open, loading, onSubmit, onCancel }: Props) {
-  const [form, setForm] = useState({ nomor: '', sifat: '', tanggal_kunjungan: '', jam_kunjungan: '' });
+  const [form, setForm] = useState({
+    nomor: '',
+    sifat: '',
+    tanggal_kunjungan: '',
+    jam_kunjungan: '',
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  function update(key: keyof typeof form, value: string) { setForm((current) => ({ ...current, [key]: value })); }
-  async function submit(event: FormEvent) { event.preventDefault(); const result = schema.safeParse(form); if (!result.success) { const next: Record<string, string> = {}; for (const issue of result.error.issues) next[String(issue.path[0])] = issue.message; setErrors(next); return; } setErrors({}); await onSubmit(result.data); }
-  return <Dialog open={open} title="Penjadwalan Ulang" description="Isi data surat dan jadwal baru." onClose={loading ? () => undefined : onCancel}>
-    <form onSubmit={submit} className="space-y-4">
-      {([['nomor', 'Nomor', 'text'], ['tanggal_kunjungan', 'Tanggal Baru', 'date']] as const).map(([key, label, type]) => <label key={key} className="block text-label-md">{label}<input type={type} value={form[key]} onChange={(event) => update(key, event.target.value)} disabled={loading} className="mt-2 w-full rounded border border-outline px-3 py-2" />{errors[key] && <span className="text-sm text-error">{errors[key]}</span>}</label>)}
-      <label className="block text-label-md">Jam Baru<TimePicker value={form.jam_kunjungan} onChange={(value) => update('jam_kunjungan', value)} />{errors.jam_kunjungan && <span className="text-sm text-error">{errors.jam_kunjungan}</span>}</label>
-      <label className="block text-label-md">Sifat<Select value={form.sifat} onChange={(event) => update('sifat', event.target.value)} disabled={loading} className="mt-2 rounded border border-outline px-3 py-2"><option value="">Pilih sifat</option><option>Biasa</option><option>Penting</option><option>Sangat Penting</option></Select>{errors.sifat && <span className="text-sm text-error">{errors.sifat}</span>}</label>
-      <div className="flex justify-end gap-3"><button type="button" onClick={onCancel} disabled={loading} className="rounded border border-outline px-4 py-2">Batal</button><button type="submit" disabled={loading} className="rounded bg-primary px-4 py-2 text-on-primary">{loading ? 'Memproses...' : 'Buat Surat'}</button></div>
-    </form>
-  </Dialog>;
+
+  function update(key: keyof typeof form, value: string) {
+    setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    const result = schema.safeParse(form);
+    if (!result.success) {
+      const next: Record<string, string> = {};
+      for (const issue of result.error.issues) next[String(issue.path[0])] = issue.message;
+      setErrors(next);
+      return;
+    }
+    setErrors({});
+    await onSubmit(result.data);
+  }
+
+  return (
+    <Dialog
+      open={open}
+      title="Penjadwalan Ulang (Reschedule)"
+      description="Lengkapi tanggal & jam baru beserta data surat perubahan jadwal."
+      onClose={loading ? () => undefined : onCancel}
+    >
+      <form onSubmit={submit} className="space-y-3.5">
+        <label className="block text-xs font-bold text-civic-dark">
+          Nomor Surat
+          <input
+            type="text"
+            value={form.nomor}
+            onChange={(e) => update('nomor', e.target.value)}
+            disabled={loading}
+            placeholder="Misal: 005/124/DISP-SETDA/2026"
+            className="mt-1.5 w-full rounded-2xl border border-civic-border bg-civic-cardFill px-3.5 py-2.5 text-xs text-civic-dark focus:outline-none focus:border-civic-dark transition-all"
+          />
+          {errors.nomor && (
+            <span className="mt-1 block text-label-sm text-rose-600 font-semibold">{errors.nomor}</span>
+          )}
+        </label>
+
+        <label className="block text-xs font-bold text-civic-dark">
+          Tanggal Kunjungan Baru
+          <input
+            type="date"
+            value={form.tanggal_kunjungan}
+            onChange={(e) => update('tanggal_kunjungan', e.target.value)}
+            disabled={loading}
+            className="mt-1.5 w-full rounded-2xl border border-civic-border bg-civic-cardFill px-3.5 py-2.5 text-xs text-civic-dark focus:outline-none focus:border-civic-dark transition-all"
+          />
+          {errors.tanggal_kunjungan && (
+            <span className="mt-1 block text-label-sm text-rose-600 font-semibold">
+              {errors.tanggal_kunjungan}
+            </span>
+          )}
+        </label>
+
+        <div className="block text-xs font-bold text-civic-dark">
+          <span>Jam Kunjungan Baru</span>
+          <div className="mt-1.5">
+            <TimePicker
+              value={form.jam_kunjungan}
+              onChange={(value) => update('jam_kunjungan', value)}
+            />
+          </div>
+          {errors.jam_kunjungan && (
+            <span className="mt-1 block text-label-sm text-rose-600 font-semibold">
+              {errors.jam_kunjungan}
+            </span>
+          )}
+        </div>
+
+        <label className="block text-xs font-bold text-civic-dark">
+          Sifat Surat
+          <Select
+            value={form.sifat}
+            onChange={(e) => update('sifat', e.target.value)}
+            disabled={loading}
+            className="mt-1.5 w-full rounded-2xl border border-civic-border bg-civic-cardFill px-3.5 py-2.5 text-xs text-civic-dark focus:outline-none focus:border-civic-dark transition-all"
+          >
+            <option value="">Pilih sifat surat</option>
+            <option value="Biasa">Biasa</option>
+            <option value="Penting">Penting</option>
+            <option value="Sangat Penting">Sangat Penting</option>
+          </Select>
+          {errors.sifat && (
+            <span className="mt-1 block text-label-sm text-rose-600 font-semibold">{errors.sifat}</span>
+          )}
+        </label>
+
+        <div className="mt-6 flex justify-end gap-2.5 pt-3 border-t border-civic-border">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={loading}
+            className="rounded-xl border border-civic-border bg-civic-surface px-4 py-2 text-xs font-bold text-civic-dark hover:bg-civic-neutralFill transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="rounded-xl bg-civic-dark hover:bg-civic-darkHover px-4 py-2 text-xs font-extrabold text-white transition-all shadow-sm cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? 'Memproses...' : 'Buat Surat'}
+          </button>
+        </div>
+      </form>
+    </Dialog>
+  );
 }

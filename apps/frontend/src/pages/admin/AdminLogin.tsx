@@ -230,7 +230,7 @@ export default function AdminLogin() {
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
                     <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
                   </span>
-                  <span className="font-label text-[11px] text-emerald-700">Portal Admin</span>
+                  <span className="font-label text-label-sm text-emerald-700">Portal Admin</span>
                 </div>
                 <h1 className="font-headline-md text-headline-md text-on-surface">
                   Selamat Datang Kembali

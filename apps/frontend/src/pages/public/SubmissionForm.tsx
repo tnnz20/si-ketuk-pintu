@@ -286,7 +286,7 @@ export default function SubmissionForm() {
                     Formulir Pengajuan Online
                   </span>
                 </div>
-                <h1 className="text-headline-lg-mobile font-display leading-tight text-on-surface md:text-[40px] md:leading-[1.15]">
+                <h1 className="text-headline-lg-mobile font-display leading-tight text-on-surface md:text-display-lg-mobile md:leading-[1.15]">
                   Ajukan Permohonan
                   <br />
                   <span className="text-emerald-600">Kunjungan Resmi</span>
@@ -665,7 +665,7 @@ export default function SubmissionForm() {
                           transition={{ delay: index * 0.05 }}
                           className="group relative overflow-hidden rounded-xl border border-surface-alt bg-surface p-4 transition-all hover:border-emerald-500/30 hover:shadow-md"
                         >
-                          <div className="absolute -top-4 -right-4 text-[60px] leading-none font-bold text-emerald-500/5 transition-transform duration-500 select-none group-hover:scale-110 group-hover:text-emerald-500/10">
+                          <div className="absolute -top-4 -right-4 text-display-lg leading-none font-bold text-emerald-500/5 transition-transform duration-500 select-none group-hover:scale-110 group-hover:text-emerald-500/10">
                             {String(index + 1).padStart(2, '0')}
                           </div>
 

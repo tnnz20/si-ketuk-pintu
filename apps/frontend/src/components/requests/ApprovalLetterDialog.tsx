@@ -5,7 +5,7 @@ import Dialog from '@components/shared/Dialog';
 import { Select } from '@components/shared/Select';
 
 const schema = z.object({
-  nomor: z.string().trim().min(1, 'Nomor wajib diisi.'),
+  nomor: z.string().trim().min(1, 'Nomor surat wajib diisi.'),
   sifat: z.enum(['Biasa', 'Penting', 'Sangat Penting']),
 });
 
@@ -34,19 +34,57 @@ export default function ApprovalLetterDialog({ open, loading, onSubmit, onCancel
   }
 
   return (
-    <Dialog open={open} title="Data Surat Persetujuan" description="Isi data sebelum membuat surat persetujuan." onClose={loading ? () => undefined : onCancel}>
-      <form onSubmit={submit}>
-        <label className="block text-label-md">Nomor
-          <input value={nomor} onChange={(event) => setNomor(event.target.value)} className="mt-2 w-full rounded border border-outline px-3 py-2" disabled={loading} />
-          {errors.nomor && <span className="mt-1 block text-sm text-error">{errors.nomor}</span>}
+    <Dialog
+      open={open}
+      title="Buat Surat Persetujuan"
+      description="Lengkapi nomor surat dan sifat berkas sebelum mengunduh PDF."
+      onClose={loading ? () => undefined : onCancel}
+    >
+      <form onSubmit={submit} className="space-y-4">
+        <label className="block text-xs font-bold text-civic-dark">
+          Nomor Surat
+          <input
+            value={nomor}
+            onChange={(event) => setNomor(event.target.value)}
+            placeholder="Misal: 005/123/DISP-SETDA/2026"
+            className="mt-1.5 w-full rounded-2xl border border-civic-border bg-civic-cardFill px-3.5 py-2.5 text-xs text-civic-dark focus:outline-none focus:border-civic-dark transition-all"
+            disabled={loading}
+          />
+          {errors.nomor && <span className="mt-1 block text-label-sm text-rose-600 font-semibold">{errors.nomor}</span>}
         </label>
-        <label className="mt-4 block text-label-md">Sifat
-          <Select value={sifat} onChange={(event) => setSifat(event.target.value)} className="mt-2 rounded border border-outline px-3 py-2" disabled={loading}><option value="">Pilih sifat</option><option>Biasa</option><option>Penting</option><option>Sangat Penting</option></Select>
-          {errors.sifat && <span className="mt-1 block text-sm text-error">{errors.sifat}</span>}
+
+        <label className="block text-xs font-bold text-civic-dark">
+          Sifat Surat
+          <Select
+            value={sifat}
+            onChange={(event) => setSifat(event.target.value)}
+            className="mt-1.5 w-full rounded-2xl border border-civic-border bg-civic-cardFill px-3.5 py-2.5 text-xs text-civic-dark focus:outline-none focus:border-civic-dark transition-all"
+            disabled={loading}
+          >
+            <option value="">Pilih sifat surat</option>
+            <option value="Biasa">Biasa</option>
+            <option value="Penting">Penting</option>
+            <option value="Sangat Penting">Sangat Penting</option>
+          </Select>
+          {errors.sifat && <span className="mt-1 block text-label-sm text-rose-600 font-semibold">{errors.sifat}</span>}
         </label>
-        <div className="mt-6 flex justify-end gap-3">
-          <button type="button" onClick={onCancel} disabled={loading} className="rounded border border-outline px-4 py-2 cursor-pointer disabled:cursor-not-allowed">Batal</button>
-          <button type="submit" disabled={loading} className="rounded bg-primary px-4 py-2 text-on-primary cursor-pointer disabled:cursor-not-allowed">{loading ? 'Memproses...' : 'Buat Surat'}</button>
+
+        <div className="mt-6 flex justify-end gap-2.5 pt-3 border-t border-civic-border">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={loading}
+            className="rounded-xl border border-civic-border bg-civic-surface px-4 py-2 text-xs font-bold text-civic-dark hover:bg-civic-neutralFill transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="rounded-xl bg-civic-dark hover:bg-civic-darkHover px-4 py-2 text-xs font-extrabold text-white transition-all shadow-sm cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {loading ? 'Memproses...' : 'Buat Surat'}
+          </button>
         </div>
       </form>
     </Dialog>

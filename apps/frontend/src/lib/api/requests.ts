@@ -1,6 +1,8 @@
 import { api } from './client';
+import type { ChartPeriod } from '@app-types/dashboard';
 import type {
   CreateVisitRequestData,
+  GraphResponse,
   PaginatedRequestsResponse,
   RequestDetailResponse,
   StatsResponse,
@@ -43,6 +45,16 @@ export async function getRequests(
 
 export function getStats(): Promise<StatsResponse> {
   return api('/admin/stats');
+}
+
+export function getRequestsGraph(params: {
+  period: ChartPeriod;
+  year: number;
+  month?: number;
+}): Promise<GraphResponse> {
+  const query = new URLSearchParams({ period: params.period, year: String(params.year) });
+  if (params.month !== undefined) query.append('month', String(params.month));
+  return api(`/admin/requests/graph?${query}`);
 }
 
 export function deleteRequest(id: string): Promise<{ message: string }> {

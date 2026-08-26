@@ -82,3 +82,13 @@ type ListFilter struct {
 	Page   int
 	Size   int
 }
+
+type GraphPoint struct {
+	Period time.Time
+	Count  int64
+}
+
+type GraphPointResponse struct {
+	Period string `json:"period"`
+	Count  int64  `json:"count"`
+}

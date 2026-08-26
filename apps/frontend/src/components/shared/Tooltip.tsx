@@ -1,9 +1,55 @@
-import type { HTMLAttributes, PropsWithChildren } from 'react';
+import type { HTMLAttributes, PropsWithChildren, ReactNode } from 'react';
+import { Children, isValidElement, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 type TooltipProps = PropsWithChildren<{ className?: string }>;
 
+const isTooltipContent = (child: ReactNode): boolean =>
+  isValidElement(child) && child.type === TooltipContent;
+
 export function Tooltip({ children, className }: TooltipProps) {
-  return <span className={`group/tooltip relative inline-flex ${className ?? ''}`}>{children}</span>;
+  const [open, setOpen] = useState(false);
+  const [rect, setRect] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+  const wrapRef = useRef<HTMLSpanElement | null>(null);
+
+  const blocks = Children.toArray(children);
+  const content = blocks.find(isTooltipContent);
+
+  function show() {
+    const r = wrapRef.current?.getBoundingClientRect();
+    if (r) {
+      setRect({ top: r.top, left: r.left + r.width / 2 });
+      setOpen(true);
+    }
+  }
+
+  function hide() {
+    setOpen(false);
+  }
+
+  return (
+    <span
+      ref={wrapRef}
+      onMouseEnter={show}
+      onMouseLeave={hide}
+      onFocusCapture={show}
+      onBlurCapture={hide}
+      className={`relative inline-flex ${className ?? ''}`}
+    >
+      {blocks.filter((child) => !isTooltipContent(child))}
+      {open &&
+        content &&
+        createPortal(
+          <div
+            style={{ top: rect.top, left: rect.left }}
+            className="pointer-events-none fixed z-50 mb-2 -translate-x-1/2 -translate-y-full animate-in fade-in zoom-in-95 duration-150"
+          >
+            {content}
+          </div>,
+          document.body,
+        )}
+    </span>
+  );
 }
 
 export function TooltipTrigger({ children, className, ...props }: HTMLAttributes<HTMLSpanElement>) {
@@ -19,7 +65,8 @@ export function TooltipContent({ children, className, ...props }: HTMLAttributes
     <span
       {...props}
       role="tooltip"
-      className={`invisible absolute bottom-full left-1/2 z-50 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-primary px-3 py-1.5 text-label-sm text-on-primary opacity-0 shadow-lg transition-opacity group-hover/tooltip:visible group-hover/tooltip:opacity-100 group-focus-within/tooltip:visible group-focus-within/tooltip:opacity-100 ${className ?? ''}`}
+      data-tooltip-content="true"
+      className={`whitespace-nowrap rounded-md bg-primary px-3 py-1.5 text-label-sm text-on-primary shadow-lg ${className ?? ''}`}
     >
       {children}
     </span>
