@@ -1,6 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Public+Sans:wght@400;500;600&display=swap');
 @import 'tailwindcss';
 
+@utility scrollbar-none {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @theme {
   /* Civic Gateway Warm Palette Tokens */
   --color-civic-bg: #F7F6F2;

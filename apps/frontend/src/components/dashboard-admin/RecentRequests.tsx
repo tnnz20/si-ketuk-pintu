@@ -116,8 +116,8 @@ export default function RecentRequests({ requests, loading }: RecentRequestsProp
       </div>
 
       {/* Table View */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse text-xs">
+      <div className="overflow-x-auto scrollbar-none max-w-full min-w-0">
+        <table className="w-full max-w-full text-left border-collapse text-xs">
           <thead>
             <tr className="border-b border-civic-border text-civic-muted font-bold uppercase tracking-wider text-2xs">
               <th className="py-3 px-4">No. Ref</th>

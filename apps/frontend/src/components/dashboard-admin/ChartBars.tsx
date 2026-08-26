@@ -36,7 +36,7 @@ export default function ChartBars({
         </div>
 
         {/* Chart Grid + Bars Area */}
-        <div className="relative flex-1 flex flex-col justify-between pb-7 min-w-0 overflow-x-auto">
+        <div className="relative flex-1 flex flex-col justify-between pb-7 min-w-0 overflow-x-auto scrollbar-none">
           {/* Horizontal Guide Lines */}
           <div className="absolute inset-0 bottom-7 flex flex-col justify-between pointer-events-none">
             <div className="border-b border-dashed border-civic-border" />
