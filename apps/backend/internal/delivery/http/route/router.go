@@ -57,6 +57,7 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 			protected.GET("/stats", deps.AdminRequestController.Stats)
 			requests := protected.Group("/requests")
 			requests.GET("", deps.AdminRequestController.List)
+			requests.GET("/graph", deps.AdminRequestController.Graph)
 			requests.GET("/:id", deps.AdminRequestController.FindByID)
 			requests.PATCH("/:id/status", deps.AdminRequestController.UpdateStatus)
 			requests.PATCH("/:id/reschedule", deps.AdminRequestController.Reschedule)

@@ -47,6 +47,7 @@ type VisitRequestStore interface {
 	UpdateStatus(ctx context.Context, id uuid.UUID, status string) error
 	UpdateSchedule(ctx context.Context, id uuid.UUID, date time.Time, timeValue string) error
 	Stats(ctx context.Context, now time.Time) (int64, int64, int64, error)
+	CountByPeriod(ctx context.Context, period string, year, month int, timeZone string) ([]model.GraphPoint, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	TokenExists(ctx context.Context, token string) (bool, error)
 }
@@ -202,6 +203,10 @@ func (u *VisitRequestUsecase) List(
 
 func (u *VisitRequestUsecase) Stats(ctx context.Context) (int64, int64, int64, error) {
 	return u.store.Stats(ctx, time.Now().In(u.timeZone))
+}
+
+func (u *VisitRequestUsecase) Graph(ctx context.Context, period string, year, month int) ([]model.GraphPoint, error) {
+	return u.store.CountByPeriod(ctx, period, year, month, u.timeZone.String())
 }
 
 func (u *VisitRequestUsecase) Delete(ctx context.Context, id uuid.UUID) error {

@@ -94,3 +94,12 @@ export interface PaginatedRequestsResponse {
 export interface ErrorResponse {
   error: string;
 }
+
+export interface GraphPoint {
+  period: string;
+  count: number;
+}
+
+export interface GraphResponse {
+  data: GraphPoint[];
+}

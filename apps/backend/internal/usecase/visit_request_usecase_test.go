@@ -7,6 +7,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -18,8 +19,9 @@ import (
 )
 
 type statusStoreStub struct {
-	request *entity.VisitRequest
-	updated string
+	request     *entity.VisitRequest
+	updated     string
+	graphPoints []model.GraphPoint
 }
 
 func (s *statusStoreStub) Create(context.Context, *entity.VisitRequest) error         { return nil }
@@ -49,6 +51,9 @@ func (s *statusStoreStub) Stats(context.Context, time.Time) (int64, int64, int64
 }
 func (s *statusStoreStub) Delete(context.Context, uuid.UUID) error           { return nil }
 func (s *statusStoreStub) TokenExists(context.Context, string) (bool, error) { return false, nil }
+func (s *statusStoreStub) CountByPeriod(context.Context, string, int, int, string) ([]model.GraphPoint, error) {
+	return s.graphPoints, nil
+}
 
 type auditStub struct {
 	event *entity.AuditEvent
@@ -89,6 +94,20 @@ func TestUpdateStatusReturnsAuditError(t *testing.T) {
 	usecase := NewVisitRequestUsecase(store, audit, logrus.New(), t.TempDir(), time.UTC)
 	if err := usecase.UpdateStatus(context.Background(), UpdateStatusInput{VisitRequestID: uuid.New(), NewStatus: "rejected", AdministratorID: 7}); err == nil {
 		t.Fatal("expected audit error")
+	}
+}
+
+func TestVisitRequestUsecase_Graph(t *testing.T) {
+	want := []model.GraphPoint{{Period: time.Date(2026, time.August, 18, 0, 0, 0, 0, time.UTC), Count: 1}}
+	store := &statusStoreStub{graphPoints: want}
+	usecase := NewVisitRequestUsecase(store, nil, logrus.New(), t.TempDir(), time.UTC)
+
+	got, err := usecase.Graph(context.Background(), "daily", 2026, 8)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("Graph() = %#v, want %#v", got, want)
 	}
 }
 

@@ -327,7 +327,50 @@ Retrieve paginated list of visitor requests (admin only).
 
 ---
 
-### 9. Get Visit Request Details
+### 9. Get Requests Graph
+Retrieve visit request counts aggregated per period for the dashboard chart (admin only).
+
+**Endpoint:** `GET /admin/requests/graph`
+
+**Authentication:** Required (Bearer token)
+
+**Query Parameters:**
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `period` | string | - | Aggregation period (`daily`, `monthly`, or `yearly`) |
+| `year` | integer | 2026 | Year to aggregate |
+| `month` | integer | - | Month (1-12); **required** when `period=daily` |
+
+**Response (Success):**
+```json
+{
+  "data": [
+    {
+      "period": "2026-08-01",
+      "count": 5
+    },
+    {
+      "period": "2026-08-02",
+      "count": 3
+    }
+  ]
+}
+```
+
+> `period` is a date string (`YYYY-MM-DD`) for daily/monthly points; counts are the number of requests in that bucket.
+
+**Status Code:** `200 OK`
+
+**Error Responses:**
+| Status | Error |
+|--------|-------|
+| `400 Bad Request` | Invalid period or missing month (1-12) for daily period |
+| `401 Unauthorized` | Missing or invalid token |
+| `500 Internal Server Error` | Server error |
+
+---
+
+### 10. Get Visit Request Details
 Retrieve detailed information about a specific visitor request (admin only).
 
 **Endpoint:** `GET /admin/requests/:id`
@@ -409,7 +452,7 @@ Retrieve detailed information about a specific visitor request (admin only).
 
 ---
 
-### 10. Update Visit Request Status
+### 11. Update Visit Request Status
 Update the status of a visitor request (admin only).
 
 **Endpoint:** `PATCH /admin/requests/:id/status`
@@ -450,7 +493,7 @@ Update the status of a visitor request (admin only).
 
 ---
 
-### 11. Download Attachment
+### 12. Download Attachment
 Download a specific attachment file (admin only).
 
 **Endpoint:** `GET /admin/requests/:id/attachments/:type`

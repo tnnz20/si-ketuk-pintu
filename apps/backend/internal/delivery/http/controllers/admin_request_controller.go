@@ -102,6 +102,38 @@ func (c *AdminRequestController) Stats(ginContext *gin.Context) {
 	})
 }
 
+func (c *AdminRequestController) Graph(ginContext *gin.Context) {
+	period := ginContext.Query("period")
+	if period != "daily" && period != "monthly" && period != "yearly" {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "period must be daily, monthly, or yearly"})
+		return
+	}
+
+	year, _ := strconv.Atoi(ginContext.DefaultQuery("year", "2026"))
+	month, _ := strconv.Atoi(ginContext.Query("month"))
+	if period == "daily" && (month < 1 || month > 12) {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "month (1-12) is required for daily period"})
+		return
+	}
+
+	points, err := c.visitRequestUsecase.Graph(ginContext.Request.Context(), period, year, month)
+	if err != nil {
+		c.logger.WithError(err).Error("failed to get graph data")
+		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
+		return
+	}
+
+	resp := make([]model.GraphPointResponse, 0, len(points))
+	for _, point := range points {
+		resp = append(resp, model.GraphPointResponse{
+			Period: point.Period.Format("2006-01-02"),
+			Count:  point.Count,
+		})
+	}
+
+	ginContext.JSON(http.StatusOK, gin.H{"data": resp})
+}
+
 func (c *AdminRequestController) FindByID(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {

@@ -209,6 +209,50 @@ func (r *VisitRequestRepository) Stats(ctx context.Context, now time.Time) (int6
 	return today, pending, total, nil
 }
 
+func (r *VisitRequestRepository) CountByPeriod(ctx context.Context, period string, year, month int, timeZone string) ([]model.GraphPoint, error) {
+	loc, err := time.LoadLocation(timeZone)
+	if err != nil {
+		return nil, fmt.Errorf("load timezone %q: %w", timeZone, err)
+	}
+
+	var start, end time.Time
+	switch period {
+	case "daily":
+		start = time.Date(year, time.Month(month), 1, 0, 0, 0, 0, loc)
+		end = start.AddDate(0, 1, 0)
+	case "monthly":
+		start = time.Date(year, 1, 1, 0, 0, 0, 0, loc)
+		end = start.AddDate(1, 0, 0)
+	default:
+		start = time.Date(2022, 1, 1, 0, 0, 0, 0, loc)
+		end = time.Now().In(loc).Add(24 * time.Hour)
+	}
+
+	rows, err := r.database.WithContext(ctx).
+		Model(&entity.VisitRequest{}).
+		Select("(created_at AT TIME ZONE ?)::date AS period, COUNT(*) AS count", timeZone).
+		Where("created_at >= ? AND created_at < ?", start, end).
+		Group("period").Order("period").Rows()
+	if err != nil {
+		return nil, fmt.Errorf("count visit requests by period: %w", err)
+	}
+	defer rows.Close()
+
+	points := make([]model.GraphPoint, 0, 32)
+	for rows.Next() {
+		var point model.GraphPoint
+		if err := rows.Scan(&point.Period, &point.Count); err != nil {
+			return nil, fmt.Errorf("scan graph point: %w", err)
+		}
+		points = append(points, point)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate graph rows: %w", err)
+	}
+
+	return points, nil
+}
+
 func (r *VisitRequestRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	var affected int64
 	err := r.database.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
