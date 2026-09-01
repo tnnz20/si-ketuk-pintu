@@ -33,25 +33,31 @@ export default function Dialog({ open, title, description, children, footer, onC
         if (event.target === event.currentTarget) onClose();
       }}
     >
-      <div className="relative w-full max-w-md rounded-3xl border border-civic-border bg-civic-surface p-6 soft-shadow space-y-4 animate-fade-in">
+      <div className="soft-shadow animate-fade-in relative w-full max-w-md space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-6">
         <div className="flex items-center justify-between border-b border-civic-border pb-3">
           <div>
             <h2 id="dialog-title" className="text-base font-extrabold text-civic-dark">
               {title}
             </h2>
-            {description && <p className="mt-0.5 text-xs text-civic-muted font-medium">{description}</p>}
+            {description && (
+              <p className="mt-0.5 text-xs font-medium text-civic-muted">{description}</p>
+            )}
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Tutup dialog"
-            className="rounded-xl p-1.5 text-civic-muted transition-colors hover:bg-civic-cardFill hover:text-civic-dark cursor-pointer"
+            className="hover:bg-civic-cardFill cursor-pointer rounded-xl p-1.5 text-civic-muted transition-colors hover:text-civic-dark"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
         <div className="mt-2 text-xs text-civic-dark">{children}</div>
-        {footer && <div className="mt-5 flex justify-end gap-2.5 pt-2 border-t border-civic-border">{footer}</div>}
+        {footer && (
+          <div className="mt-5 flex justify-end gap-2.5 border-t border-civic-border pt-2">
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   );

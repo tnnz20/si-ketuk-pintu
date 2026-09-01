@@ -45,6 +45,12 @@ func TestRouterRegistersAllRoutes(t *testing.T) {
 		"GET /admin/requests/:id":                      false,
 		"PATCH /admin/requests/:id/status":             false,
 		"GET /admin/requests/:id/attachments/:type": false,
+		"GET /admin/archives":                                       false,
+		"POST /admin/archives/:id/documentations":                   false,
+		"DELETE /admin/archives/:id/documentations/:attachment_id":  false,
+		"POST /admin/archives/:id/daftar-absen":                     false,
+		"DELETE /admin/archives/:id/daftar-absen":                   false,
+		"GET /admin/archives/:id/attachments/:attachment_type/:attachment_id": false,
 	}
 
 	for _, route := range routes {
@@ -78,6 +84,25 @@ func TestRouterGraphRouteRequiresAuth(t *testing.T) {
 		AdminRequestController: &controllers.AdminRequestController{},
 	}
 	router := NewRouter(deps)
+
+	archiveID := "00000000-0000-0000-0000-000000000002"
+	for _, test := range []struct {
+		method, path string
+	}{
+		{http.MethodGet, "/admin/archives"},
+		{http.MethodPost, "/admin/archives/" + archiveID + "/documentations"},
+		{http.MethodDelete, "/admin/archives/" + archiveID + "/documentations/1"},
+		{http.MethodPost, "/admin/archives/" + archiveID + "/daftar-absen"},
+		{http.MethodDelete, "/admin/archives/" + archiveID + "/daftar-absen"},
+		{http.MethodGet, "/admin/archives/" + archiveID + "/attachments/images/1"},
+	} {
+		req, _ := http.NewRequest(test.method, test.path, nil)
+		recorder := httptest.NewRecorder()
+		router.ServeHTTP(recorder, req)
+		if recorder.Code != http.StatusUnauthorized {
+			t.Errorf("%s %s without token: got %d, want %d", test.method, test.path, recorder.Code, http.StatusUnauthorized)
+		}
+	}
 
 	for _, path := range []string{"/admin/requests/graph", "/admin/requests/00000000-0000-0000-0000-000000000001"} {
 		req, _ := http.NewRequest(http.MethodGet, path, nil)

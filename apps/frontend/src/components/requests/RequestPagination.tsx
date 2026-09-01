@@ -18,13 +18,13 @@ export default function RequestPagination({
   onPageSizeChange,
 }: RequestPaginationProps) {
   return (
-    <div className="flex flex-col gap-3 border-t border-civic-border pt-4 sm:flex-row sm:items-center sm:justify-between text-xs">
-      <div className="flex items-center gap-2 text-civic-muted font-medium">
+    <div className="flex flex-col gap-3 border-t border-civic-border pt-4 text-xs sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-center gap-2 font-medium text-civic-muted">
         <span>Baris per halaman:</span>
         <select
           value={pageSize}
           onChange={(e) => onPageSizeChange(Number(e.target.value))}
-          className="rounded-xl border border-civic-border bg-civic-surface px-2.5 py-1 text-xs font-bold text-civic-dark outline-none cursor-pointer hover:bg-civic-cardFill"
+          className="hover:bg-civic-cardFill cursor-pointer rounded-xl border border-civic-border bg-civic-surface px-2.5 py-1 text-xs font-bold text-civic-dark outline-none"
         >
           {PAGE_SIZES.map((size) => (
             <option key={size} value={size}>
@@ -34,7 +34,7 @@ export default function RequestPagination({
         </select>
       </div>
 
-      <div className="flex items-center justify-between sm:justify-end gap-3 text-civic-muted font-medium">
+      <div className="flex items-center justify-between gap-3 font-medium text-civic-muted sm:justify-end">
         <span>
           Halaman <strong className="text-civic-dark">{page}</strong> dari{' '}
           <strong className="text-civic-dark">{totalPages || 1}</strong>
@@ -46,7 +46,7 @@ export default function RequestPagination({
             aria-label="Halaman pertama"
             onClick={() => onPageChange(1)}
             disabled={page <= 1}
-            className="hidden sm:flex h-7 w-7 items-center justify-center rounded-lg border border-civic-border bg-civic-surface text-civic-dark transition-colors hover:bg-civic-cardFill disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="hover:bg-civic-cardFill hidden h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-civic-border bg-civic-surface text-civic-dark transition-colors disabled:cursor-not-allowed disabled:opacity-40 sm:flex"
           >
             <ChevronsLeft className="h-3.5 w-3.5" />
           </button>
@@ -55,7 +55,7 @@ export default function RequestPagination({
             aria-label="Halaman sebelumnya"
             onClick={() => onPageChange((p) => Math.max(1, p - 1))}
             disabled={page <= 1}
-            className="flex h-7 w-7 items-center justify-center rounded-lg border border-civic-border bg-civic-surface text-civic-dark transition-colors hover:bg-civic-cardFill disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="hover:bg-civic-cardFill flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-civic-border bg-civic-surface text-civic-dark transition-colors disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ChevronLeft className="h-3.5 w-3.5" />
           </button>
@@ -64,7 +64,7 @@ export default function RequestPagination({
             aria-label="Halaman berikutnya"
             onClick={() => onPageChange((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}
-            className="flex h-7 w-7 items-center justify-center rounded-lg border border-civic-border bg-civic-surface text-civic-dark transition-colors hover:bg-civic-cardFill disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="hover:bg-civic-cardFill flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-civic-border bg-civic-surface text-civic-dark transition-colors disabled:cursor-not-allowed disabled:opacity-40"
           >
             <ChevronRight className="h-3.5 w-3.5" />
           </button>
@@ -73,7 +73,7 @@ export default function RequestPagination({
             aria-label="Halaman terakhir"
             onClick={() => onPageChange(totalPages)}
             disabled={page >= totalPages}
-            className="hidden sm:flex h-7 w-7 items-center justify-center rounded-lg border border-civic-border bg-civic-surface text-civic-dark transition-colors hover:bg-civic-cardFill disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="hover:bg-civic-cardFill hidden h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-civic-border bg-civic-surface text-civic-dark transition-colors disabled:cursor-not-allowed disabled:opacity-40 sm:flex"
           >
             <ChevronsRight className="h-3.5 w-3.5" />
           </button>

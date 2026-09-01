@@ -86,12 +86,19 @@ export function uploadApprovalLetter(id: string, blob: Blob): Promise<unknown> {
   return api(`/admin/requests/${id}/approval-letter`, { method: 'POST', body: form });
 }
 
-export function rescheduleRequest(id: string, payload: { tanggal_kunjungan: string; jam_kunjungan: string }): Promise<{ message: string }> {
-  return api(`/admin/requests/${id}/reschedule`, { method: 'PATCH', body: JSON.stringify(payload) });
+export function rescheduleRequest(
+  id: string,
+  payload: { tanggal_kunjungan: string; jam_kunjungan: string },
+): Promise<{ message: string }> {
+  return api(`/admin/requests/${id}/reschedule`, {
+    method: 'PATCH',
+    body: JSON.stringify(payload),
+  });
 }
 
 export function uploadRescheduleLetter(id: string, blob: Blob): Promise<unknown> {
-  const form = new FormData(); form.append('file', blob, 'surat_reschedule.pdf');
+  const form = new FormData();
+  form.append('file', blob, 'surat_reschedule.pdf');
   return api(`/admin/requests/${id}/reschedule-letter`, { method: 'POST', body: form });
 }
 

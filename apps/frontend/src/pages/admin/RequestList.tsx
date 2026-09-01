@@ -34,7 +34,9 @@ export default function RequestList() {
 
   // Fetch Stats for accurate counts on filter pills
   useEffect(() => {
-    getStats().then(setStats).catch(() => {});
+    getStats()
+      .then(setStats)
+      .catch(() => {});
   }, []);
 
   const load = useCallback(() => {
@@ -104,22 +106,22 @@ export default function RequestList() {
   };
 
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="animate-fade-in space-y-5">
       {/* Table Container Card */}
-      <div className="bg-civic-surface p-5 sm:p-6 rounded-3xl border border-civic-border soft-shadow space-y-4">
+      <div className="soft-shadow space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-5 sm:p-6">
         {/* Card Header & Title */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-civic-border pb-4">
+        <div className="flex flex-col justify-between gap-3 border-b border-civic-border pb-4 sm:flex-row sm:items-center">
           <div>
-            <h3 className="font-extrabold text-base sm:text-lg text-civic-dark">
+            <h3 className="text-base font-extrabold text-civic-dark sm:text-lg">
               Manajemen Permohonan
             </h3>
-            <p className="text-xs text-civic-muted font-medium mt-0.5">
+            <p className="mt-0.5 text-xs font-medium text-civic-muted">
               Daftar permohonan masuk yang terdaftar di Si Ketuk Pintu
             </p>
           </div>
 
           <div className="text-xs font-bold text-civic-muted">
-            Total Data: <span className="text-civic-dark font-extrabold">{totalCount}</span>
+            Total Data: <span className="font-extrabold text-civic-dark">{totalCount}</span>
           </div>
         </div>
 

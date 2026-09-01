@@ -41,7 +41,9 @@ function EmptyMedia({ className = '', variant = 'default', children }: EmptyMedi
 
 function EmptyTitle({ className = '', children }: EmptyProps) {
   return (
-    <div className={`text-base font-bold tracking-tight text-civic-dark ${className}`}>{children}</div>
+    <div className={`text-base font-bold tracking-tight text-civic-dark ${className}`}>
+      {children}
+    </div>
   );
 }
 
@@ -51,7 +53,9 @@ function EmptyDescription({ className = '', children }: EmptyProps) {
 
 function EmptyContent({ className = '', children }: EmptyProps) {
   return (
-    <div className={`flex w-full max-w-sm flex-col items-center gap-4 ${className}`}>{children}</div>
+    <div className={`flex w-full max-w-sm flex-col items-center gap-4 ${className}`}>
+      {children}
+    </div>
   );
 }
 

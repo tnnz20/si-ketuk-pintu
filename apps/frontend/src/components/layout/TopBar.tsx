@@ -13,12 +13,11 @@ export default function TopBar() {
             alt="Logo Si Ketuk Pintu"
             className="xs:h-24 xs:w-24 h-36 w-36 rounded-full object-contain"
           />
-     
         </Link>
         <button
           type="button"
           aria-label="Buka navigasi"
-          className="md:hidden cursor-pointer"
+          className="cursor-pointer md:hidden"
           onClick={() => setOpen(!open)}
         >
           {open ? <X /> : <Menu />}

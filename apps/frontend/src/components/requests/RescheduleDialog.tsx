@@ -61,10 +61,12 @@ export default function RescheduleDialog({ open, loading, onSubmit, onCancel }: 
             onChange={(e) => update('nomor', e.target.value)}
             disabled={loading}
             placeholder="Misal: 005/124/DISP-SETDA/2026"
-            className="mt-1.5 w-full rounded-2xl border border-civic-border bg-civic-cardFill px-3.5 py-2.5 text-xs text-civic-dark focus:outline-none focus:border-civic-dark transition-all"
+            className="bg-civic-cardFill mt-1.5 w-full rounded-2xl border border-civic-border px-3.5 py-2.5 text-xs text-civic-dark transition-all focus:border-civic-dark focus:outline-none"
           />
           {errors.nomor && (
-            <span className="mt-1 block text-label-sm text-rose-600 font-semibold">{errors.nomor}</span>
+            <span className="mt-1 block text-label-sm font-semibold text-rose-600">
+              {errors.nomor}
+            </span>
           )}
         </label>
 
@@ -75,10 +77,10 @@ export default function RescheduleDialog({ open, loading, onSubmit, onCancel }: 
             value={form.tanggal_kunjungan}
             onChange={(e) => update('tanggal_kunjungan', e.target.value)}
             disabled={loading}
-            className="mt-1.5 w-full rounded-2xl border border-civic-border bg-civic-cardFill px-3.5 py-2.5 text-xs text-civic-dark focus:outline-none focus:border-civic-dark transition-all"
+            className="bg-civic-cardFill mt-1.5 w-full rounded-2xl border border-civic-border px-3.5 py-2.5 text-xs text-civic-dark transition-all focus:border-civic-dark focus:outline-none"
           />
           {errors.tanggal_kunjungan && (
-            <span className="mt-1 block text-label-sm text-rose-600 font-semibold">
+            <span className="mt-1 block text-label-sm font-semibold text-rose-600">
               {errors.tanggal_kunjungan}
             </span>
           )}
@@ -93,7 +95,7 @@ export default function RescheduleDialog({ open, loading, onSubmit, onCancel }: 
             />
           </div>
           {errors.jam_kunjungan && (
-            <span className="mt-1 block text-label-sm text-rose-600 font-semibold">
+            <span className="mt-1 block text-label-sm font-semibold text-rose-600">
               {errors.jam_kunjungan}
             </span>
           )}
@@ -105,7 +107,7 @@ export default function RescheduleDialog({ open, loading, onSubmit, onCancel }: 
             value={form.sifat}
             onChange={(e) => update('sifat', e.target.value)}
             disabled={loading}
-            className="mt-1.5 w-full rounded-2xl border border-civic-border bg-civic-cardFill px-3.5 py-2.5 text-xs text-civic-dark focus:outline-none focus:border-civic-dark transition-all"
+            className="bg-civic-cardFill mt-1.5 w-full rounded-2xl border border-civic-border px-3.5 py-2.5 text-xs text-civic-dark transition-all focus:border-civic-dark focus:outline-none"
           >
             <option value="">Pilih sifat surat</option>
             <option value="Biasa">Biasa</option>
@@ -113,23 +115,25 @@ export default function RescheduleDialog({ open, loading, onSubmit, onCancel }: 
             <option value="Sangat Penting">Sangat Penting</option>
           </Select>
           {errors.sifat && (
-            <span className="mt-1 block text-label-sm text-rose-600 font-semibold">{errors.sifat}</span>
+            <span className="mt-1 block text-label-sm font-semibold text-rose-600">
+              {errors.sifat}
+            </span>
           )}
         </label>
 
-        <div className="mt-6 flex justify-end gap-2.5 pt-3 border-t border-civic-border">
+        <div className="mt-6 flex justify-end gap-2.5 border-t border-civic-border pt-3">
           <button
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className="rounded-xl border border-civic-border bg-civic-surface px-4 py-2 text-xs font-bold text-civic-dark hover:bg-civic-neutralFill transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+            className="hover:bg-civic-neutralFill cursor-pointer rounded-xl border border-civic-border bg-civic-surface px-4 py-2 text-xs font-bold text-civic-dark transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
             Batal
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="rounded-xl bg-civic-dark hover:bg-civic-darkHover px-4 py-2 text-xs font-extrabold text-white transition-all shadow-sm cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+            className="hover:bg-civic-darkHover cursor-pointer rounded-xl bg-civic-dark px-4 py-2 text-xs font-extrabold text-white shadow-sm transition-all disabled:cursor-not-allowed disabled:opacity-50"
           >
             {loading ? 'Memproses...' : 'Buat Surat'}
           </button>

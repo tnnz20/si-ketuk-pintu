@@ -68,7 +68,7 @@ export default function StatusSection() {
             <motion.h2
               variants={reduce ? undefined : fadeInUp}
               custom={1}
-              className="text-headline-lg-mobile mb-4 font-display leading-tight text-on-surface md:text-headline-lg"
+              className="mb-4 font-display text-headline-lg-mobile leading-tight text-on-surface md:text-headline-lg"
             >
               Pantau Status Kunjungan Anda
             </motion.h2>
@@ -174,7 +174,7 @@ export default function StatusSection() {
                     type="button"
                     onClick={trackVisit}
                     disabled={!token.trim() || isTracking}
-                    className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-emerald-600 px-8 py-4 font-label text-label-md font-semibold text-white transition-all hover:shadow-lg hover:shadow-emerald-600/25 active:scale-[0.98] cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+                    className="group relative flex w-full cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl bg-emerald-600 px-8 py-4 font-label text-label-md font-semibold text-white transition-all hover:shadow-lg hover:shadow-emerald-600/25 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
                   >
                     {isTracking ? (
                       <>
@@ -199,7 +199,7 @@ export default function StatusSection() {
                   <button
                     type="button"
                     onClick={() => setToken('SKP-2026-0812-XY7K')}
-                    className="font-mono text-body-md text-emerald-600 underline decoration-emerald-600/30 underline-offset-2 transition-colors hover:decoration-emerald-600 cursor-pointer"
+                    className="cursor-pointer font-mono text-body-md text-emerald-600 underline decoration-emerald-600/30 underline-offset-2 transition-colors hover:decoration-emerald-600"
                   >
                     SKP-2026-0812-XY7K
                   </button>

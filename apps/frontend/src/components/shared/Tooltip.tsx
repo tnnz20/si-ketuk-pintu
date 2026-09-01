@@ -42,7 +42,7 @@ export function Tooltip({ children, className }: TooltipProps) {
         createPortal(
           <div
             style={{ top: rect.top, left: rect.left }}
-            className="pointer-events-none fixed z-50 mb-2 -translate-x-1/2 -translate-y-full animate-in fade-in zoom-in-95 duration-150"
+            className="animate-in fade-in zoom-in-95 pointer-events-none fixed z-50 mb-2 -translate-x-1/2 -translate-y-full duration-150"
           >
             {content}
           </div>,
@@ -66,7 +66,7 @@ export function TooltipContent({ children, className, ...props }: HTMLAttributes
       {...props}
       role="tooltip"
       data-tooltip-content="true"
-      className={`whitespace-nowrap rounded-md bg-primary px-3 py-1.5 text-label-sm text-on-primary shadow-lg ${className ?? ''}`}
+      className={`rounded-md bg-primary px-3 py-1.5 text-label-sm whitespace-nowrap text-on-primary shadow-lg ${className ?? ''}`}
     >
       {children}
     </span>

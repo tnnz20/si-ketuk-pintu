@@ -37,21 +37,21 @@ function SummaryCard({
   return (
     <div
       onClick={onClick}
-      className="bg-civic-surface p-4 rounded-3xl border border-civic-border soft-shadow space-y-3 cursor-pointer card-hover"
+      className="soft-shadow card-hover cursor-pointer space-y-3 rounded-3xl border border-civic-border bg-civic-surface p-4"
     >
       <div className="flex items-center justify-between">
         <div
-          className={`w-9 h-9 rounded-xl ${iconClassName} flex items-center justify-center font-bold`}
+          className={`h-9 w-9 rounded-xl ${iconClassName} flex items-center justify-center font-bold`}
         >
           {icon}
         </div>
         {badge}
       </div>
       <div>
-        <h4 className="font-extrabold text-xs text-civic-dark truncate">{title}</h4>
-        <p className="text-label-sm text-civic-muted mt-0.5 truncate">{subtitle}</p>
+        <h4 className="truncate text-xs font-extrabold text-civic-dark">{title}</h4>
+        <p className="mt-0.5 truncate text-label-sm text-civic-muted">{subtitle}</p>
       </div>
-      <div className="pt-2 border-t border-civic-border flex items-center justify-between text-label-sm">
+      <div className="flex items-center justify-between border-t border-civic-border pt-2 text-label-sm">
         {footerLeft}
         {footerRight}
       </div>
@@ -72,21 +72,21 @@ export default function SummaryCards({ stats, requests, loading }: SummaryCardsP
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3.5">
-        <h3 className="font-extrabold text-base text-civic-dark">Ringkasan Permohonan</h3>
+      <div className="mb-3.5 flex items-center justify-between">
+        <h3 className="text-base font-extrabold text-civic-dark">Ringkasan Permohonan</h3>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {/* Card 1: Pending */}
         <SummaryCard
           onClick={() => navigate('/dashboard/requests?status=pending')}
           iconClassName="bg-civic-pendingBg text-civic-pendingText"
-          icon={<Clock className="w-4 h-4" />}
+          icon={<Clock className="h-4 w-4" />}
           badge={
             loading ? (
               <Skeleton className="h-5 w-20 rounded-full" />
             ) : (
-              <span className="text-xs font-extrabold text-civic-pendingText bg-civic-pendingBg px-2.5 py-0.5 rounded-full border border-civic-border/70">
+              <span className="text-civic-pendingText bg-civic-pendingBg rounded-full border border-civic-border/70 px-2.5 py-0.5 text-xs font-extrabold">
                 {stats?.pending_approval ?? pendingRequests.length} Pending
               </span>
             )
@@ -98,7 +98,7 @@ export default function SummaryCards({ stats, requests, loading }: SummaryCardsP
               : 'Tidak ada permohonan pending'
           }
           footerLeft={
-            <span className="text-civic-muted font-medium truncate max-w-35">
+            <span className="max-w-35 truncate font-medium text-civic-muted">
               {latestPending ? latestPending.token : 'Si Ketuk Pintu'}
             </span>
           }
@@ -109,12 +109,12 @@ export default function SummaryCards({ stats, requests, loading }: SummaryCardsP
         <SummaryCard
           onClick={() => navigate('/dashboard/requests?status=approved')}
           iconClassName="bg-civic-approvedBg text-civic-approvedText"
-          icon={<CheckCircle2 className="w-4 h-4" />}
+          icon={<CheckCircle2 className="h-4 w-4" />}
           badge={
             loading ? (
               <Skeleton className="h-5 w-20 rounded-full" />
             ) : (
-              <span className="text-xs font-extrabold text-civic-approvedText bg-civic-approvedBg px-2.5 py-0.5 rounded-full border border-emerald-200/80">
+              <span className="text-civic-approvedText bg-civic-approvedBg rounded-full border border-emerald-200/80 px-2.5 py-0.5 text-xs font-extrabold">
                 {approvedRequests.length} Disetujui
               </span>
             )
@@ -126,7 +126,7 @@ export default function SummaryCards({ stats, requests, loading }: SummaryCardsP
               : 'Belum ada kunjungan disetujui'
           }
           footerLeft={
-            <span className="text-civic-muted font-medium truncate max-w-35">
+            <span className="max-w-35 truncate font-medium text-civic-muted">
               {latestApproved ? latestApproved.token : 'Si Ketuk Pintu'}
             </span>
           }
@@ -137,12 +137,12 @@ export default function SummaryCards({ stats, requests, loading }: SummaryCardsP
         <SummaryCard
           onClick={() => navigate('/dashboard/requests')}
           iconClassName="bg-civic-neutral-fill text-civic-dark"
-          icon={<Users className="w-4 h-4" />}
+          icon={<Users className="h-4 w-4" />}
           badge={
             loading ? (
               <Skeleton className="h-5 w-20 rounded-full" />
             ) : (
-              <span className="text-xs font-extrabold text-civic-dark bg-civic-neutral-fill px-2.5 py-0.5 rounded-full border border-civic-border/70">
+              <span className="rounded-full border border-civic-border/70 bg-civic-neutral-fill px-2.5 py-0.5 text-xs font-extrabold text-civic-dark">
                 {stats?.total_requests ?? requests.length} Total
               </span>
             )
@@ -154,7 +154,7 @@ export default function SummaryCards({ stats, requests, loading }: SummaryCardsP
               : 'Semua berkas termonitor'
           }
           footerLeft={
-            <span className="text-civic-muted font-medium">
+            <span className="font-medium text-civic-muted">
               Hari Ini: {stats?.today_requests ?? 0}
             </span>
           }

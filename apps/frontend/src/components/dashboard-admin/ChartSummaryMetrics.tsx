@@ -15,32 +15,34 @@ export default function ChartSummaryMetrics({
   activeSubLabel,
 }: ChartSummaryMetricsProps) {
   return (
-    <div className="pt-3 border-t border-civic-border grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-      <div className="flex items-center gap-2 p-2.5 rounded-2xl bg-civic-cardFill border border-civic-border">
-        <TrendingUp className="w-4 h-4 text-civic-dark shrink-0" />
+    <div className="grid grid-cols-1 gap-3 border-t border-civic-border pt-3 text-xs sm:grid-cols-3">
+      <div className="bg-civic-cardFill flex items-center gap-2 rounded-2xl border border-civic-border p-2.5">
+        <TrendingUp className="h-4 w-4 shrink-0 text-civic-dark" />
         <div className="min-w-0">
-          <span className="text-2xs text-civic-muted block font-medium">Puncak Tertinggi</span>
-          <span className="font-extrabold text-civic-dark text-xs truncate block">
+          <span className="block text-2xs font-medium text-civic-muted">Puncak Tertinggi</span>
+          <span className="block truncate text-xs font-extrabold text-civic-dark">
             {peakItem.count.toLocaleString('id-ID')} Dokumen ({peakItem.label})
           </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 p-2.5 rounded-2xl bg-civic-cardFill border border-civic-border">
-        <BarChart3 className="w-4 h-4 text-civic-dark shrink-0" />
+      <div className="bg-civic-cardFill flex items-center gap-2 rounded-2xl border border-civic-border p-2.5">
+        <BarChart3 className="h-4 w-4 shrink-0 text-civic-dark" />
         <div className="min-w-0">
-          <span className="text-2xs text-civic-muted block font-medium">Rata-rata Volume</span>
-          <span className="font-extrabold text-civic-dark text-xs truncate block">
+          <span className="block text-2xs font-medium text-civic-muted">Rata-rata Volume</span>
+          <span className="block truncate text-xs font-extrabold text-civic-dark">
             {Number(averageCount).toLocaleString('id-ID')} / {periodUnit}
           </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 p-2.5 rounded-2xl bg-civic-cardFill border border-civic-border">
-        <CalendarIcon className="w-4 h-4 text-civic-dark shrink-0" />
+      <div className="bg-civic-cardFill flex items-center gap-2 rounded-2xl border border-civic-border p-2.5">
+        <CalendarIcon className="h-4 w-4 shrink-0 text-civic-dark" />
         <div className="min-w-0">
-          <span className="text-2xs text-civic-muted block font-medium">Hari / Periode Terpilih</span>
-          <span className="font-extrabold text-civic-dark text-xs truncate block">
+          <span className="block text-2xs font-medium text-civic-muted">
+            Hari / Periode Terpilih
+          </span>
+          <span className="block truncate text-xs font-extrabold text-civic-dark">
             {activeSubLabel}
           </span>
         </div>

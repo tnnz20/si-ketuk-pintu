@@ -43,6 +43,34 @@ func (r *VisitRequestRepository) FindAttachment(ctx context.Context, visitReques
 	return &attachment, nil
 }
 
+func (r *VisitRequestRepository) FindAttachmentByID(ctx context.Context, visitRequestID uuid.UUID, attachmentID int64) (*entity.Attachment, error) {
+	var attachment entity.Attachment
+	err := r.database.WithContext(ctx).
+		Where("visit_request_id = ? AND id = ?", visitRequestID, attachmentID).
+		First(&attachment).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("find attachment by id: %w", err)
+	}
+	return &attachment, nil
+}
+
+func (r *VisitRequestRepository) ListAttachments(ctx context.Context, visitRequestID uuid.UUID, attachmentType string) ([]entity.Attachment, error) {
+	attachments := []entity.Attachment{}
+	err := r.database.WithContext(ctx).
+		Where("visit_request_id = ? AND attachment_type = ?", visitRequestID, attachmentType).
+		Order("id ASC").
+		Find(&attachments).Error
+	if err != nil {
+		r.logger.WithError(err).Error("failed to list attachments")
+		return nil, fmt.Errorf("list attachments: %w", err)
+	}
+
+	return attachments, nil
+}
+
 func (r *VisitRequestRepository) DeleteAttachment(ctx context.Context, attachment *entity.Attachment) error {
 	if err := r.database.WithContext(ctx).Delete(&entity.Attachment{}, attachment.ID).Error; err != nil {
 		return fmt.Errorf("delete attachment: %w", err)

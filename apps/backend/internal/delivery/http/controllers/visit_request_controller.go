@@ -235,6 +235,16 @@ func (c *VisitRequestController) DownloadQR(ginContext *gin.Context) {
 	ginContext.Data(http.StatusOK, "image/png", png)
 }
 
+func toAttachmentResponse(a entity.Attachment) model.AttachmentResponse {
+	return model.AttachmentResponse{
+		ID:             a.ID,
+		AttachmentType: a.AttachmentType,
+		OriginalName:   a.OriginalName,
+		ContentType:    a.ContentType,
+		SizeBytes:      a.SizeBytes,
+	}
+}
+
 func toVisitRequestResponse(vr *entity.VisitRequest) model.VisitRequestResponse {
 	guests := make([]model.GuestResponse, 0, len(vr.Guests))
 	for _, g := range vr.Guests {
@@ -247,12 +257,7 @@ func toVisitRequestResponse(vr *entity.VisitRequest) model.VisitRequestResponse 
 
 	attachments := make([]model.AttachmentResponse, 0, len(vr.Attachments))
 	for _, a := range vr.Attachments {
-		attachments = append(attachments, model.AttachmentResponse{
-			AttachmentType: a.AttachmentType,
-			OriginalName:   a.OriginalName,
-			ContentType:    a.ContentType,
-			SizeBytes:      a.SizeBytes,
-		})
+		attachments = append(attachments, toAttachmentResponse(a))
 	}
 
 	jamKunjungan := vr.JamKunjungan

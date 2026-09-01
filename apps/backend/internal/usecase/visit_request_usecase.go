@@ -29,17 +29,31 @@ const (
 	maxPDFSize      = 5 << 20 // 5 MB
 )
 
+const (
+	// maxImagesTotalSize caps the aggregate size of all `images` attachments per request.
+	maxImagesTotalSize = 10 << 20 // 10 MB
+	documentationDir   = "dokumentasi"
+	daftarAbsenDir     = "daftar-absen"
+)
+
 var ErrInvalidPDF = errors.New("file must be a valid PDF")
 var ErrApprovalLetterNotAllowed = errors.New("approval letter requires approved request")
 var ErrApprovalLetterExists = errors.New("approval letter already exists")
 var ErrApprovalLetterNotFound = errors.New("approval letter not found")
 var ErrRescheduleLetterNotAllowed = errors.New("reschedule letter requires pending request")
 var ErrRescheduleLetterNotFound = errors.New("reschedule letter not found")
+var ErrArchiveRequestNotApproved = errors.New("archive actions require an approved request")
+var ErrDocumentationNotFound = errors.New("documentation image not found")
+var ErrDaftarAbsenExists = errors.New("attendance list already exists")
+var ErrDaftarAbsenNotFound = errors.New("attendance list not found")
+var ErrInvalidImageFile = errors.New("files must be valid PNG or JPG images")
 
 type VisitRequestStore interface {
 	Create(ctx context.Context, visitRequest *entity.VisitRequest) error
 	CreateAttachment(ctx context.Context, attachment *entity.Attachment) error
 	FindAttachment(ctx context.Context, visitRequestID uuid.UUID, attachmentType string) (*entity.Attachment, error)
+	FindAttachmentByID(ctx context.Context, visitRequestID uuid.UUID, attachmentID int64) (*entity.Attachment, error)
+	ListAttachments(ctx context.Context, visitRequestID uuid.UUID, attachmentType string) ([]entity.Attachment, error)
 	DeleteAttachment(ctx context.Context, attachment *entity.Attachment) error
 	FindByToken(ctx context.Context, token string) (*entity.VisitRequest, error)
 	FindByID(ctx context.Context, id uuid.UUID) (*entity.VisitRequest, error)
@@ -297,6 +311,138 @@ func (u *VisitRequestUsecase) DeleteApprovalLetter(ctx context.Context, requestI
 	return u.store.DeleteAttachment(ctx, attachment)
 }
 
+func (u *VisitRequestUsecase) SaveDocumentationImages(ctx context.Context, requestID uuid.UUID, files []FileInput) ([]entity.Attachment, error) {
+	request, err := u.store.FindByID(ctx, requestID)
+	if err != nil {
+		return nil, err
+	}
+	if request.Status != "approved" {
+		return nil, ErrArchiveRequestNotApproved
+	}
+
+	existing, err := u.store.ListAttachments(ctx, requestID, "images")
+	if err != nil {
+		return nil, err
+	}
+
+	var existingTotal int64
+	for _, attachment := range existing {
+		existingTotal += attachment.SizeBytes
+	}
+
+	var incomingTotal int64
+	for _, file := range files {
+		if file.Size > maxPDFSize {
+			return nil, fmt.Errorf("%s: file exceeds 5 MB limit", file.Filename)
+		}
+		incomingTotal += file.Size
+	}
+	if existingTotal+incomingTotal > maxImagesTotalSize {
+		return nil, fmt.Errorf("total documentation size exceeds 10 MB limit (existing: %d bytes)", existingTotal)
+	}
+
+	created := make([]entity.Attachment, 0, len(files))
+	for _, file := range files {
+		attachment, err := u.saveImage(documentationDir, file)
+		if err != nil {
+			u.cleanupDocumentation(ctx, created)
+			return nil, err
+		}
+		attachment.AttachmentType = "images"
+		attachment.VisitRequestID = requestID
+		if err := u.store.CreateAttachment(ctx, attachment); err != nil {
+			u.cleanupDocumentation(ctx, created)
+			return nil, err
+		}
+		created = append(created, *attachment)
+	}
+
+	return created, nil
+}
+
+func (u *VisitRequestUsecase) cleanupDocumentation(ctx context.Context, created []entity.Attachment) {
+	for i := range created {
+		attachment := &created[i]
+		if u.store.DeleteAttachment(ctx, attachment) == nil {
+			_ = os.Remove(filepath.Join(u.uploadDir, filepath.FromSlash(attachment.StorageKey)))
+		}
+	}
+}
+
+func (u *VisitRequestUsecase) DeleteDocumentationImage(ctx context.Context, requestID uuid.UUID, attachmentID int64) error {
+	attachment, err := u.store.FindAttachmentByID(ctx, requestID, attachmentID)
+	if err != nil {
+		return err
+	}
+	if attachment == nil || attachment.AttachmentType != "images" {
+		return ErrDocumentationNotFound
+	}
+	if err := os.Remove(filepath.Join(u.uploadDir, filepath.FromSlash(attachment.StorageKey))); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("delete documentation image file: %w", err)
+	}
+	return u.store.DeleteAttachment(ctx, attachment)
+}
+
+func (u *VisitRequestUsecase) SaveDaftarAbsen(ctx context.Context, requestID uuid.UUID, file FileInput) (*entity.Attachment, error) {
+	request, err := u.store.FindByID(ctx, requestID)
+	if err != nil {
+		return nil, err
+	}
+	if request.Status != "approved" {
+		return nil, ErrArchiveRequestNotApproved
+	}
+	if existing, err := u.store.FindAttachment(ctx, requestID, "daftar_absen"); err != nil {
+		return nil, err
+	} else if existing != nil {
+		return nil, ErrDaftarAbsenExists
+	}
+
+	attachment, err := u.savePDF(requestID, "daftar_absen", file)
+	if err != nil {
+		return nil, err
+	}
+	attachment.VisitRequestID = requestID
+	if err := u.store.CreateAttachment(ctx, attachment); err != nil {
+		_ = os.Remove(filepath.Join(u.uploadDir, filepath.FromSlash(attachment.StorageKey)))
+		return nil, err
+	}
+	return attachment, nil
+}
+
+func (u *VisitRequestUsecase) DeleteDaftarAbsen(ctx context.Context, requestID uuid.UUID) error {
+	attachment, err := u.store.FindAttachment(ctx, requestID, "daftar_absen")
+	if err != nil {
+		return err
+	}
+	if attachment == nil {
+		return ErrDaftarAbsenNotFound
+	}
+	if err := os.Remove(filepath.Join(u.uploadDir, filepath.FromSlash(attachment.StorageKey))); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("delete attendance list file: %w", err)
+	}
+	return u.store.DeleteAttachment(ctx, attachment)
+}
+
+func (u *VisitRequestUsecase) GetArchiveAttachment(ctx context.Context, requestID uuid.UUID, attachmentID int64, expectedType string) (*entity.Attachment, error) {
+	request, err := u.store.FindByID(ctx, requestID)
+	if err != nil {
+		return nil, err
+	}
+	if request.Status != "approved" {
+		return nil, ErrArchiveRequestNotApproved
+	}
+
+	attachment, err := u.store.FindAttachmentByID(ctx, requestID, attachmentID)
+	if err != nil {
+		return nil, err
+	}
+	if attachment == nil || attachment.AttachmentType != expectedType {
+		return nil, ErrDocumentationNotFound
+	}
+
+	return attachment, nil
+}
+
 func (u *VisitRequestUsecase) Reschedule(ctx context.Context, input RescheduleInput) error {
 	request, err := u.store.FindByID(ctx, input.VisitRequestID)
 	if err != nil {
@@ -419,6 +565,8 @@ func (u *VisitRequestUsecase) savePDF(
 		directory = "surat-persetujuan"
 	case "surat_reschedule":
 		directory = "surat-reschedule"
+	case "daftar_absen":
+		directory = daftarAbsenDir
 	default:
 		err := fmt.Errorf("unsupported attachment type: %s", attachmentType)
 		u.logger.WithError(err).Error("unsupported attachment type in savePDF")
@@ -485,5 +633,53 @@ func (u *VisitRequestUsecase) savePDF(
 		ContentType:    "application/pdf",
 		SizeBytes:      int64(len(content)),
 		ChecksumSHA256: checksumHex,
+	}, nil
+}
+
+func (u *VisitRequestUsecase) saveImage(directory string, file FileInput) (*entity.Attachment, error) {
+	ext := strings.ToLower(filepath.Ext(file.Filename))
+	if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
+		return nil, fmt.Errorf("%s: %w (unsupported extension)", file.Filename, ErrInvalidImageFile)
+	}
+
+	content, err := io.ReadAll(io.LimitReader(file.Reader, maxPDFSize+1))
+	if err != nil {
+		return nil, fmt.Errorf("read %s: %w", file.Filename, err)
+	}
+	if int64(len(content)) > maxPDFSize {
+		return nil, fmt.Errorf("%s: file exceeds 5 MB limit", file.Filename)
+	}
+
+	detectedType := http.DetectContentType(content)
+	if detectedType != "image/png" && detectedType != "image/jpeg" {
+		return nil, fmt.Errorf("%s: %w (detected: %s)", file.Filename, ErrInvalidImageFile, detectedType)
+	}
+
+	checksum := sha256.Sum256(content)
+
+	storageDir := filepath.Join(u.uploadDir, directory)
+	if err := os.MkdirAll(storageDir, 0o750); err != nil {
+		return nil, fmt.Errorf("create attachment directory %s: %w", storageDir, err)
+	}
+	if info, err := os.Stat(storageDir); err != nil || !info.IsDir() {
+		return nil, fmt.Errorf("invalid attachment directory %s", storageDir)
+	}
+
+	filename := uuid.NewString() + ".png"
+	if detectedType == "image/jpeg" {
+		filename = uuid.NewString() + ".jpg"
+	}
+	fullPath := filepath.Join(storageDir, filename)
+	storageKey := filepath.ToSlash(filepath.Join(directory, filename))
+	if err := os.WriteFile(fullPath, content, 0o640); err != nil {
+		return nil, fmt.Errorf("write %s: %w", file.Filename, err)
+	}
+
+	return &entity.Attachment{
+		OriginalName:   filepath.Base(file.Filename),
+		StorageKey:     storageKey,
+		ContentType:    detectedType,
+		SizeBytes:      int64(len(content)),
+		ChecksumSHA256: hex.EncodeToString(checksum[:]),
 	}, nil
 }

@@ -39,12 +39,20 @@ func NewAdminRequestController(
 }
 
 func (c *AdminRequestController) List(ginContext *gin.Context) {
+	c.listRequests(ginContext, ginContext.Query("status"))
+}
+
+func (c *AdminRequestController) ListArchives(ginContext *gin.Context) {
+	c.listRequests(ginContext, "approved")
+}
+
+func (c *AdminRequestController) listRequests(ginContext *gin.Context, status string) {
 	page, _ := strconv.Atoi(ginContext.DefaultQuery("page", "1"))
 	size, _ := strconv.Atoi(ginContext.DefaultQuery("page_size", "20"))
 
 	filter := model.ListFilter{
 		Search: ginContext.Query("search"),
-		Status: ginContext.Query("status"),
+		Status: status,
 		Date:   ginContext.Query("date"),
 		Page:   page,
 		Size:   size,
@@ -410,4 +418,175 @@ func (c *AdminRequestController) DownloadAttachment(ginContext *gin.Context) {
 
 	c.logger.WithField("attachmentType", attachmentType).Warn("attachment not found in database record")
 	ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "attachment not found"})
+}
+
+func respondArchiveError(ginContext *gin.Context, err error) {
+	switch {
+	case errors.Is(err, repository.ErrVisitRequestNotFound):
+		ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})
+	case errors.Is(err, repository.ErrAttachmentNotFound),
+		errors.Is(err, usecase.ErrDocumentationNotFound),
+		errors.Is(err, usecase.ErrDaftarAbsenNotFound):
+		ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "attachment not found"})
+	case errors.Is(err, usecase.ErrApprovalLetterExists), errors.Is(err, usecase.ErrDaftarAbsenExists):
+		ginContext.JSON(http.StatusConflict, model.ErrorResponse{Error: err.Error()})
+	case errors.Is(err, usecase.ErrArchiveRequestNotApproved):
+		ginContext.JSON(http.StatusConflict, model.ErrorResponse{Error: err.Error()})
+	case errors.Is(err, usecase.ErrInvalidPDF), errors.Is(err, usecase.ErrInvalidImageFile):
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
+	case strings.Contains(err.Error(), "exceeds"), strings.Contains(err.Error(), "unsupported extension"):
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
+	default:
+		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
+	}
+}
+
+func (c *AdminRequestController) UploadDocumentations(ginContext *gin.Context) {
+	id, err := uuid.Parse(ginContext.Param("id"))
+	if err != nil {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
+		return
+	}
+
+	form, err := ginContext.MultipartForm()
+	if err != nil {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "multipart form is invalid"})
+		return
+	}
+
+	fileHeaders := form.File["files"]
+	if len(fileHeaders) == 0 {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "files field is required"})
+		return
+	}
+
+	inputs := make([]usecase.FileInput, 0, len(fileHeaders))
+	for _, header := range fileHeaders {
+		file, err := header.Open()
+		if err != nil {
+			ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "failed to read uploaded file"})
+			return
+		}
+		defer file.Close()
+		inputs = append(inputs, usecase.FileInput{Reader: file, Filename: header.Filename, Size: header.Size})
+	}
+
+	attachments, err := c.visitRequestUsecase.SaveDocumentationImages(ginContext.Request.Context(), id, inputs)
+	if err != nil {
+		respondArchiveError(ginContext, err)
+		return
+	}
+
+	response := make([]model.AttachmentResponse, 0, len(attachments))
+	for _, attachment := range attachments {
+		response = append(response, toAttachmentResponse(attachment))
+	}
+	ginContext.JSON(http.StatusCreated, gin.H{"attachments": response})
+}
+
+func (c *AdminRequestController) DeleteDocumentation(ginContext *gin.Context) {
+	id, err := uuid.Parse(ginContext.Param("id"))
+	if err != nil {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
+		return
+	}
+	attachmentID, err := strconv.ParseInt(ginContext.Param("attachment_id"), 10, 64)
+	if err != nil {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid attachment id"})
+		return
+	}
+
+	if err := c.visitRequestUsecase.DeleteDocumentationImage(ginContext.Request.Context(), id, attachmentID); err != nil {
+		respondArchiveError(ginContext, err)
+		return
+	}
+	ginContext.JSON(http.StatusOK, gin.H{"message": "documentation image deleted"})
+}
+
+func (c *AdminRequestController) UploadDaftarAbsen(ginContext *gin.Context) {
+	id, err := uuid.Parse(ginContext.Param("id"))
+	if err != nil {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
+		return
+	}
+	file, header, err := ginContext.Request.FormFile("file")
+	if err != nil {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "file is required"})
+		return
+	}
+	defer file.Close()
+
+	attachment, err := c.visitRequestUsecase.SaveDaftarAbsen(ginContext.Request.Context(), id, usecase.FileInput{
+		Reader: file, Filename: header.Filename, Size: header.Size,
+	})
+	if err != nil {
+		respondArchiveError(ginContext, err)
+		return
+	}
+	ginContext.JSON(http.StatusCreated, gin.H{"attachment": toAttachmentResponse(*attachment)})
+}
+
+func (c *AdminRequestController) DeleteDaftarAbsen(ginContext *gin.Context) {
+	id, err := uuid.Parse(ginContext.Param("id"))
+	if err != nil {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
+		return
+	}
+
+	if err := c.visitRequestUsecase.DeleteDaftarAbsen(ginContext.Request.Context(), id); err != nil {
+		respondArchiveError(ginContext, err)
+		return
+	}
+	ginContext.JSON(http.StatusOK, gin.H{"message": "attendance list deleted"})
+}
+
+func (c *AdminRequestController) DownloadArchiveAttachment(ginContext *gin.Context) {
+	id, err := uuid.Parse(ginContext.Param("id"))
+	if err != nil {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
+		return
+	}
+	attachmentID, err := strconv.ParseInt(ginContext.Param("attachment_id"), 10, 64)
+	if err != nil {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid attachment id"})
+		return
+	}
+
+	attachmentType := ginContext.Param("attachment_type")
+	if attachmentType != "images" && attachmentType != "daftar_absen" {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "attachment type must be images or daftar_absen"})
+		return
+	}
+
+	attachment, err := c.visitRequestUsecase.GetArchiveAttachment(ginContext.Request.Context(), id, attachmentID, attachmentType)
+	if err != nil {
+		respondArchiveError(ginContext, err)
+		return
+	}
+
+	filePath := filepath.Join(c.uploadDir, filepath.FromSlash(attachment.StorageKey))
+	file, err := os.Open(filePath)
+	if err != nil {
+		c.logger.WithError(err).Warn("archive attachment file not found on disk")
+		ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "file not found"})
+		return
+	}
+	defer file.Close()
+
+	info, err := file.Stat()
+	if err != nil || !info.Mode().IsRegular() {
+		ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "file not found"})
+		return
+	}
+
+	safeName := strings.Map(func(r rune) rune {
+		if r == '"' || r < 0x20 || r == 0x7F {
+			return '_'
+		}
+		return r
+	}, filepath.Base(attachment.OriginalName))
+
+	ginContext.Header("Content-Disposition", `attachment; filename="`+safeName+`"`)
+	ginContext.Header("Content-Type", attachment.ContentType)
+	http.ServeContent(ginContext.Writer, ginContext.Request, "", info.ModTime(), file)
 }

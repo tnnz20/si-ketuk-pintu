@@ -526,6 +526,194 @@ Content-Type: application/pdf
 
 ---
 
+### 13. List Archives
+Retrieve a paginated list of **approved** visit requests only (admin only). The status filter is forced to `approved` server-side and cannot be overridden by the client.
+
+**Endpoint:** `GET /admin/archives`
+
+**Authentication:** Required (Bearer token)
+
+**Query Parameters:**
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | integer | 1 | Page number (1-indexed) |
+| `page_size` | integer | 20 | Items per page |
+| `search` | string | - | Search by institution name or leader name |
+| `date` | string | - | Filter by date (YYYY-MM-DD) |
+
+The response shape is identical to `GET /admin/requests`, with every row's `status` equal to `"approved"`.
+
+---
+
+### 14. Upload Documentation Images
+Upload one or more documentation images for an approved request (admin only).
+
+**Endpoint:** `POST /admin/archives/:id/documentations`
+
+**Authentication:** Required (Bearer token)
+
+**Content-Type:** `multipart/form-data`
+
+**Request Fields:**
+| Field | Type | Required | Format | Notes |
+|-------|------|----------|--------|-------|
+| `files` | file[] | ✓ | PNG/JPG/JPEG only, repeatable field | Each file max 5MB; total of all `images` attachments per request max 10MB |
+
+Stored with `attachment_type = "images"`; multiple rows per request are allowed.
+
+**Response (Success):**
+```json
+{
+  "attachments": [
+    {
+      "id": 12,
+      "attachment_type": "images",
+      "original_name": "dokumentasi-1.png",
+      "content_type": "image/png",
+      "size_bytes": 204800
+    }
+  ]
+}
+```
+
+**Status Code:** `201 Created`
+
+**Error Responses:**
+| Status | Error |
+|--------|-------|
+| `400 Bad Request` | Missing/invalid files, unsupported extension, invalid image content, file over 5MB, total over 10MB |
+| `401 Unauthorized` | Missing or invalid token |
+| `404 Not Found` | Request not found |
+| `409 Conflict` | Request is not approved |
+| `500 Internal Server Error` | Server error |
+
+---
+
+### 15. Delete Documentation Image
+Delete one documentation image by attachment ID (admin only).
+
+**Endpoint:** `DELETE /admin/archives/:id/documentations/:attachment_id`
+
+**Authentication:** Required (Bearer token)
+
+**Response (Success):**
+```json
+{
+  "message": "documentation image deleted"
+}
+```
+
+**Status Code:** `200 OK`
+
+**Error Responses:**
+| Status | Error |
+|--------|-------|
+| `400 Bad Request` | Invalid UUID/attachment ID |
+| `401 Unauthorized` | Missing or invalid token |
+| `404 Not Found` | Attachment not found for this request |
+| `500 Internal Server Error` | Server error |
+
+---
+
+### 16. Upload Attendance List (Daftar Absen)
+Upload the single attendance-list PDF for an approved request (admin only).
+
+**Endpoint:** `POST /admin/archives/:id/daftar-absen`
+
+**Authentication:** Required (Bearer token)
+
+**Content-Type:** `multipart/form-data`
+
+**Request Fields:**
+| Field | Type | Required | Format | Notes |
+|-------|------|----------|--------|-------|
+| `file` | file | ✓ | PDF only, max 5MB | One file per request (`attachment_type = "daftar_absen"`) |
+
+**Response (Success):**
+```json
+{
+  "attachment": {
+    "id": 13,
+    "attachment_type": "daftar_absen",
+    "original_name": "daftar_absen.pdf",
+    "content_type": "application/pdf",
+    "size_bytes": 51200
+  }
+}
+```
+
+**Status Code:** `201 Created`
+
+**Error Responses:**
+| Status | Error |
+|--------|-------|
+| `400 Bad Request` | Missing file, invalid PDF, file over 5MB |
+| `401 Unauthorized` | Missing or invalid token |
+| `404 Not Found` | Request not found |
+| `409 Conflict` | Request not approved, or attendance list already exists |
+| `500 Internal Server Error` | Server error |
+
+---
+
+### 17. Delete Attendance List
+Delete the attendance-list PDF of a request (admin only).
+
+**Endpoint:** `DELETE /admin/archives/:id/daftar-absen`
+
+**Authentication:** Required (Bearer token)
+
+**Response (Success):**
+```json
+{
+  "message": "attendance list deleted"
+}
+```
+
+**Status Code:** `200 OK`
+
+**Error Responses:**
+| Status | Error |
+|--------|-------|
+| `400 Bad Request` | Invalid UUID |
+| `401 Unauthorized` | Missing or invalid token |
+| `404 Not Found` | Attendance list not found |
+| `500 Internal Server Error` | Server error |
+
+---
+
+### 18. Download Archive Attachment
+Download an archive attachment (documentation image or attendance list) by attachment ID (admin only).
+
+**Endpoint:** `GET /admin/archives/:id/attachments/:attachment_type/:attachment_id`
+
+**Authentication:** Required (Bearer token)
+
+**Path Parameters:**
+- `id` (string): UUID of the visit request
+- `attachment_type` (string): `images` or `daftar_absen`
+- `attachment_id` (integer): Numeric attachment ID owned by this request
+
+**Response:** File binary (`image/png`, `image/jpeg`, or `application/pdf` from stored metadata)
+
+**Headers:**
+```
+Content-Disposition: attachment; filename="{original_filename}"
+Content-Type: {stored_content_type}
+```
+
+**Status Code:** `200 OK`
+
+**Error Responses:**
+| Status | Error |
+|--------|-------|
+| `400 Bad Request` | Invalid UUID/attachment ID/type |
+| `401 Unauthorized` | Missing or invalid token |
+| `404 Not Found` | Request or attachment not found, or type mismatch |
+| `409 Conflict` | Request is not approved |
+| `500 Internal Server Error` | Server error |
+
+---
+
 ## Error Response Format
 
 All error responses follow this format:
