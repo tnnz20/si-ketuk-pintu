@@ -15,7 +15,7 @@ jobs:
 
       - name: Build image with Buildah (Podman)
         id: build-image
-        uses: redhat-actions/buildah-build@v2
+        uses: redhat-actions/buildah-build@v3
         with:
           image: backend
           tags: latest ${{ github.sha }}
@@ -46,17 +46,17 @@ jobs:
           script: |
             set -e
             cd ${{ secrets.DEPLOY_PATH }}
-            IMG=ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
+            IMG=ghcr.io/${{ github.repository }}/backend:latest
 
             # 1. Pull the new Image
-            BACKEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu pull backend
+            BACKEND_IMAGE=$IMG podman compose -p si-ketuk-pintu pull backend
 
             # 2. Stop and remove ONLY the backend service using compose
-            BACKEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu stop backend
-            BACKEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu rm -f backend
+            BACKEND_IMAGE=$IMG podman compose -p si-ketuk-pintu stop backend
+            BACKEND_IMAGE=$IMG podman compose -p si-ketuk-pintu rm -f backend
 
             # 3. Start the updated backend container isolated from postgres
-            BACKEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu up -d --no-deps backend
+            BACKEND_IMAGE=$IMG podman compose -p si-ketuk-pintu up -d --no-deps backend
 
             # 4. Clean up old images
             podman image prune -f
