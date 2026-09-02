@@ -52,14 +52,14 @@ jobs:
             IMG=ghcr.io/${{ github.repository }}/frontend:latest
 
             # Pull the new Image
-            FRONTEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu pull frontend
+            FRONTEND_IMAGE=$IMG podman compose -p si-ketuk-pintu pull frontend
 
             # Forcefully stop and remove the old container
-            FRONTEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu stop frontend
-            FRONTEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu rm -f frontend
+            FRONTEND_IMAGE=$IMG podman compose -p si-ketuk-pintu stop frontend
+            FRONTEND_IMAGE=$IMG podman compose -p si-ketuk-pintu rm -f frontend
 
             # Start the new container (--no-deps ensures it NEVER touches postgres)
-            FRONTEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu up -d --no-deps frontend
+            FRONTEND_IMAGE=$IMG podman compose -p si-ketuk-pintu up -d --no-deps frontend
 
             # Clean up dangling images
             podman image prune -f
