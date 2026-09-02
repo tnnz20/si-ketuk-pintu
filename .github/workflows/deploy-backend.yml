@@ -47,8 +47,16 @@ jobs:
             set -e
             cd ${{ secrets.DEPLOY_PATH }}
             IMG=ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
+
+            # Pull the new Image
             BACKEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu pull backend
-            podman-compose -p si-ketuk-pintu stop backend
-            podman-compose -p si-ketuk-pintu rm -f backend
+
+            # Forcefully stop and remove the old container
+            podman ps -aq --filter label=io.podman.compose.project=si-ketuk-pintu --filter label=io.podman.compose.service=backend | xargs -r podman stop
+            podman ps -aq --filter label=io.podman.compose.project=si-ketuk-pintu --filter label=io.podman.compose.service=backend | xargs -r podman rm -f
+
+            # Start the new container (--no-deps ensures it NEVER touches postgres)
             BACKEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu up --no-deps -d --no-build backend
+
+            # Clean up dangling images
             podman image prune -f
