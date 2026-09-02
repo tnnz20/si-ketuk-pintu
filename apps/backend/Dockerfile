@@ -9,7 +9,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /out/web ./cmd/web
 
 FROM alpine:3.21
 
-RUN adduser -D -u 10001 appuser
+RUN apk add --no-cache tzdata \
+    && adduser -D -u 10001 appuser
 
 WORKDIR /app
 COPY --from=builder /out/web /app/web
