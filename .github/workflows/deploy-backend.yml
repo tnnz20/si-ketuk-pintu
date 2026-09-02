@@ -44,5 +44,5 @@ jobs:
             cd ${{ secrets.DEPLOY_PATH }}
             IMG=ghcr.io/${{ github.repository }}/backend:latest
             BACKEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu pull backend
-            BACKEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu up -d --no-deps backend
+            BACKEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu up --no-deps -d backend
             podman image prune -f
