@@ -45,6 +45,6 @@ jobs:
             set -e
             cd ${{ secrets.DEPLOY_PATH }}
             IMG=ghcr.io/${{ github.repository }}/frontend:latest
-            FRONTEND_IMAGE=$IMG docker compose pull frontend
-            FRONTEND_IMAGE=$IMG docker compose up -d frontend
-            docker image prune -f
+            FRONTEND_IMAGE=$IMG podman-compose pull frontend
+            FRONTEND_IMAGE=$IMG podman-compose up -d --no-deps frontend
+            podman image prune -f
