@@ -15,7 +15,7 @@ jobs:
 
       - name: Build image with Buildah (Podman)
         id: build-image
-        uses: redhat-actions/buildah-build@v2
+        uses: redhat-actions/buildah-build@v3
         with:
           image: frontend
           tags: latest ${{ github.sha }}
@@ -49,17 +49,17 @@ jobs:
             set -e
             cd ${{ secrets.DEPLOY_PATH }}
 
-            IMG=ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
+            IMG=ghcr.io/${{ github.repository }}/frontend:latest
 
             # Pull the new Image
             FRONTEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu pull frontend
 
             # Forcefully stop and remove the old container
-            podman ps -aq --filter label=io.podman.compose.project=si-ketuk-pintu --filter label=io.podman.compose.service=frontend | xargs -r podman stop
-            podman ps -aq --filter label=io.podman.compose.project=si-ketuk-pintu --filter label=io.podman.compose.service=frontend | xargs -r podman rm -f
+            FRONTEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu stop frontend
+            FRONTEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu rm -f frontend
 
             # Start the new container (--no-deps ensures it NEVER touches postgres)
-            FRONTEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu up --no-deps -d --no-build frontend
+            FRONTEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu up -d --no-deps frontend
 
             # Clean up dangling images
             podman image prune -f
