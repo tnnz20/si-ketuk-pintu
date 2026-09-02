@@ -39,7 +39,7 @@ func TestCreateVisitRequestSuccess(t *testing.T) {
 
 	writer.Close()
 
-	request := httptest.NewRequest(http.MethodPost, "/public/requests", &body)
+	request := httptest.NewRequest(http.MethodPost, "/api/public/requests", &body)
 	request.Header.Set("Content-Type", writer.FormDataContentType())
 
 	recorder := httptest.NewRecorder()
@@ -59,7 +59,7 @@ func TestCreateVisitRequestSuccess(t *testing.T) {
 	}
 
 	// Verify we can retrieve it
-	verifyRequest := httptest.NewRequest(http.MethodGet, "/public/requests/"+response.Token, nil)
+	verifyRequest := httptest.NewRequest(http.MethodGet, "/api/public/requests/"+response.Token, nil)
 	verifyRecorder := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(verifyRecorder, verifyRequest)
 
@@ -82,12 +82,12 @@ func TestCreateVisitRequestValidationFailed(t *testing.T) {
 
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)
-	
+
 	// Missing required fields will trigger validation failure
 	_ = writer.WriteField("email", "test@example.com")
 	writer.Close()
 
-	request := httptest.NewRequest(http.MethodPost, "/public/requests", &body)
+	request := httptest.NewRequest(http.MethodPost, "/api/public/requests", &body)
 	request.Header.Set("Content-Type", writer.FormDataContentType())
 
 	recorder := httptest.NewRecorder()
@@ -101,7 +101,7 @@ func TestCreateVisitRequestValidationFailed(t *testing.T) {
 func TestGetVisitRequestNotFound(t *testing.T) {
 	clearDatabase(t)
 
-	request := httptest.NewRequest(http.MethodGet, "/public/requests/NOT-FOUND-TOKEN", nil)
+	request := httptest.NewRequest(http.MethodGet, "/api/public/requests/NOT-FOUND-TOKEN", nil)
 	recorder := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(recorder, request)
 
@@ -113,7 +113,7 @@ func TestGetVisitRequestNotFound(t *testing.T) {
 func TestDownloadQRNotFound(t *testing.T) {
 	clearDatabase(t)
 
-	request := httptest.NewRequest(http.MethodGet, "/public/requests/NOT-FOUND-TOKEN/qr", nil)
+	request := httptest.NewRequest(http.MethodGet, "/api/public/requests/NOT-FOUND-TOKEN/qr", nil)
 	recorder := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(recorder, request)
 
@@ -145,7 +145,7 @@ func TestDownloadQRSuccess(t *testing.T) {
 	_, _ = suratTugas.Write([]byte("%PDF-1.4 dummy pdf content"))
 	writer.Close()
 
-	createReq := httptest.NewRequest(http.MethodPost, "/public/requests", &body)
+	createReq := httptest.NewRequest(http.MethodPost, "/api/public/requests", &body)
 	createReq.Header.Set("Content-Type", writer.FormDataContentType())
 	createRec := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(createRec, createReq)
@@ -154,7 +154,7 @@ func TestDownloadQRSuccess(t *testing.T) {
 	_ = json.Unmarshal(createRec.Body.Bytes(), &response)
 
 	// Now download QR
-	qrReq := httptest.NewRequest(http.MethodGet, "/public/requests/"+response.Token+"/qr", nil)
+	qrReq := httptest.NewRequest(http.MethodGet, "/api/public/requests/"+response.Token+"/qr", nil)
 	qrRec := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(qrRec, qrReq)
 

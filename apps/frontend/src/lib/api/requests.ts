@@ -28,7 +28,7 @@ export async function createVisitRequest(
     ['surat_tugas', request.surat_tugas],
   ];
   entries.forEach(([key, value]) => form.append(key, value));
-  return api('/public/requests', { method: 'POST', body: form });
+  return api('/api/public/requests', { method: 'POST', body: form });
 }
 
 export async function getRequests(
@@ -40,11 +40,11 @@ export async function getRequests(
   if (filters?.search) params.append('search', filters.search);
   if (filters?.status) params.append('status', filters.status);
   if (filters?.date) params.append('date', filters.date);
-  return api(`/admin/requests?${params}`);
+  return api(`/api/admin/requests?${params}`);
 }
 
 export function getStats(): Promise<StatsResponse> {
-  return api('/admin/stats');
+  return api('/api/admin/stats');
 }
 
 export function getRequestsGraph(params: {
@@ -54,43 +54,43 @@ export function getRequestsGraph(params: {
 }): Promise<GraphResponse> {
   const query = new URLSearchParams({ period: params.period, year: String(params.year) });
   if (params.month !== undefined) query.append('month', String(params.month));
-  return api(`/admin/requests/graph?${query}`);
+  return api(`/api/admin/requests/graph?${query}`);
 }
 
 export function deleteRequest(id: string): Promise<{ message: string }> {
-  return api(`/admin/requests/${id}`, { method: 'DELETE' });
+  return api(`/api/admin/requests/${id}`, { method: 'DELETE' });
 }
 
 export function getRequestById(id: string): Promise<RequestDetailResponse> {
-  return api(`/admin/requests/${id}`);
+  return api(`/api/admin/requests/${id}`);
 }
 
 export function getRequestByToken(token: string): Promise<VisitRequest> {
-  return api(`/public/requests/${token}`);
+  return api(`/api/public/requests/${token}`);
 }
 
 export function updateStatus(
   id: string,
   status: 'pending' | 'approved' | 'rejected',
 ): Promise<{ message: string }> {
-  return api(`/admin/requests/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+  return api(`/api/admin/requests/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
 }
 
 export function downloadQR(token: string): Promise<Blob> {
-  return api(`/public/requests/${token}/qr`);
+  return api(`/api/public/requests/${token}/qr`);
 }
 
 export function uploadApprovalLetter(id: string, blob: Blob): Promise<unknown> {
   const form = new FormData();
   form.append('file', blob, 'surat_persetujuan.pdf');
-  return api(`/admin/requests/${id}/approval-letter`, { method: 'POST', body: form });
+  return api(`/api/admin/requests/${id}/approval-letter`, { method: 'POST', body: form });
 }
 
 export function rescheduleRequest(
   id: string,
   payload: { tanggal_kunjungan: string; jam_kunjungan: string },
 ): Promise<{ message: string }> {
-  return api(`/admin/requests/${id}/reschedule`, {
+  return api(`/api/admin/requests/${id}/reschedule`, {
     method: 'PATCH',
     body: JSON.stringify(payload),
   });
@@ -99,27 +99,27 @@ export function rescheduleRequest(
 export function uploadRescheduleLetter(id: string, blob: Blob): Promise<unknown> {
   const form = new FormData();
   form.append('file', blob, 'surat_reschedule.pdf');
-  return api(`/admin/requests/${id}/reschedule-letter`, { method: 'POST', body: form });
+  return api(`/api/admin/requests/${id}/reschedule-letter`, { method: 'POST', body: form });
 }
 
 export function deleteRescheduleLetter(id: string): Promise<{ message: string }> {
-  return api(`/admin/requests/${id}/reschedule-letter`, { method: 'DELETE' });
+  return api(`/api/admin/requests/${id}/reschedule-letter`, { method: 'DELETE' });
 }
 
 export function deleteApprovalLetter(id: string): Promise<{ message: string }> {
-  return api(`/admin/requests/${id}/approval-letter`, { method: 'DELETE' });
+  return api(`/api/admin/requests/${id}/approval-letter`, { method: 'DELETE' });
 }
 
 export function downloadAttachment(
   id: string,
   type: 'surat_kunjungan' | 'surat_tugas' | 'surat_persetujuan' | 'surat_reschedule',
 ): Promise<Blob> {
-  return api(`/admin/requests/${id}/attachments/${type}`);
+  return api(`/api/admin/requests/${id}/attachments/${type}`);
 }
 
 export function downloadAttachmentByToken(
   token: string,
   type: 'surat_kunjungan' | 'surat_tugas',
 ): Promise<Blob> {
-  return api(`/public/requests/${token}/attachments/${type}`);
+  return api(`/api/public/requests/${token}/attachments/${type}`);
 }

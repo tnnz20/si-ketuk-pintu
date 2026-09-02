@@ -24,7 +24,7 @@ func TestLivenessReturnsOK(t *testing.T) {
 	controller := NewHealthController(usecase.NewHealthUsecase(healthRepositoryStub{}))
 	recorder := httptest.NewRecorder()
 	context, _ := gin.CreateTestContext(recorder)
-	context.Request = httptest.NewRequest(http.MethodGet, "/healthz", nil)
+	context.Request = httptest.NewRequest(http.MethodGet, "/api/healthz", nil)
 
 	controller.Liveness(context)
 
@@ -40,7 +40,7 @@ func TestReadinessReturnsServiceUnavailableWhenDatabaseFails(t *testing.T) {
 	}))
 	recorder := httptest.NewRecorder()
 	context, _ := gin.CreateTestContext(recorder)
-	context.Request = httptest.NewRequest(http.MethodGet, "/readyz", nil)
+	context.Request = httptest.NewRequest(http.MethodGet, "/api/readyz", nil)
 
 	controller.Readiness(context)
 

@@ -36,7 +36,7 @@ func createVisitRequest(t *testing.T) string {
 	_, _ = suratTugas.Write([]byte("%PDF-1.4 dummy pdf content"))
 	writer.Close()
 
-	createReq := httptest.NewRequest(http.MethodPost, "/public/requests", &body)
+	createReq := httptest.NewRequest(http.MethodPost, "/api/public/requests", &body)
 	createReq.Header.Set("Content-Type", writer.FormDataContentType())
 	createRec := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(createRec, createReq)
@@ -48,7 +48,7 @@ func createVisitRequest(t *testing.T) string {
 	var createResp model.CreateVisitRequestResponse
 	_ = json.Unmarshal(createRec.Body.Bytes(), &createResp)
 
-	verifyReq := httptest.NewRequest(http.MethodGet, "/public/requests/"+createResp.Token, nil)
+	verifyReq := httptest.NewRequest(http.MethodGet, "/api/public/requests/"+createResp.Token, nil)
 	verifyRec := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(verifyRec, verifyReq)
 
@@ -62,7 +62,7 @@ func approveRequest(t *testing.T, adminToken, requestID string) {
 	t.Helper()
 
 	updateBody, _ := json.Marshal(model.UpdateStatusRequest{Status: "approved"})
-	patchReq := httptest.NewRequest(http.MethodPatch, "/admin/requests/"+requestID+"/status", bytes.NewReader(updateBody))
+	patchReq := httptest.NewRequest(http.MethodPatch, "/api/admin/requests/"+requestID+"/status", bytes.NewReader(updateBody))
 	patchReq.Header.Set("Content-Type", "application/json")
 	patchReq.Header.Set("Authorization", "Bearer "+adminToken)
 	patchRec := httptest.NewRecorder()
@@ -83,7 +83,7 @@ func TestAdminArchivesListOnlyApproved(t *testing.T) {
 	rejectedID := createVisitRequest(t)
 
 	updateBody, _ := json.Marshal(model.UpdateStatusRequest{Status: "rejected"})
-	rejectReq := httptest.NewRequest(http.MethodPatch, "/admin/requests/"+rejectedID+"/status", bytes.NewReader(updateBody))
+	rejectReq := httptest.NewRequest(http.MethodPatch, "/api/admin/requests/"+rejectedID+"/status", bytes.NewReader(updateBody))
 	rejectReq.Header.Set("Content-Type", "application/json")
 	rejectReq.Header.Set("Authorization", "Bearer "+adminToken)
 	rejectRec := httptest.NewRecorder()
@@ -93,7 +93,7 @@ func TestAdminArchivesListOnlyApproved(t *testing.T) {
 	}
 	_ = pendingID
 
-	listReq := httptest.NewRequest(http.MethodGet, "/admin/archives", nil)
+	listReq := httptest.NewRequest(http.MethodGet, "/api/admin/archives", nil)
 	listReq.Header.Set("Authorization", "Bearer "+adminToken)
 	listRec := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(listRec, listReq)
@@ -127,7 +127,7 @@ func TestAdminArchiveDocumentationsUploadDeleteDownload(t *testing.T) {
 	_, _ = part.Write(pngTestBytes)
 	unauthWriter.Close()
 
-	unauthReq := httptest.NewRequest(http.MethodPost, "/admin/archives/"+requestID+"/documentations", unauthBody)
+	unauthReq := httptest.NewRequest(http.MethodPost, "/api/admin/archives/"+requestID+"/documentations", unauthBody)
 	unauthReq.Header.Set("Content-Type", unauthWriter.FormDataContentType())
 	unauthReq.Header.Set("Authorization", "Bearer "+adminToken)
 	unauthRec := httptest.NewRecorder()
@@ -148,7 +148,7 @@ func TestAdminArchiveDocumentationsUploadDeleteDownload(t *testing.T) {
 	}
 	uploadWriter.Close()
 
-	uploadReq := httptest.NewRequest(http.MethodPost, "/admin/archives/"+requestID+"/documentations", uploadBody)
+	uploadReq := httptest.NewRequest(http.MethodPost, "/api/admin/archives/"+requestID+"/documentations", uploadBody)
 	uploadReq.Header.Set("Content-Type", uploadWriter.FormDataContentType())
 	uploadReq.Header.Set("Authorization", "Bearer "+adminToken)
 	uploadRec := httptest.NewRecorder()
@@ -174,7 +174,7 @@ func TestAdminArchiveDocumentationsUploadDeleteDownload(t *testing.T) {
 	}
 
 	// Multiple images rows per request are allowed
-	detailReq := httptest.NewRequest(http.MethodGet, "/admin/requests/"+requestID, nil)
+	detailReq := httptest.NewRequest(http.MethodGet, "/api/admin/requests/"+requestID, nil)
 	detailReq.Header.Set("Authorization", "Bearer "+adminToken)
 	detailRec := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(detailRec, detailReq)
@@ -200,7 +200,7 @@ func TestAdminArchiveDocumentationsUploadDeleteDownload(t *testing.T) {
 	_, _ = badPart.Write([]byte("%PDF-1.4 fake"))
 	badWriter.Close()
 
-	badReq := httptest.NewRequest(http.MethodPost, "/admin/archives/"+requestID+"/documentations", badBody)
+	badReq := httptest.NewRequest(http.MethodPost, "/api/admin/archives/"+requestID+"/documentations", badBody)
 	badReq.Header.Set("Content-Type", badWriter.FormDataContentType())
 	badReq.Header.Set("Authorization", "Bearer "+adminToken)
 	badRec := httptest.NewRecorder()
@@ -212,7 +212,7 @@ func TestAdminArchiveDocumentationsUploadDeleteDownload(t *testing.T) {
 
 	// Download first image
 	first := uploadResp.Attachments[0]
-	downloadPath := "/admin/archives/" + requestID + "/attachments/images/" + strconv.FormatInt(first.ID, 10)
+	downloadPath := "/api/admin/archives/" + requestID + "/attachments/images/" + strconv.FormatInt(first.ID, 10)
 	downloadReq := httptest.NewRequest(http.MethodGet, downloadPath, nil)
 	downloadReq.Header.Set("Authorization", "Bearer "+adminToken)
 	downloadRec := httptest.NewRecorder()
@@ -229,7 +229,7 @@ func TestAdminArchiveDocumentationsUploadDeleteDownload(t *testing.T) {
 	}
 
 	// Delete one documentation image
-	deleteReq := httptest.NewRequest(http.MethodDelete, "/admin/archives/"+requestID+"/documentations/"+strconv.FormatInt(first.ID, 10), nil)
+	deleteReq := httptest.NewRequest(http.MethodDelete, "/api/admin/archives/"+requestID+"/documentations/"+strconv.FormatInt(first.ID, 10), nil)
 	deleteReq.Header.Set("Authorization", "Bearer "+adminToken)
 	deleteRec := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(deleteRec, deleteReq)
@@ -239,7 +239,7 @@ func TestAdminArchiveDocumentationsUploadDeleteDownload(t *testing.T) {
 	}
 
 	// Deleting it again is 404
-	deleteAgain := httptest.NewRequest(http.MethodDelete, "/admin/archives/"+requestID+"/documentations/"+strconv.FormatInt(first.ID, 10), nil)
+	deleteAgain := httptest.NewRequest(http.MethodDelete, "/api/admin/archives/"+requestID+"/documentations/"+strconv.FormatInt(first.ID, 10), nil)
 	deleteAgain.Header.Set("Authorization", "Bearer "+adminToken)
 	deleteAgainRec := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(deleteAgainRec, deleteAgain)
@@ -272,7 +272,7 @@ func TestAdminArchiveDaftarAbsenRules(t *testing.T) {
 		_, _ = part.Write(content)
 		writer.Close()
 
-		req := httptest.NewRequest(http.MethodPost, "/admin/archives/"+requestID+"/daftar-absen", body)
+		req := httptest.NewRequest(http.MethodPost, "/api/admin/archives/"+requestID+"/daftar-absen", body)
 		req.Header.Set("Content-Type", writer.FormDataContentType())
 		req.Header.Set("Authorization", "Bearer "+adminToken)
 		rec := httptest.NewRecorder()
@@ -307,7 +307,7 @@ func TestAdminArchiveDaftarAbsenRules(t *testing.T) {
 
 	downloadReq := httptest.NewRequest(
 		http.MethodGet,
-		"/admin/archives/"+requestID+"/attachments/daftar_absen/"+strconv.FormatInt(uploadResp.Attachment.ID, 10),
+		"/api/admin/archives/"+requestID+"/attachments/daftar_absen/"+strconv.FormatInt(uploadResp.Attachment.ID, 10),
 		nil,
 	)
 	downloadReq.Header.Set("Authorization", "Bearer "+adminToken)
@@ -321,7 +321,7 @@ func TestAdminArchiveDaftarAbsenRules(t *testing.T) {
 		t.Fatalf("content type = %q, want application/pdf", got)
 	}
 
-	deleteReq := httptest.NewRequest(http.MethodDelete, "/admin/archives/"+requestID+"/daftar-absen", nil)
+	deleteReq := httptest.NewRequest(http.MethodDelete, "/api/admin/archives/"+requestID+"/daftar-absen", nil)
 	deleteReq.Header.Set("Authorization", "Bearer "+adminToken)
 	deleteRec := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(deleteRec, deleteReq)
@@ -330,7 +330,7 @@ func TestAdminArchiveDaftarAbsenRules(t *testing.T) {
 		t.Fatalf("delete daftar absen: got %d %s", deleteRec.Code, deleteRec.Body.String())
 	}
 
-	deleteAgain := httptest.NewRequest(http.MethodDelete, "/admin/archives/"+requestID+"/daftar-absen", nil)
+	deleteAgain := httptest.NewRequest(http.MethodDelete, "/api/admin/archives/"+requestID+"/daftar-absen", nil)
 	deleteAgain.Header.Set("Authorization", "Bearer "+adminToken)
 	deleteAgainRec := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(deleteAgainRec, deleteAgain)
@@ -343,7 +343,7 @@ func TestAdminArchiveDaftarAbsenRules(t *testing.T) {
 func TestAdminArchiveUnauthorizedAccess(t *testing.T) {
 	clearDatabase(t)
 
-	request := httptest.NewRequest(http.MethodGet, "/admin/archives", nil)
+	request := httptest.NewRequest(http.MethodGet, "/api/admin/archives", nil)
 	recorder := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(recorder, request)
 
@@ -351,4 +351,3 @@ func TestAdminArchiveUnauthorizedAccess(t *testing.T) {
 		t.Fatalf("expected 401 Unauthorized, got %d", recorder.Code)
 	}
 }
-

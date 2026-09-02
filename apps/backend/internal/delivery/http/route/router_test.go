@@ -34,23 +34,23 @@ func TestRouterRegistersAllRoutes(t *testing.T) {
 	routes := router.Routes()
 
 	expectedRoutes := map[string]bool{
-		"GET /healthz":                                 false,
-		"GET /readyz":                                  false,
-		"POST /public/requests":                        false,
-		"GET /public/requests/:token":                  false,
-		"GET /public/requests/:token/qr":               false,
-		"POST /admin/auth/login":                       false,
-		"GET /admin/requests":                          false,
-		"GET /admin/requests/graph":                    false,
-		"GET /admin/requests/:id":                      false,
-		"PATCH /admin/requests/:id/status":             false,
-		"GET /admin/requests/:id/attachments/:type": false,
-		"GET /admin/archives":                                       false,
-		"POST /admin/archives/:id/documentations":                   false,
-		"DELETE /admin/archives/:id/documentations/:attachment_id":  false,
-		"POST /admin/archives/:id/daftar-absen":                     false,
-		"DELETE /admin/archives/:id/daftar-absen":                   false,
-		"GET /admin/archives/:id/attachments/:attachment_type/:attachment_id": false,
+		"GET /api/healthz":                                                        false,
+		"GET /api/readyz":                                                         false,
+		"POST /api/public/requests":                                               false,
+		"GET /api/public/requests/:token":                                         false,
+		"GET /api/public/requests/:token/qr":                                      false,
+		"POST /api/admin/auth/login":                                              false,
+		"GET /api/admin/requests":                                                 false,
+		"GET /api/admin/requests/graph":                                           false,
+		"GET /api/admin/requests/:id":                                             false,
+		"PATCH /api/admin/requests/:id/status":                                    false,
+		"GET /api/admin/requests/:id/attachments/:type":                           false,
+		"GET /api/admin/archives":                                                 false,
+		"POST /api/admin/archives/:id/documentations":                             false,
+		"DELETE /api/admin/archives/:id/documentations/:attachment_id":            false,
+		"POST /api/admin/archives/:id/daftar-absen":                               false,
+		"DELETE /api/admin/archives/:id/daftar-absen":                             false,
+		"GET /api/admin/archives/:id/attachments/:attachment_type/:attachment_id": false,
 	}
 
 	for _, route := range routes {
@@ -89,12 +89,12 @@ func TestRouterGraphRouteRequiresAuth(t *testing.T) {
 	for _, test := range []struct {
 		method, path string
 	}{
-		{http.MethodGet, "/admin/archives"},
-		{http.MethodPost, "/admin/archives/" + archiveID + "/documentations"},
-		{http.MethodDelete, "/admin/archives/" + archiveID + "/documentations/1"},
-		{http.MethodPost, "/admin/archives/" + archiveID + "/daftar-absen"},
-		{http.MethodDelete, "/admin/archives/" + archiveID + "/daftar-absen"},
-		{http.MethodGet, "/admin/archives/" + archiveID + "/attachments/images/1"},
+		{http.MethodGet, "/api/admin/archives"},
+		{http.MethodPost, "/api/admin/archives/" + archiveID + "/documentations"},
+		{http.MethodDelete, "/api/admin/archives/" + archiveID + "/documentations/1"},
+		{http.MethodPost, "/api/admin/archives/" + archiveID + "/daftar-absen"},
+		{http.MethodDelete, "/api/admin/archives/" + archiveID + "/daftar-absen"},
+		{http.MethodGet, "/api/admin/archives/" + archiveID + "/attachments/images/1"},
 	} {
 		req, _ := http.NewRequest(test.method, test.path, nil)
 		recorder := httptest.NewRecorder()
@@ -104,7 +104,7 @@ func TestRouterGraphRouteRequiresAuth(t *testing.T) {
 		}
 	}
 
-	for _, path := range []string{"/admin/requests/graph", "/admin/requests/00000000-0000-0000-0000-000000000001"} {
+	for _, path := range []string{"/api/admin/requests/graph", "/api/admin/requests/00000000-0000-0000-0000-000000000001"} {
 		req, _ := http.NewRequest(http.MethodGet, path, nil)
 		recorder := httptest.NewRecorder()
 		router.ServeHTTP(recorder, req)
@@ -133,10 +133,10 @@ func TestRouterContainsRequiredMiddleware(t *testing.T) {
 
 	router := NewRouter(deps)
 
-	req, _ := http.NewRequest(http.MethodOptions, "/healthz", nil)
+	req, _ := http.NewRequest(http.MethodOptions, "/api/healthz", nil)
 	req.Header.Set("Origin", "http://localhost:3000")
 	req.Header.Set("Access-Control-Request-Method", "GET")
-	
+
 	recorder := httptest.NewRecorder()
 	router.ServeHTTP(recorder, req)
 

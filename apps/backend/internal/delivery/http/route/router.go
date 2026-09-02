@@ -35,10 +35,11 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 		AllowCredentials: true,
 	}))
 
-	router.GET("/healthz", deps.HealthController.Liveness)
-	router.GET("/readyz", deps.HealthController.Readiness)
+	api := router.Group("/api")
+	api.GET("/healthz", deps.HealthController.Liveness)
+	api.GET("/readyz", deps.HealthController.Readiness)
 
-	public := router.Group("/public")
+	public := api.Group("/public")
 	{
 		requests := public.Group("/requests")
 		requests.POST("", deps.VisitRequestController.Create)
@@ -47,7 +48,7 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 		requests.GET("/:token/qr", deps.RateLimiter.Middleware(), deps.VisitRequestController.DownloadQR)
 	}
 
-	admin := router.Group("/admin")
+	admin := api.Group("/admin")
 	{
 		auth := admin.Group("/auth")
 		auth.POST("/login", deps.AdminAuthController.Login)

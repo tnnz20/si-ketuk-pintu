@@ -37,9 +37,9 @@ func getAdminToken(t *testing.T) string {
 		Identifier: "admin_test",
 		Password:   "password123",
 	})
-	request := httptest.NewRequest(http.MethodPost, "/admin/auth/login", bytes.NewReader(requestBody))
+	request := httptest.NewRequest(http.MethodPost, "/api/admin/auth/login", bytes.NewReader(requestBody))
 	request.Header.Set("Content-Type", "application/json")
-	
+
 	recorder := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(recorder, request)
 
@@ -60,7 +60,7 @@ func TestAdminLoginSuccess(t *testing.T) {
 		Identifier: "admin_test",
 		Password:   "password123",
 	})
-	request := httptest.NewRequest(http.MethodPost, "/admin/auth/login", bytes.NewReader(requestBody))
+	request := httptest.NewRequest(http.MethodPost, "/api/admin/auth/login", bytes.NewReader(requestBody))
 	request.Header.Set("Content-Type", "application/json")
 
 	recorder := httptest.NewRecorder()
@@ -79,7 +79,7 @@ func TestAdminLoginFailed(t *testing.T) {
 		Identifier: "admin_test",
 		Password:   "wrongpassword",
 	})
-	request := httptest.NewRequest(http.MethodPost, "/admin/auth/login", bytes.NewReader(requestBody))
+	request := httptest.NewRequest(http.MethodPost, "/api/admin/auth/login", bytes.NewReader(requestBody))
 	request.Header.Set("Content-Type", "application/json")
 
 	recorder := httptest.NewRecorder()
@@ -94,7 +94,7 @@ func TestAdminListRequests(t *testing.T) {
 	clearDatabase(t)
 	token := getAdminToken(t)
 
-	request := httptest.NewRequest(http.MethodGet, "/admin/requests", nil)
+	request := httptest.NewRequest(http.MethodGet, "/api/admin/requests", nil)
 	request.Header.Set("Authorization", "Bearer "+token)
 
 	recorder := httptest.NewRecorder()
@@ -138,7 +138,7 @@ func TestAdminGetRequestAndStatusUpdate(t *testing.T) {
 	_, _ = suratTugas.Write([]byte("%PDF-1.4 dummy pdf content"))
 	writer.Close()
 
-	createReq := httptest.NewRequest(http.MethodPost, "/public/requests", &body)
+	createReq := httptest.NewRequest(http.MethodPost, "/api/public/requests", &body)
 	createReq.Header.Set("Content-Type", writer.FormDataContentType())
 	createRec := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(createRec, createReq)
@@ -147,17 +147,17 @@ func TestAdminGetRequestAndStatusUpdate(t *testing.T) {
 	_ = json.Unmarshal(createRec.Body.Bytes(), &publicResp)
 
 	// Find the created request ID using public endpoint
-	verifyReq := httptest.NewRequest(http.MethodGet, "/public/requests/"+publicResp.Token, nil)
+	verifyReq := httptest.NewRequest(http.MethodGet, "/api/public/requests/"+publicResp.Token, nil)
 	verifyRec := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(verifyRec, verifyReq)
-	
+
 	var visitRequest model.VisitRequestResponse
 	_ = json.Unmarshal(verifyRec.Body.Bytes(), &visitRequest)
 
 	vrID := visitRequest.ID
 
 	// Test GET /admin/requests/:id
-	getReq := httptest.NewRequest(http.MethodGet, "/admin/requests/"+vrID, nil)
+	getReq := httptest.NewRequest(http.MethodGet, "/api/admin/requests/"+vrID, nil)
 	getReq.Header.Set("Authorization", "Bearer "+token)
 	getRec := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(getRec, getReq)
@@ -168,7 +168,7 @@ func TestAdminGetRequestAndStatusUpdate(t *testing.T) {
 
 	// Test PATCH /admin/requests/:id/status
 	updateBody, _ := json.Marshal(model.UpdateStatusRequest{Status: "approved"})
-	patchReq := httptest.NewRequest(http.MethodPatch, "/admin/requests/"+vrID+"/status", bytes.NewReader(updateBody))
+	patchReq := httptest.NewRequest(http.MethodPatch, "/api/admin/requests/"+vrID+"/status", bytes.NewReader(updateBody))
 	patchReq.Header.Set("Content-Type", "application/json")
 	patchReq.Header.Set("Authorization", "Bearer "+token)
 	patchRec := httptest.NewRecorder()
@@ -179,14 +179,14 @@ func TestAdminGetRequestAndStatusUpdate(t *testing.T) {
 	}
 
 	// Verify status was updated
-	getReq2 := httptest.NewRequest(http.MethodGet, "/admin/requests/"+vrID, nil)
+	getReq2 := httptest.NewRequest(http.MethodGet, "/api/admin/requests/"+vrID, nil)
 	getReq2.Header.Set("Authorization", "Bearer "+token)
 	getRec2 := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(getRec2, getReq2)
 
 	var adminResp map[string]interface{}
 	_ = json.Unmarshal(getRec2.Body.Bytes(), &adminResp)
-	
+
 	requestObj := adminResp["request"].(map[string]interface{})
 	if requestObj["status"] != "approved" {
 		t.Fatalf("expected status approved, got %v", requestObj["status"])
@@ -196,7 +196,7 @@ func TestAdminGetRequestAndStatusUpdate(t *testing.T) {
 func TestAdminUnauthorizedAccess(t *testing.T) {
 	clearDatabase(t)
 
-	request := httptest.NewRequest(http.MethodGet, "/admin/requests", nil)
+	request := httptest.NewRequest(http.MethodGet, "/api/admin/requests", nil)
 	recorder := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(recorder, request)
 
