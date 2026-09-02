@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build-and-push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -33,7 +33,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Deploy and clean up old images
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy image
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -44,7 +48,9 @@ jobs:
           script: |
             set -e
             cd ${{ secrets.DEPLOY_PATH }}
-            IMG=ghcr.io/${{ github.repository }}/frontend:latest
+            IMG=ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
             FRONTEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu pull frontend
-            FRONTEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu up --no-deps -d --replace frontend
+            podman-compose -p si-ketuk-pintu stop frontend
+            podman-compose -p si-ketuk-pintu rm -f frontend
+            FRONTEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu up --no-deps -d --no-build frontend
             podman image prune -f
