@@ -46,5 +46,5 @@ jobs:
             cd ${{ secrets.DEPLOY_PATH }}
             IMG=ghcr.io/${{ github.repository }}/frontend:latest
             FRONTEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu pull frontend
-            FRONTEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu up --no-deps -d frontend
+            FRONTEND_IMAGE=$IMG podman-compose -p si-ketuk-pintu up --no-deps -d --replace frontend
             podman image prune -f
