@@ -6,18 +6,14 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/joho/godotenv"
 )
-
-const defaultTimeZone = "Asia/Makassar"
 
 type Config struct {
 	Environment     string
 	Host            string
 	Port            int
-	TimeZone        *time.Location
 	DatabaseURL     string
 	TestDatabaseURL string
 	UploadDir       string
@@ -53,12 +49,6 @@ func load(lookup func(string) string) (Config, error) {
 		return Config{}, err
 	}
 
-	timeZoneName := valueOrDefault(lookup("APP_TIME_ZONE"), defaultTimeZone)
-	timeZone, err := time.LoadLocation(timeZoneName)
-	if err != nil {
-		return Config{}, fmt.Errorf("load APP_TIME_ZONE %q: %w", timeZoneName, err)
-	}
-
 	jwtSecret := strings.TrimSpace(lookup("JWT_SECRET"))
 	if jwtSecret == "" {
 		return Config{}, fmt.Errorf("JWT_SECRET is required")
@@ -80,7 +70,6 @@ func load(lookup func(string) string) (Config, error) {
 		Environment:     valueOrDefault(lookup("APP_ENV"), "development"),
 		Host:            valueOrDefault(lookup("APP_HOST"), "0.0.0.0"),
 		Port:            port,
-		TimeZone:        timeZone,
 		DatabaseURL:     databaseURL,
 		TestDatabaseURL: strings.TrimSpace(lookup("TEST_DATABASE_URL")),
 		UploadDir:       valueOrDefault(lookup("UPLOAD_DIR"), "./var/uploads"),

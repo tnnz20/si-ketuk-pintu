@@ -2,28 +2,6 @@ package config
 
 import "testing"
 
-func TestLoadUsesMakassarByDefault(t *testing.T) {
-	t.Parallel()
-
-	applicationConfig, err := load(func(key string) string {
-		switch key {
-		case "DATABASE_URL":
-			return "postgres://skp:password@localhost:5432/si_ketuk_pintu?sslmode=disable"
-		case "JWT_SECRET":
-			return "test-secret"
-		default:
-			return ""
-		}
-	})
-	if err != nil {
-		t.Fatalf("load config: %v", err)
-	}
-
-	if actual := applicationConfig.TimeZone.String(); actual != "Asia/Makassar" {
-		t.Fatalf("time zone = %q, want %q", actual, "Asia/Makassar")
-	}
-}
-
 func TestLoadRejectsMissingDatabaseURL(t *testing.T) {
 	t.Parallel()
 

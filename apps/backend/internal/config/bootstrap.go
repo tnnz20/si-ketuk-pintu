@@ -56,7 +56,6 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 		auditEventRepository,
 		logger,
 		applicationConfig.UploadDir,
-		applicationConfig.TimeZone,
 	)
 	qrUsecase := usecase.NewQRUsecase()
 
@@ -66,7 +65,6 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 		visitRequestUsecase,
 		qrUsecase,
 		logger,
-		applicationConfig.TimeZone,
 		applicationConfig.UploadDir,
 	)
 	adminAuthController := controllers.NewAdminAuthController(authUsecase, logger)

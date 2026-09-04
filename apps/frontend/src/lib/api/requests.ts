@@ -17,8 +17,8 @@ export async function createVisitRequest(
     ['email', request.email],
     ['nama_instansi', request.nama_instansi],
     ['alamat_instansi', request.alamat_instansi],
-    ['tanggal_kunjungan', request.tanggal_kunjungan],
-    ['jam_kunjungan', request.jam_kunjungan],
+    ['tanggal_kunjungan', String(request.tanggal_kunjungan)],
+    ['jam_kunjungan', String(request.jam_kunjungan)],
     ['tema_kunjungan', request.tema_kunjungan],
     ['pimpinan_rombongan', request.pimpinan_rombongan],
     ['jumlah_tamu', String(request.jumlah_tamu)],
@@ -73,7 +73,10 @@ export function updateStatus(
   id: string,
   status: 'pending' | 'approved' | 'rejected',
 ): Promise<{ message: string }> {
-  return api(`/api/admin/requests/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) });
+  return api(`/api/admin/requests/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
 }
 
 export function downloadQR(token: string): Promise<Blob> {
@@ -88,7 +91,7 @@ export function uploadApprovalLetter(id: string, blob: Blob): Promise<unknown> {
 
 export function rescheduleRequest(
   id: string,
-  payload: { tanggal_kunjungan: string; jam_kunjungan: string },
+  payload: { tanggal_kunjungan: number; jam_kunjungan: number },
 ): Promise<{ message: string }> {
   return api(`/api/admin/requests/${id}/reschedule`, {
     method: 'PATCH',

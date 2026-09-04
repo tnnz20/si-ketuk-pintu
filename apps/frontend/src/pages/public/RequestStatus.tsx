@@ -8,7 +8,7 @@ import RequestNotFoundState from '../../components/requests/RequestNotFoundState
 import { downloadAttachmentByToken, getRequestByToken } from '../../lib/api/requests';
 import { generateVisitRequestPdf } from '../../lib/pdf/visitRequestPdf';
 import type { Attachment, VisitRequest } from '@app-types/api';
-import { formatDate, formatLongDate } from '@lib/dateTime';
+import { formatDate, formatLongDate, formatTime } from '@lib/dateTime';
 
 export default function RequestStatus() {
   const { token } = useParams();
@@ -104,7 +104,9 @@ export default function RequestStatus() {
               </div>
               <div>
                 <p className="font-label-sm mb-1 text-label-sm text-on-surface-variant">Time</p>
-                <p className="font-body-lg text-body-lg text-on-surface">{request.jam_kunjungan}</p>
+                <p className="font-body-lg text-body-lg text-on-surface">
+                  {formatTime(request.jam_kunjungan)}
+                </p>
               </div>
               <div className="md:col-span-2">
                 <p className="font-label-sm mb-1 text-label-sm text-on-surface-variant">

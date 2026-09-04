@@ -3,6 +3,7 @@ import { CheckCircle2, Clock, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Skeleton from '@components/shared/Skeleton';
 import StatusBadge from '@components/shared/StatusBadge';
+import { formatDate } from '@lib/dateTime';
 import type { PaginatedRequestsResponse, StatsResponse } from '@app-types/api';
 
 type RequestItem = PaginatedRequestsResponse['data'][number];
@@ -122,7 +123,7 @@ export default function SummaryCards({ stats, requests, loading }: SummaryCardsP
           title={latestApproved ? latestApproved.nama_instansi : 'Kunjungan Terjadwal'}
           subtitle={
             latestApproved
-              ? `Tgl: ${latestApproved.tanggal_kunjungan}`
+              ? `Tgl: ${formatDate(latestApproved.tanggal_kunjungan)}`
               : 'Belum ada kunjungan disetujui'
           }
           footerLeft={

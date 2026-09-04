@@ -60,6 +60,11 @@ func (c *AdminRequestController) listRequests(ginContext *gin.Context, status st
 
 	visitRequests, total, err := c.visitRequestUsecase.List(ginContext.Request.Context(), filter)
 	if err != nil {
+		if errors.Is(err, usecase.ErrInvalidDateFilter) {
+			c.logger.WithError(err).Warn("invalid date filter in admin controller")
+			ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "date must be in YYYY-MM-DD format"})
+			return
+		}
 		c.logger.WithError(err).Error("failed to list visit requests in admin controller")
 		_ = ginContext.Error(err)
 		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
@@ -73,7 +78,7 @@ func (c *AdminRequestController) listRequests(ginContext *gin.Context, status st
 			Token:             vr.Token,
 			NamaInstansi:      vr.NamaInstansi,
 			PimpinanRombongan: vr.PimpinanRombongan,
-			TanggalKunjungan:  vr.TanggalKunjungan.Format("2006-01-02"),
+			TanggalKunjungan:  vr.TanggalKunjungan,
 			JumlahTamu:        vr.JumlahTamu,
 			Status:            vr.Status,
 			CreatedAt:         vr.CreatedAt,
@@ -264,14 +269,24 @@ func (c *AdminRequestController) Reschedule(ginContext *gin.Context) {
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
 		return
 	}
-	date, err := time.Parse("2006-01-02", input.TanggalKunjungan)
-	if err != nil {
-		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid tanggal_kunjungan"})
+	if !isWITAMidnight(input.TanggalKunjungan) {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "tanggal_kunjungan must be Unix epoch milliseconds of the visit date midnight in Asia/Makassar (UTC+8)"})
 		return
 	}
+	if !isWITATimeOfDay(input.JamKunjungan) {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "jam_kunjungan must be Unix epoch milliseconds of the visit time on 1970-01-01 in Asia/Makassar (UTC+8)"})
+		return
+	}
+
+	visitDateTime := input.TanggalKunjungan + (input.JamKunjungan + witaOffsetMillis)
+	if visitDateTime < time.Now().UnixMilli() {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "visit date and time must be in the future"})
+		return
+	}
+
 	administratorID, _ := ginContext.Get(middleware.AdministratorIDKey)
 	if err := c.visitRequestUsecase.Reschedule(ginContext.Request.Context(), usecase.RescheduleInput{
-		VisitRequestID: id, NewDate: date, NewTime: input.JamKunjungan, AdministratorID: administratorID.(int64),
+		VisitRequestID: id, NewDate: input.TanggalKunjungan, NewTime: input.JamKunjungan, AdministratorID: administratorID.(int64),
 	}); err != nil {
 		if errors.Is(err, repository.ErrVisitRequestNotFound) {
 			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})
