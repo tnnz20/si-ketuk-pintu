@@ -1,7 +1,7 @@
 import { Calendar } from 'lucide-react';
 import StatusBadge from '@components/shared/StatusBadge';
 import type { VisitRequest } from '@app-types/api';
-import { formatDate } from '@lib/dateTime';
+import { formatDate, formatTime } from '@lib/dateTime';
 
 interface RequestSummaryProps {
   request: VisitRequest;
@@ -38,7 +38,7 @@ export default function RequestSummary({ request }: RequestSummaryProps) {
               Tanggal Kunjungan
             </p>
             <p className="text-xs font-extrabold text-civic-dark">
-              {formatDate(request.tanggal_kunjungan)} {request.jam_kunjungan}
+              {formatDate(request.tanggal_kunjungan)} {formatTime(request.jam_kunjungan)}
             </p>
           </div>
         </div>

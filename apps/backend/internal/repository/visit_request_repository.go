@@ -143,8 +143,8 @@ func (r *VisitRequestRepository) List(
 		query = query.Where("status = ?", filter.Status)
 	}
 
-	if filter.Date != "" {
-		query = query.Where("tanggal_kunjungan = ?", filter.Date)
+	if filter.DateEpoch != 0 {
+		query = query.Where("tanggal_kunjungan = ?", filter.DateEpoch)
 	}
 
 	if filter.Search != "" {
@@ -189,11 +189,11 @@ func (r *VisitRequestRepository) List(
 	return visitRequests, total, nil
 }
 
-func (r *VisitRequestRepository) UpdateSchedule(ctx context.Context, id uuid.UUID, date time.Time, timeValue string) error {
+func (r *VisitRequestRepository) UpdateSchedule(ctx context.Context, id uuid.UUID, tanggalKunjungan int64, jamKunjungan int64) error {
 	result := r.database.WithContext(ctx).Model(&entity.VisitRequest{}).Where("id = ?", id).Updates(map[string]any{
-		"tanggal_kunjungan": date,
-		"jam_kunjungan":     timeValue,
-		"updated_at":        time.Now(),
+		"tanggal_kunjungan": tanggalKunjungan,
+		"jam_kunjungan":     jamKunjungan,
+		"updated_at":        time.Now().UnixMilli(),
 	})
 	if result.Error != nil {
 		return fmt.Errorf("update visit request schedule: %w", result.Error)
@@ -221,10 +221,8 @@ func (r *VisitRequestRepository) UpdateStatus(ctx context.Context, id uuid.UUID,
 	return nil
 }
 
-func (r *VisitRequestRepository) Stats(ctx context.Context, now time.Time) (int64, int64, int64, error) {
+func (r *VisitRequestRepository) Stats(ctx context.Context, start, end int64) (int64, int64, int64, error) {
 	var today, pending, total int64
-	start := now.Truncate(24 * time.Hour)
-	end := start.Add(24 * time.Hour)
 	if err := r.database.WithContext(ctx).Model(&entity.VisitRequest{}).Where("created_at >= ? AND created_at < ?", start, end).Count(&today).Error; err != nil {
 		return 0, 0, 0, fmt.Errorf("count today's visit requests: %w", err)
 	}
@@ -237,12 +235,7 @@ func (r *VisitRequestRepository) Stats(ctx context.Context, now time.Time) (int6
 	return today, pending, total, nil
 }
 
-func (r *VisitRequestRepository) CountByPeriod(ctx context.Context, period string, year, month int, timeZone string) ([]model.GraphPoint, error) {
-	loc, err := time.LoadLocation(timeZone)
-	if err != nil {
-		return nil, fmt.Errorf("load timezone %q: %w", timeZone, err)
-	}
-
+func (r *VisitRequestRepository) CountByPeriod(ctx context.Context, period string, year, month int, loc *time.Location) ([]model.GraphPoint, error) {
 	var start, end time.Time
 	switch period {
 	case "daily":
@@ -252,30 +245,46 @@ func (r *VisitRequestRepository) CountByPeriod(ctx context.Context, period strin
 		start = time.Date(year, 1, 1, 0, 0, 0, 0, loc)
 		end = start.AddDate(1, 0, 0)
 	default:
-		start = time.Date(2022, 1, 1, 0, 0, 0, 0, loc)
+		var earliest int64
+		if err := r.database.WithContext(ctx).Raw("SELECT COALESCE(MIN(created_at), 0) FROM visit_requests").Scan(&earliest).Error; err != nil {
+			return nil, fmt.Errorf("find earliest visit request: %w", err)
+		}
+		if earliest <= 0 {
+			now := time.Now().In(loc)
+			start = time.Date(now.Year(), 1, 1, 0, 0, 0, 0, loc)
+		} else {
+			earliestDate := time.UnixMilli(earliest).In(loc)
+			start = time.Date(earliestDate.Year(), 1, 1, 0, 0, 0, 0, loc)
+		}
 		end = time.Now().In(loc).Add(24 * time.Hour)
 	}
 
-	rows, err := r.database.WithContext(ctx).
+	var timestamps []int64
+	if err := r.database.WithContext(ctx).
 		Model(&entity.VisitRequest{}).
-		Select("(created_at AT TIME ZONE ?)::date AS period, COUNT(*) AS count", timeZone).
-		Where("created_at >= ? AND created_at < ?", start, end).
-		Group("period").Order("period").Rows()
-	if err != nil {
+		Where("created_at >= ? AND created_at < ?", start.UnixMilli(), end.UnixMilli()).
+		Order("created_at ASC").
+		Pluck("created_at", &timestamps).Error; err != nil {
 		return nil, fmt.Errorf("count visit requests by period: %w", err)
 	}
-	defer rows.Close()
 
-	points := make([]model.GraphPoint, 0, 32)
-	for rows.Next() {
-		var point model.GraphPoint
-		if err := rows.Scan(&point.Period, &point.Count); err != nil {
-			return nil, fmt.Errorf("scan graph point: %w", err)
+	countsByDay := make(map[int64]int64, 32)
+	dayOrder := make([]int64, 0, 32)
+	for _, timestamp := range timestamps {
+		local := time.UnixMilli(timestamp).In(loc)
+		dayStart := time.Date(local.Year(), local.Month(), local.Day(), 0, 0, 0, 0, loc).UnixMilli()
+		if _, seen := countsByDay[dayStart]; !seen {
+			dayOrder = append(dayOrder, dayStart)
 		}
-		points = append(points, point)
+		countsByDay[dayStart]++
 	}
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("iterate graph rows: %w", err)
+
+	points := make([]model.GraphPoint, 0, len(dayOrder))
+	for _, dayStart := range dayOrder {
+		points = append(points, model.GraphPoint{
+			Period: time.UnixMilli(dayStart).In(loc),
+			Count:  countsByDay[dayStart],
+		})
 	}
 
 	return points, nil

@@ -14,6 +14,6 @@ type UpdateStatusRequest struct {
 }
 
 type RescheduleRequest struct {
-	TanggalKunjungan string `json:"tanggal_kunjungan" binding:"required,datetime=2006-01-02"`
-	JamKunjungan     string `json:"jam_kunjungan" binding:"required,datetime=15:04"`
+	TanggalKunjungan int64 `json:"tanggal_kunjungan" binding:"required"`
+	JamKunjungan     int64 `json:"jam_kunjungan" binding:"required"`
 }

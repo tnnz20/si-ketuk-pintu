@@ -8,15 +8,15 @@ type GuestInput struct {
 }
 
 type CreateVisitRequestRequest struct {
-	Email             string       `form:"email" binding:"required,email"`
-	NamaInstansi      string       `form:"nama_instansi" binding:"required"`
-	AlamatInstansi    string       `form:"alamat_instansi" binding:"required"`
-	TanggalKunjungan  string       `form:"tanggal_kunjungan" binding:"required"`
-	JamKunjungan      string       `form:"jam_kunjungan" binding:"required"`
-	TemaKunjungan     string       `form:"tema_kunjungan" binding:"required"`
-	PimpinanRombongan string       `form:"pimpinan_rombongan" binding:"required"`
-	JumlahTamu        int          `form:"jumlah_tamu" binding:"required,min=1"`
-	KontakDihubungi   string       `form:"kontak_dihubungi" binding:"required"`
+	Email             string `form:"email" binding:"required,email"`
+	NamaInstansi      string `form:"nama_instansi" binding:"required"`
+	AlamatInstansi    string `form:"alamat_instansi" binding:"required"`
+	TanggalKunjungan  int64  `form:"tanggal_kunjungan" binding:"required"`
+	JamKunjungan      int64  `form:"jam_kunjungan" binding:"required"`
+	TemaKunjungan     string `form:"tema_kunjungan" binding:"required"`
+	PimpinanRombongan string `form:"pimpinan_rombongan" binding:"required"`
+	JumlahTamu        int    `form:"jumlah_tamu" binding:"required,min=1"`
+	KontakDihubungi   string `form:"kontak_dihubungi" binding:"required"`
 }
 
 type GuestResponse struct {
@@ -39,8 +39,8 @@ type VisitRequestResponse struct {
 	Email             string               `json:"email"`
 	NamaInstansi      string               `json:"nama_instansi"`
 	AlamatInstansi    string               `json:"alamat_instansi"`
-	TanggalKunjungan  string               `json:"tanggal_kunjungan"`
-	JamKunjungan      string               `json:"jam_kunjungan"`
+	TanggalKunjungan  int64                `json:"tanggal_kunjungan"`
+	JamKunjungan      int64                `json:"jam_kunjungan"`
 	TemaKunjungan     string               `json:"tema_kunjungan"`
 	PimpinanRombongan string               `json:"pimpinan_rombongan"`
 	JumlahTamu        int                  `json:"jumlah_tamu"`
@@ -48,19 +48,19 @@ type VisitRequestResponse struct {
 	Status            string               `json:"status"`
 	Guests            []GuestResponse      `json:"guests"`
 	Attachments       []AttachmentResponse `json:"attachments"`
-	CreatedAt         time.Time            `json:"created_at"`
-	UpdatedAt         time.Time            `json:"updated_at"`
+	CreatedAt         int64                `json:"created_at"`
+	UpdatedAt         int64                `json:"updated_at"`
 }
 
 type VisitRequestListItem struct {
-	ID                string    `json:"id"`
-	Token             string    `json:"token"`
-	NamaInstansi      string    `json:"nama_instansi"`
-	PimpinanRombongan string    `json:"pimpinan_rombongan"`
-	TanggalKunjungan  string    `json:"tanggal_kunjungan"`
-	JumlahTamu        int       `json:"jumlah_tamu"`
-	Status            string    `json:"status"`
-	CreatedAt         time.Time `json:"created_at"`
+	ID                string `json:"id"`
+	Token             string `json:"token"`
+	NamaInstansi      string `json:"nama_instansi"`
+	PimpinanRombongan string `json:"pimpinan_rombongan"`
+	TanggalKunjungan  int64  `json:"tanggal_kunjungan"`
+	JumlahTamu        int    `json:"jumlah_tamu"`
+	Status            string `json:"status"`
+	CreatedAt         int64  `json:"created_at"`
 }
 
 type VisitRequestListResponse struct {
@@ -77,11 +77,12 @@ type CreateVisitRequestResponse struct {
 }
 
 type ListFilter struct {
-	Search string
-	Status string
-	Date   string
-	Page   int
-	Size   int
+	Search    string
+	Status    string
+	Date      string
+	DateEpoch int64
+	Page      int
+	Size      int
 }
 
 type GraphPoint struct {

@@ -2,7 +2,6 @@ package entity
 
 import (
 	"encoding/json"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -15,5 +14,5 @@ type AuditEvent struct {
 	Action          string          `gorm:"size:128;not null"`
 	PreviousValue   json.RawMessage `gorm:"type:jsonb;not null"`
 	NewValue        json.RawMessage `gorm:"type:jsonb;not null"`
-	OccurredAt      time.Time       `gorm:"not null"`
+	OccurredAt      int64           `gorm:"not null"`
 }

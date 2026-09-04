@@ -72,7 +72,7 @@ export default function RequestTableContent({
         </td>
 
         {/* Tanggal Kunjungan */}
-        <td className="px-4 py-3.5 font-semibold">{request.tanggal_kunjungan}</td>
+        <td className="px-4 py-3.5 font-semibold">{formatDate(request.tanggal_kunjungan)}</td>
 
         {/* Pimpinan Rombongan */}
         <td className="max-w-45 truncate px-4 py-3.5 text-civic-muted">

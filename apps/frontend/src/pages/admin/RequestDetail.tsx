@@ -27,6 +27,7 @@ import { generateApprovalLetterPdf } from '../../lib/pdf/approvalLetterPdf';
 import { generateRescheduleLetterPdf } from '../../lib/pdf/rescheduleLetterPdf';
 import { generateVisitRequestPdf } from '../../lib/pdf/visitRequestPdf';
 import type { RequestDetailResponse } from '@app-types/api';
+import { dateInputToEpoch, timeInputToEpoch } from '@lib/dateTime';
 
 export default function RequestDetail() {
   const navigate = useNavigate();
@@ -137,15 +138,16 @@ export default function RequestDetail() {
       tanggal_kunjungan: data.request.tanggal_kunjungan,
       jam_kunjungan: data.request.jam_kunjungan,
     };
+    const newSchedule = {
+      tanggal_kunjungan: dateInputToEpoch(input.tanggal_kunjungan),
+      jam_kunjungan: timeInputToEpoch(input.jam_kunjungan),
+    };
     try {
-      const blob = await generateRescheduleLetterPdf(data.request, oldSchedule, input, {
+      const blob = await generateRescheduleLetterPdf(data.request, oldSchedule, newSchedule, {
         nomor: input.nomor,
         sifat: input.sifat,
       });
-      await rescheduleRequest(id, {
-        tanggal_kunjungan: input.tanggal_kunjungan,
-        jam_kunjungan: input.jam_kunjungan,
-      });
+      await rescheduleRequest(id, newSchedule);
       await uploadRescheduleLetter(id, blob);
       setRescheduleDialog(false);
       toast.success('Surat reschedule berhasil dibuat & jadwal diperbarui.');
