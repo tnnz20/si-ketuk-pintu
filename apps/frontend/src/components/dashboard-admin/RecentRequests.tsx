@@ -11,7 +11,7 @@ import Skeleton from '@components/shared/Skeleton';
 import StatusBadge from '@components/shared/StatusBadge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/shared/Tooltip';
 import type { PaginatedRequestsResponse } from '@app-types/api';
-import { DateTime } from 'luxon';
+import { formatDate } from '@lib/dateTime';
 
 type RequestItem = PaginatedRequestsResponse['data'][number];
 
@@ -53,10 +53,7 @@ export default function RecentRequests({ requests, loading }: RecentRequestsProp
     }
 
     return [...requests]
-      .sort(
-        (a, b) =>
-          DateTime.fromISO(b.created_at).toMillis() - DateTime.fromISO(a.created_at).toMillis(),
-      )
+      .sort((a, b) => b.created_at - a.created_at)
       .slice(0, 5)
       .map((request) => (
         <tr key={request.id} className="hover:bg-civic-cardFill transition-colors">
@@ -70,7 +67,7 @@ export default function RecentRequests({ requests, loading }: RecentRequestsProp
             <p className="max-w-50 truncate font-bold text-civic-dark">{request.nama_instansi}</p>
           </td>
           <td className="px-4 py-3.5 font-semibold whitespace-nowrap">
-            {request.tanggal_kunjungan}
+            {formatDate(request.tanggal_kunjungan)}
           </td>
           <td className="max-w-40 truncate px-4 py-3.5 text-civic-muted">
             {request.pimpinan_rombongan}

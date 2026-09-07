@@ -1,7 +1,7 @@
 import { Calendar as CalendarIcon, ChevronRight, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { PaginatedRequestsResponse } from '@app-types/api';
-import { todayISO } from '@lib/dateTime';
+import { formatDate, todayEpoch } from '@lib/dateTime';
 
 type RequestItem = PaginatedRequestsResponse['data'][number];
 
@@ -12,8 +12,8 @@ interface TodayScheduleProps {
 export default function TodaySchedule({ requests }: TodayScheduleProps) {
   const navigate = useNavigate();
 
-  const todayDateStr = todayISO();
-  const todaySchedule = requests.filter((r) => r.tanggal_kunjungan === todayDateStr);
+  const todayEpochValue = todayEpoch();
+  const todaySchedule = requests.filter((r) => r.tanggal_kunjungan === todayEpochValue);
   const displaySchedule = todaySchedule.length > 0 ? todaySchedule : requests.slice(0, 3);
 
   return (
@@ -50,7 +50,7 @@ export default function TodaySchedule({ requests }: TodayScheduleProps) {
                       {item.nama_instansi}
                     </h4>
                     <p className="truncate text-2xs text-civic-muted">
-                      {item.tanggal_kunjungan} • {item.jumlah_tamu} Tamu
+                      {formatDate(item.tanggal_kunjungan)} • {item.jumlah_tamu} Tamu
                     </p>
                   </div>
                 </div>

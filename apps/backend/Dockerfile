@@ -5,11 +5,11 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -tags timetzdata -o /out/web ./cmd/web
+RUN CGO_ENABLED=0 GOOS=linux go build -o /out/web ./cmd/web
 
 FROM alpine:3.21
 
-RUN apk add --no-cache tzdata \
+RUN apk add --no-cache ca-certificates \
     && adduser -D -u 10001 appuser
 
 WORKDIR /app

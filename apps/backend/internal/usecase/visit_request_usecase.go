@@ -37,6 +37,7 @@ const (
 )
 
 var ErrInvalidPDF = errors.New("file must be a valid PDF")
+var ErrInvalidDateFilter = errors.New("invalid date filter")
 var ErrApprovalLetterNotAllowed = errors.New("approval letter requires approved request")
 var ErrApprovalLetterExists = errors.New("approval letter already exists")
 var ErrApprovalLetterNotFound = errors.New("approval letter not found")
@@ -59,9 +60,9 @@ type VisitRequestStore interface {
 	FindByID(ctx context.Context, id uuid.UUID) (*entity.VisitRequest, error)
 	List(ctx context.Context, filter model.ListFilter) ([]entity.VisitRequest, int64, error)
 	UpdateStatus(ctx context.Context, id uuid.UUID, status string) error
-	UpdateSchedule(ctx context.Context, id uuid.UUID, date time.Time, timeValue string) error
-	Stats(ctx context.Context, now time.Time) (int64, int64, int64, error)
-	CountByPeriod(ctx context.Context, period string, year, month int, timeZone string) ([]model.GraphPoint, error)
+	UpdateSchedule(ctx context.Context, id uuid.UUID, tanggalKunjungan int64, jamKunjungan int64) error
+	Stats(ctx context.Context, start, end int64) (int64, int64, int64, error)
+	CountByPeriod(ctx context.Context, period string, year, month int, loc *time.Location) ([]model.GraphPoint, error)
 	Delete(ctx context.Context, id uuid.UUID) error
 	TokenExists(ctx context.Context, token string) (bool, error)
 }
@@ -78,8 +79,8 @@ type UpdateStatusInput struct {
 
 type RescheduleInput struct {
 	VisitRequestID  uuid.UUID
-	NewDate         time.Time
-	NewTime         string
+	NewDate         int64
+	NewTime         int64
 	AdministratorID int64
 }
 
@@ -88,7 +89,6 @@ type VisitRequestUsecase struct {
 	auditor   AuditEventCreator
 	logger    *logrus.Logger
 	uploadDir string
-	timeZone  *time.Location
 }
 
 func NewVisitRequestUsecase(
@@ -96,14 +96,12 @@ func NewVisitRequestUsecase(
 	auditor AuditEventCreator,
 	logger *logrus.Logger,
 	uploadDir string,
-	timeZone *time.Location,
 ) *VisitRequestUsecase {
 	return &VisitRequestUsecase{
 		store:     store,
 		auditor:   auditor,
 		logger:    logger,
 		uploadDir: uploadDir,
-		timeZone:  timeZone,
 	}
 }
 
@@ -117,8 +115,8 @@ type CreateVisitRequestInput struct {
 	Email             string
 	NamaInstansi      string
 	AlamatInstansi    string
-	TanggalKunjungan  time.Time
-	JamKunjungan      string
+	TanggalKunjungan  int64
+	JamKunjungan      int64
 	TemaKunjungan     string
 	PimpinanRombongan string
 	JumlahTamu        int
@@ -194,7 +192,7 @@ func (u *VisitRequestUsecase) Create(
 		Action:         "request_submitted",
 		PreviousValue:  json.RawMessage("{}"),
 		NewValue:       auditValue,
-		OccurredAt:     time.Now().In(u.timeZone),
+		OccurredAt:     time.Now().UnixMilli(),
 	})
 
 	return visitRequest, nil
@@ -212,15 +210,24 @@ func (u *VisitRequestUsecase) List(
 	ctx context.Context,
 	filter model.ListFilter,
 ) ([]entity.VisitRequest, int64, error) {
+	if filter.Date != "" {
+		parsed, err := time.ParseInLocation("2006-01-02", filter.Date, model.WITATimeZone)
+		if err != nil {
+			return nil, 0, fmt.Errorf("%w: date must be in YYYY-MM-DD format", ErrInvalidDateFilter)
+		}
+		filter.DateEpoch = parsed.UnixMilli()
+	}
 	return u.store.List(ctx, filter)
 }
 
 func (u *VisitRequestUsecase) Stats(ctx context.Context) (int64, int64, int64, error) {
-	return u.store.Stats(ctx, time.Now().In(u.timeZone))
+	now := time.Now().In(model.WITATimeZone)
+	start := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, model.WITATimeZone).UnixMilli()
+	return u.store.Stats(ctx, start, start+24*60*60*1000)
 }
 
 func (u *VisitRequestUsecase) Graph(ctx context.Context, period string, year, month int) ([]model.GraphPoint, error) {
-	return u.store.CountByPeriod(ctx, period, year, month, u.timeZone.String())
+	return u.store.CountByPeriod(ctx, period, year, month, model.WITATimeZone)
 }
 
 func (u *VisitRequestUsecase) Delete(ctx context.Context, id uuid.UUID) error {
@@ -451,12 +458,12 @@ func (u *VisitRequestUsecase) Reschedule(ctx context.Context, input RescheduleIn
 	if request.Status != "pending" {
 		return fmt.Errorf("only pending requests can be rescheduled")
 	}
-	previousValue, _ := json.Marshal(map[string]string{
-		"tanggal_kunjungan": request.TanggalKunjungan.Format("2006-01-02"),
+	previousValue, _ := json.Marshal(map[string]int64{
+		"tanggal_kunjungan": request.TanggalKunjungan,
 		"jam_kunjungan":     request.JamKunjungan,
 	})
-	newValue, _ := json.Marshal(map[string]string{
-		"tanggal_kunjungan": input.NewDate.Format("2006-01-02"),
+	newValue, _ := json.Marshal(map[string]int64{
+		"tanggal_kunjungan": input.NewDate,
 		"jam_kunjungan":     input.NewTime,
 	})
 	if err := u.store.UpdateSchedule(ctx, input.VisitRequestID, input.NewDate, input.NewTime); err != nil {
@@ -469,7 +476,7 @@ func (u *VisitRequestUsecase) Reschedule(ctx context.Context, input RescheduleIn
 		Action:          "schedule_rescheduled",
 		PreviousValue:   previousValue,
 		NewValue:        newValue,
-		OccurredAt:      time.Now().In(u.timeZone),
+		OccurredAt:      time.Now().UnixMilli(),
 	})
 }
 
@@ -498,7 +505,7 @@ func (u *VisitRequestUsecase) UpdateStatus(ctx context.Context, input UpdateStat
 		Action:          "status_changed",
 		PreviousValue:   previousValue,
 		NewValue:        newValue,
-		OccurredAt:      time.Now().In(u.timeZone),
+		OccurredAt:      time.Now().UnixMilli(),
 	}); err != nil {
 		u.logger.WithError(err).Error("failed to create status change audit event")
 		return fmt.Errorf("create status change audit event: %w", err)
@@ -508,7 +515,7 @@ func (u *VisitRequestUsecase) UpdateStatus(ctx context.Context, input UpdateStat
 }
 
 func (u *VisitRequestUsecase) generateUniqueToken(ctx context.Context) (string, error) {
-	now := time.Now().In(u.timeZone)
+	now := time.Now().In(model.WITATimeZone)
 	datePrefix := fmt.Sprintf("SKP-%s-", now.Format("20060102"))
 
 	for range maxTokenRetries {

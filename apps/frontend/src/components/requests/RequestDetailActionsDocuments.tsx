@@ -55,7 +55,7 @@ export default function RequestDetailActionsDocuments({
 }: RequestActionsDocumentsProps) {
   // Parse visit date for calendar widget
   const visitDate = request.tanggal_kunjungan
-    ? DateTime.fromISO(request.tanggal_kunjungan, { zone: WITA_ZONE })
+    ? DateTime.fromMillis(request.tanggal_kunjungan, { zone: WITA_ZONE })
     : DateTime.now().setZone(WITA_ZONE);
   const [calendarMonthOffset, setCalendarMonthOffset] = useState(0);
 

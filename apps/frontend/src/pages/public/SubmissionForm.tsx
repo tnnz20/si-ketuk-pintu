@@ -33,6 +33,7 @@ import { StepIndicators } from '@components/submission/StepIndicators';
 import { TimePicker } from '@components/submission/TimePicker';
 import { VisitStep } from '@components/submission/VisitStep';
 import { guestSchema, visitRequestSchema } from '../../schemas/visitRequest';
+import { dateInputToEpoch, timeInputToEpoch } from '@lib/dateTime';
 
 interface Guest {
   name: string;
@@ -221,8 +222,8 @@ export default function SubmissionForm() {
         email: formData.email,
         nama_instansi: formData.nama_instansi,
         alamat_instansi: formData.alamat_instansi,
-        tanggal_kunjungan: formData.tanggal_kunjungan,
-        jam_kunjungan: formData.jam_kunjungan,
+        tanggal_kunjungan: dateInputToEpoch(formData.tanggal_kunjungan),
+        jam_kunjungan: timeInputToEpoch(formData.jam_kunjungan),
         tema_kunjungan: formData.tema_kunjungan,
         pimpinan_rombongan: formData.pimpinan_rombongan,
         jumlah_tamu: guests.length,

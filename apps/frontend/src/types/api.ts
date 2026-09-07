@@ -24,8 +24,8 @@ export interface VisitRequest {
   email: string;
   nama_instansi: string;
   alamat_instansi: string;
-  tanggal_kunjungan: string;
-  jam_kunjungan: string;
+  tanggal_kunjungan: number;
+  jam_kunjungan: number;
   tema_kunjungan: string;
   pimpinan_rombongan: string;
   jumlah_tamu: number;
@@ -33,17 +33,17 @@ export interface VisitRequest {
   status: 'pending' | 'approved' | 'rejected';
   guests: Guest[];
   attachments: Attachment[];
-  created_at: string;
-  updated_at: string;
+  created_at: number;
+  updated_at: number;
 }
 
 export interface AuditEvent {
-  id: string;
+  id: number;
   actor_type: 'admin' | 'system';
   action: string;
   previous_value: null | { status: string };
   new_value: null | { status: string };
-  occurred_at: string;
+  occurred_at: number;
 }
 
 export interface RequestDetailResponse {
@@ -55,8 +55,8 @@ export interface CreateVisitRequestData {
   email: string;
   nama_instansi: string;
   alamat_instansi: string;
-  tanggal_kunjungan: string;
-  jam_kunjungan: string;
+  tanggal_kunjungan: number;
+  jam_kunjungan: number;
   tema_kunjungan: string;
   pimpinan_rombongan: string;
   jumlah_tamu: number;
@@ -87,10 +87,10 @@ export interface PaginatedRequestsResponse {
     token: string;
     nama_instansi: string;
     pimpinan_rombongan: string;
-    tanggal_kunjungan: string;
+    tanggal_kunjungan: number;
     jumlah_tamu: number;
     status: 'pending' | 'approved' | 'rejected';
-    created_at: string;
+    created_at: number;
   }[];
   total: number;
   page: number;

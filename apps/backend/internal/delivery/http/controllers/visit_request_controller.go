@@ -18,11 +18,29 @@ import (
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
 )
 
+const witaOffsetMillis = model.WITAOffsetMillis
+
+func normalizedDayMod(value int64) int64 {
+	mod := value % (24 * 60 * 60 * 1000)
+	if mod < 0 {
+		mod += 24 * 60 * 60 * 1000
+	}
+	return mod
+}
+
+func isWITAMidnight(value int64) bool {
+	return normalizedDayMod(value) == (24*60*60*1000)-witaOffsetMillis
+}
+
+func isWITATimeOfDay(value int64) bool {
+	timeOfDay := value + witaOffsetMillis
+	return timeOfDay >= 0 && timeOfDay < 24*60*60*1000 && timeOfDay%60000 == 0
+}
+
 type VisitRequestController struct {
 	visitRequestUsecase *usecase.VisitRequestUsecase
 	qrUsecase           *usecase.QRUsecase
 	logger              *logrus.Logger
-	timeZone            *time.Location
 	uploadDir           string
 }
 
@@ -30,14 +48,12 @@ func NewVisitRequestController(
 	visitRequestUsecase *usecase.VisitRequestUsecase,
 	qrUsecase *usecase.QRUsecase,
 	logger *logrus.Logger,
-	timeZone *time.Location,
 	uploadDir string,
 ) *VisitRequestController {
 	return &VisitRequestController{
 		visitRequestUsecase: visitRequestUsecase,
 		qrUsecase:           qrUsecase,
 		logger:              logger,
-		timeZone:            timeZone,
 		uploadDir:           uploadDir,
 	}
 }
@@ -50,27 +66,20 @@ func (c *VisitRequestController) Create(ginContext *gin.Context) {
 		return
 	}
 
-	tanggalKunjungan, err := time.ParseInLocation("2006-01-02", request.TanggalKunjungan, c.timeZone)
-	if err != nil {
-		c.logger.WithError(err).Warn("invalid tanggal_kunjungan format")
-		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "tanggal_kunjungan must be in YYYY-MM-DD format"})
+	if !isWITAMidnight(request.TanggalKunjungan) {
+		c.logger.Warn("invalid tanggal_kunjungan epoch value")
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "tanggal_kunjungan must be Unix epoch milliseconds of the visit date midnight in Asia/Makassar (UTC+8)"})
 		return
 	}
 
-	jamKunjungan, err := time.Parse("15:04", request.JamKunjungan)
-	if err != nil {
-		c.logger.WithError(err).Warn("invalid jam_kunjungan format")
-		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "jam_kunjungan must be in HH:MM format"})
+	if !isWITATimeOfDay(request.JamKunjungan) {
+		c.logger.Warn("invalid jam_kunjungan epoch value")
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "jam_kunjungan must be Unix epoch milliseconds of the visit time on 1970-01-01 in Asia/Makassar (UTC+8)"})
 		return
 	}
 
-	now := time.Now().In(c.timeZone)
-	visitDateTime := time.Date(
-		tanggalKunjungan.Year(), tanggalKunjungan.Month(), tanggalKunjungan.Day(),
-		jamKunjungan.Hour(), jamKunjungan.Minute(), 0, 0,
-		c.timeZone,
-	)
-	if visitDateTime.Before(now) {
+	visitDateTime := request.TanggalKunjungan + (request.JamKunjungan + witaOffsetMillis)
+	if visitDateTime < time.Now().UnixMilli() {
 		c.logger.Warn("visit date and time is in the past")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "visit date and time must be in the future"})
 		return
@@ -110,8 +119,8 @@ func (c *VisitRequestController) Create(ginContext *gin.Context) {
 		Email:             request.Email,
 		NamaInstansi:      request.NamaInstansi,
 		AlamatInstansi:    request.AlamatInstansi,
-		TanggalKunjungan:  tanggalKunjungan,
-		JamKunjungan:      jamKunjungan.Format("15:04:00"),
+		TanggalKunjungan:  request.TanggalKunjungan,
+		JamKunjungan:      request.JamKunjungan,
 		TemaKunjungan:     request.TemaKunjungan,
 		PimpinanRombongan: request.PimpinanRombongan,
 		JumlahTamu:        request.JumlahTamu,
@@ -260,21 +269,14 @@ func toVisitRequestResponse(vr *entity.VisitRequest) model.VisitRequestResponse 
 		attachments = append(attachments, toAttachmentResponse(a))
 	}
 
-	jamKunjungan := vr.JamKunjungan
-	if parsed, err := time.Parse("15:04:05", vr.JamKunjungan); err == nil {
-		jamKunjungan = parsed.Format("15:04")
-	} else if parsed, err := time.Parse("15:04", vr.JamKunjungan); err == nil {
-		jamKunjungan = parsed.Format("15:04")
-	}
-
 	return model.VisitRequestResponse{
 		ID:                vr.ID.String(),
 		Token:             vr.Token,
 		Email:             vr.Email,
 		NamaInstansi:      vr.NamaInstansi,
 		AlamatInstansi:    vr.AlamatInstansi,
-		TanggalKunjungan:  vr.TanggalKunjungan.Format("2006-01-02"),
-		JamKunjungan:      jamKunjungan,
+		TanggalKunjungan:  vr.TanggalKunjungan,
+		JamKunjungan:      vr.JamKunjungan,
 		TemaKunjungan:     vr.TemaKunjungan,
 		PimpinanRombongan: vr.PimpinanRombongan,
 		JumlahTamu:        vr.JumlahTamu,

@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import { DateTime } from 'luxon';
 import type { VisitRequest } from '@app-types/api';
-import { formatLongDate, WITA_ZONE } from '@lib/dateTime';
+import { formatLongDate, formatTime, WITA_ZONE } from '@lib/dateTime';
 
 const margin = 20;
 const pageWidth = 210;
@@ -27,10 +27,10 @@ const statusExplanations: Record<VisitRequest['status'], string> = {
   rejected: '(Permohonan Ditolak)',
 };
 
-const formatDate = (value: string) => formatLongDate(value);
+const formatDate = (value: number) => formatLongDate(value);
 
-const formatDateTime = (value: string) => {
-  const date = DateTime.fromISO(value, { locale: 'id' }).setZone(WITA_ZONE);
+const formatDateTime = (value: number) => {
+  const date = DateTime.fromMillis(value, { locale: 'id' }).setZone(WITA_ZONE);
   return `${date.toFormat('d MMMM yyyy')}, ${date.toFormat('HH:mm')} WITA`;
 };
 
@@ -120,7 +120,7 @@ export function generateVisitRequestPdf(request: VisitRequest): void {
   // 3. INFORMASI KUNJUNGAN
   addSection('Informasi Kunjungan');
   addField('Hari/Tanggal', formatDate(request.tanggal_kunjungan));
-  addField('Waktu', `${request.jam_kunjungan} WITA`);
+  addField('Waktu', `${formatTime(request.jam_kunjungan)} WITA`);
   addField('Tema', request.tema_kunjungan);
   addField('Pimpinan Rombongan', request.pimpinan_rombongan);
   addField('Nama', request.pimpinan_rombongan);

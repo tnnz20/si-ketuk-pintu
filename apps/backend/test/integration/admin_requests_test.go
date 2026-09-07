@@ -5,10 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/model"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository"
@@ -124,8 +127,8 @@ func TestAdminGetRequestAndStatusUpdate(t *testing.T) {
 	_ = writer.WriteField("email", "qr@example.com")
 	_ = writer.WriteField("nama_instansi", "PT Testing")
 	_ = writer.WriteField("alamat_instansi", "Jl. Test 123")
-	_ = writer.WriteField("tanggal_kunjungan", "2030-01-01")
-	_ = writer.WriteField("jam_kunjungan", "10:00")
+	_ = writer.WriteField("tanggal_kunjungan", epochDateMillis("2030-01-01"))
+	_ = writer.WriteField("jam_kunjungan", epochTimeMillis("10:00"))
 	_ = writer.WriteField("tema_kunjungan", "Studi Banding")
 	_ = writer.WriteField("pimpinan_rombongan", "Budi")
 	_ = writer.WriteField("jumlah_tamu", "1")
@@ -202,5 +205,149 @@ func TestAdminUnauthorizedAccess(t *testing.T) {
 
 	if recorder.Code != http.StatusUnauthorized {
 		t.Fatalf("expected 401 Unauthorized, got %d", recorder.Code)
+	}
+}
+
+func TestAdminRequestsGraphSemantics(t *testing.T) {
+	clearDatabase(t)
+	adminToken := getAdminToken(t)
+
+	createVisitRequest(t)
+	createVisitRequest(t)
+
+	now := time.Now().In(model.WITATimeZone)
+	tests := []struct {
+		name   string
+		period string
+		query  string
+	}{
+		{name: "daily", period: "daily", query: fmt.Sprintf("period=daily&year=%d&month=%d", now.Year(), int(now.Month()))},
+		{name: "monthly", period: "monthly", query: fmt.Sprintf("period=monthly&year=%d", now.Year())},
+		{name: "yearly", period: "yearly", query: "period=yearly"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.period, func(t *testing.T) {
+			request := httptest.NewRequest(http.MethodGet, "/api/admin/requests/graph?"+test.query, nil)
+			request.Header.Set("Authorization", "Bearer "+adminToken)
+			recorder := httptest.NewRecorder()
+			bootstrap.Router.ServeHTTP(recorder, request)
+
+			if recorder.Code != http.StatusOK {
+				t.Fatalf("got %d %s, want %d", recorder.Code, recorder.Body.String(), http.StatusOK)
+			}
+
+			var response struct {
+				Data []model.GraphPointResponse `json:"data"`
+			}
+			if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+				t.Fatalf("unmarshal response: %v", err)
+			}
+
+			var sum int64
+			for _, point := range response.Data {
+				sum += point.Count
+			}
+			if sum != 2 {
+				t.Errorf("%s period total = %d, want 2 (points: %+v)", test.name, sum, response.Data)
+			}
+		})
+	}
+}
+
+func TestAdminListRejectsInvalidDateFilter(t *testing.T) {
+	clearDatabase(t)
+	adminToken := getAdminToken(t)
+
+	request := httptest.NewRequest(http.MethodGet, "/api/admin/requests?date=not-a-date", nil)
+	request.Header.Set("Authorization", "Bearer "+adminToken)
+	recorder := httptest.NewRecorder()
+	bootstrap.Router.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("got %d %s, want %d", recorder.Code, recorder.Body.String(), http.StatusBadRequest)
+	}
+}
+
+func TestAdminRescheduleValidatesTemporalValues(t *testing.T) {
+	clearDatabase(t)
+	adminToken := getAdminToken(t)
+	requestID := createVisitRequest(t)
+
+	pastDate, err := time.ParseInLocation("2006-01-02", "2020-01-01", witaZone)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name     string
+		tanggal  string
+		jam      string
+		wantCode int
+	}{
+		{name: "past visit", tanggal: strconv.FormatInt(pastDate.UnixMilli(), 10), jam: epochTimeMillis("10:00"), wantCode: http.StatusBadRequest},
+		{name: "non-midnight tanggal", tanggal: "5", jam: epochTimeMillis("10:00"), wantCode: http.StatusBadRequest},
+		{name: "non-minute-aligned jam", tanggal: epochDateMillis("2031-01-01"), jam: "1", wantCode: http.StatusBadRequest},
+		{name: "valid future reschedule", tanggal: epochDateMillis("2031-01-01"), jam: epochTimeMillis("09:00"), wantCode: http.StatusOK},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			body, _ := json.Marshal(model.RescheduleRequest{
+				TanggalKunjungan: parseMillis(t, test.tanggal),
+				JamKunjungan:     parseMillis(t, test.jam),
+			})
+			request := httptest.NewRequest(http.MethodPatch, "/api/admin/requests/"+requestID+"/reschedule", bytes.NewReader(body))
+			request.Header.Set("Content-Type", "application/json")
+			request.Header.Set("Authorization", "Bearer "+adminToken)
+			recorder := httptest.NewRecorder()
+			bootstrap.Router.ServeHTTP(recorder, request)
+
+			if recorder.Code != test.wantCode {
+				t.Fatalf("got %d %s, want %d", recorder.Code, recorder.Body.String(), test.wantCode)
+			}
+		})
+	}
+}
+
+func TestAdminRequestsGraphYearlyCoversEarliestData(t *testing.T) {
+	clearDatabase(t)
+	adminToken := getAdminToken(t)
+
+	created := time.Date(2021, 6, 15, 9, 0, 0, 0, witaZone).UnixMilli()
+	result := appDB.Exec(
+		`INSERT INTO visit_requests (token, email, nama_instansi, alamat_instansi, tanggal_kunjungan, jam_kunjungan, tema_kunjungan, pimpinan_rombongan, jumlah_tamu, kontak_dihubungi, status, created_at, updated_at)
+		 VALUES ('SKP-20210615-OLD1X', 'old@example.com', 'PT Old', 'Jl. Old 1', ?, ?, 'Kunjungan', 'Budi', 1, '08123456789', 'pending', ?, ?)`,
+		time.Date(2021, 6, 20, 0, 0, 0, 0, witaZone).UnixMilli(),
+		time.Date(1970, 1, 1, 9, 0, 0, 0, witaZone).UnixMilli(),
+		created,
+		created,
+	)
+	if result.Error != nil {
+		t.Fatalf("seed old request: %v", result.Error)
+	}
+
+	request := httptest.NewRequest(http.MethodGet, "/api/admin/requests/graph?period=yearly", nil)
+	request.Header.Set("Authorization", "Bearer "+adminToken)
+	recorder := httptest.NewRecorder()
+	bootstrap.Router.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("got %d %s, want %d", recorder.Code, recorder.Body.String(), http.StatusOK)
+	}
+
+	var response struct {
+		Data []model.GraphPointResponse `json:"data"`
+	}
+	if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+		t.Fatalf("unmarshal response: %v", err)
+	}
+
+	var sum int64
+	for _, point := range response.Data {
+		sum += point.Count
+	}
+	if sum != 1 {
+		t.Errorf("yearly total = %d, want 1 (points: %+v)", sum, response.Data)
 	}
 }

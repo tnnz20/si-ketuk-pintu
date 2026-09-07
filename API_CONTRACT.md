@@ -67,8 +67,8 @@ Submit a new visitor request with required documents.
 | `email` | string | ✓ | Valid email | Visitor email |
 | `nama_instansi` | string | ✓ | - | Organization name |
 | `alamat_instansi` | string | ✓ | - | Organization address |
-| `tanggal_kunjungan` | string | ✓ | `YYYY-MM-DD` | Visit date (must be future) |
-| `jam_kunjungan` | string | ✓ | `HH:MM` | Visit time (24-hour format) |
+| `tanggal_kunjungan` | integer | ✓ | Unix epoch milliseconds | Visit date midnight in Asia/Makassar (UTC+8), must be future |
+| `jam_kunjungan` | integer | ✓ | Unix epoch milliseconds | Visit time-of-day on 1970-01-01 in Asia/Makassar (UTC+8) |
 | `tema_kunjungan` | string | ✓ | - | Visit theme/purpose |
 | `pimpinan_rombongan` | string | ✓ | - | Group leader name |
 | `jumlah_tamu` | integer | ✓ | Min: 1 | Number of guests |
@@ -96,6 +96,7 @@ Submit a new visitor request with required documents.
 - PDF files must be valid
 - Each file must not exceed 5MB
 - `tanggal_kunjungan` and `jam_kunjungan` must be in the future
+- `tanggal_kunjungan` must be midnight-aligned in Asia/Makassar (UTC+8); `jam_kunjungan` must be minute-aligned within one calendar day
 
 **Response (Success):**
 ```json
@@ -131,8 +132,8 @@ Retrieve visitor request details using the token.
   "email": "visitor@example.com",
   "nama_instansi": "Department of Education",
   "alamat_instansi": "123 Main St, City",
-  "tanggal_kunjungan": "2026-08-15",
-  "jam_kunjungan": "10:00",
+  "tanggal_kunjungan": 1786723200000,
+  "jam_kunjungan": 7200000,
   "tema_kunjungan": "School Visit",
   "pimpinan_rombongan": "Dr. John Smith",
   "jumlah_tamu": 2,
@@ -164,8 +165,8 @@ Retrieve visitor request details using the token.
       "size_bytes": 98304
     }
   ],
-  "created_at": "2026-08-11T10:30:00Z",
-  "updated_at": "2026-08-11T10:30:00Z"
+  "created_at": 1786415400000,
+  "updated_at": 1786415400000
 }
 ```
 
@@ -294,20 +295,20 @@ Retrieve paginated list of visitor requests (admin only).
       "token": "ABC123XYZ789ABC",
       "nama_instansi": "Department of Education",
       "pimpinan_rombongan": "Dr. John Smith",
-      "tanggal_kunjungan": "2026-08-15",
+      "tanggal_kunjungan": 1786723200000,
       "jumlah_tamu": 2,
       "status": "pending",
-      "created_at": "2026-08-11T10:30:00Z"
+      "created_at": 1786415400000
     },
     {
       "id": "660e8400-e29b-41d4-a716-446655440001",
       "token": "XYZ789ABC123XYZ",
       "nama_instansi": "Ministry of Health",
       "pimpinan_rombongan": "Dr. Sarah Johnson",
-      "tanggal_kunjungan": "2026-08-16",
+      "tanggal_kunjungan": 1786809600000,
       "jumlah_tamu": 3,
       "status": "approved",
-      "created_at": "2026-08-10T14:20:00Z"
+      "created_at": 1786342800000
     }
   ],
   "total": 150,
@@ -389,8 +390,8 @@ Retrieve detailed information about a specific visitor request (admin only).
     "email": "visitor@example.com",
     "nama_instansi": "Department of Education",
     "alamat_instansi": "123 Main St, City",
-    "tanggal_kunjungan": "2026-08-15",
-    "jam_kunjungan": "10:00",
+    "tanggal_kunjungan": 1786723200000,
+    "jam_kunjungan": 7200000,
     "tema_kunjungan": "School Visit",
     "pimpinan_rombongan": "Dr. John Smith",
     "jumlah_tamu": 2,
@@ -422,19 +423,19 @@ Retrieve detailed information about a specific visitor request (admin only).
         "size_bytes": 98304
       }
     ],
-    "created_at": "2026-08-11T10:30:00Z",
-    "updated_at": "2026-08-11T10:30:00Z"
+    "created_at": 1786415400000,
+    "updated_at": 1786415400000
   },
   "audit_events": [
     {
-      "id": "770e8400-e29b-41d4-a716-446655440002",
+      "id": 1,
       "actor_type": "system",
       "action": "created",
       "previous_value": null,
       "new_value": {
         "status": "pending"
       },
-      "occurred_at": "2026-08-11T10:30:00Z"
+      "occurred_at": 1786415400000
     }
   ]
 }
@@ -768,7 +769,10 @@ Rate limit exceeded responses: `429 Too Many Requests`
 
 ## Date and Time Format
 
-- **Date:** `YYYY-MM-DD` (ISO 8601)
-- **Time:** `HH:MM` or `HH:MM:SS` (24-hour format)
-- **DateTime:** ISO 8601 with timezone (e.g., `2026-08-11T10:30:00Z`)
-- **Timezone:** Asia/Makassar (UTC+8)
+- **Unit:** all temporal values are Unix epoch milliseconds (JSON numbers).
+- **`tanggal_kunjungan`:** epoch milliseconds of the visit-date midnight in Asia/Makassar (UTC+8), e.g. `1786723200000` = 2026-08-15 00:00 WITA.
+- **`jam_kunjungan`:** epoch milliseconds of the visit time-of-day on 1970-01-01 in Asia/Makassar (UTC+8), e.g. `7200000` = 10:00 WITA.
+- **`created_at` / `updated_at` / `occurred_at`:** epoch milliseconds of the actual instant.
+- **Timezone:** Asia/Makassar (UTC+8). The backend stores and returns numbers only; clients own display timezone and formatting.
+- **Graph `period`** remains a calendar label string (`YYYY-MM-DD`) in Asia/Makassar.
+- **List `date` filter query parameter** remains a calendar date string (`YYYY-MM-DD`).

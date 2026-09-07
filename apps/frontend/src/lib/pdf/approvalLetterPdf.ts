@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import { DateTime } from 'luxon';
 import type { VisitRequest } from '@app-types/api';
-import { formatLongDate, WITA_ZONE } from '@lib/dateTime';
+import { formatLongDate, formatTime, WITA_ZONE } from '@lib/dateTime';
 
 const pageWidth = 210;
 const pageHeight = 297;
@@ -9,7 +9,7 @@ const marginX = 20;
 const marginTop = 5;
 const marginBottom = 15;
 
-function formatDate(value: string) {
+function formatDate(value: number) {
   return formatLongDate(value);
 }
 
@@ -158,7 +158,7 @@ export async function generateApprovalLetterPdf(
   y += 4;
 
   // --- Using the new richParagraph for the bold formatting ---
-  const createdDate = DateTime.fromISO(request.created_at, { locale: 'id' })
+  const createdDate = DateTime.fromMillis(request.created_at, { locale: 'id' })
     .setZone(WITA_ZONE)
     .toFormat('d MMMM yyyy');
 
@@ -186,7 +186,7 @@ export async function generateApprovalLetterPdf(
   fieldWithStatus('ID Registrasi', `#${request.token}`, 'DISETUJUI');
 
   field('Hari / Tanggal', formatDate(request.tanggal_kunjungan));
-  field('Waktu Pelaksanaan', `${request.jam_kunjungan} WITA - Selesai`);
+  field('Waktu Pelaksanaan', `${formatTime(request.jam_kunjungan)} WITA - Selesai`);
   field('Tempat / Ruangan', 'Ruang Rapat Komisi I DPRD Kabupaten Tapin');
   field('Penerima Audiensi', 'Pimpinan dan Anggota Komisi I DPRD Kab. Tapin');
   field('Tema / Agenda', request.tema_kunjungan);

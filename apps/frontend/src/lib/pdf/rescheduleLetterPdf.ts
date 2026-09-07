@@ -2,11 +2,11 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { DateTime } from 'luxon';
 import type { VisitRequest } from '@app-types/api';
-import { formatLongDate, WITA_ZONE } from '@lib/dateTime';
+import { WITA_ZONE } from '@lib/dateTime';
 
 export interface Schedule {
-  tanggal_kunjungan: string;
-  jam_kunjungan: string;
+  tanggal_kunjungan: number;
+  jam_kunjungan: number;
 }
 
 const pageWidth = 210;
@@ -23,7 +23,10 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-const formatDate = (value: string) => formatLongDate(value);
+const formatDate = (value: number) =>
+  DateTime.fromMillis(value, { zone: WITA_ZONE, locale: 'id' }).toFormat('EEEE, dd MMMM yyyy');
+const formatTime = (value: number) =>
+  DateTime.fromMillis(value, { zone: WITA_ZONE, locale: 'id' }).toFormat('HH:mm');
 const today = () => DateTime.now().setZone(WITA_ZONE).setLocale('id').toFormat('d MMMM yyyy');
 
 export async function generateRescheduleLetterPdf(
@@ -118,7 +121,11 @@ export async function generateRescheduleLetterPdf(
       formatDate(oldSchedule.tanggal_kunjungan),
       formatDate(newSchedule.tanggal_kunjungan),
     ],
-    ['Waktu', `${oldSchedule.jam_kunjungan} WITA`, `${newSchedule.jam_kunjungan} WITA`],
+    [
+      'Waktu',
+      `${formatTime(oldSchedule.jam_kunjungan)} WITA`,
+      `${formatTime(newSchedule.jam_kunjungan)} WITA`,
+    ],
     ['Tempat', 'Ruang Rapat Komisi I DPRD', 'Ruang Rapat Komisi I DPRD'], // <-- Diubah di sini
     [
       { content: 'Agenda / Tema', colSpan: 1 },
