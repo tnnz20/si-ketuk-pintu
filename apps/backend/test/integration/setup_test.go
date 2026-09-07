@@ -33,7 +33,8 @@ func epochTimeMillis(hourMinute string) string {
 	if err != nil {
 		panic(err)
 	}
-	return strconv.FormatInt(time.Date(1970, 1, 1, parsed.Hour(), parsed.Minute(), 0, 0, witaZone).UnixMilli(), 10)
+	timeOfDay := time.Date(1970, 1, 1, parsed.Hour(), parsed.Minute(), 0, 0, witaZone)
+	return strconv.FormatInt(timeOfDay.UnixMilli(), 10)
 }
 
 func parseMillis(t *testing.T, value string) int64 {

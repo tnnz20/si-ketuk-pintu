@@ -286,7 +286,10 @@ func (c *AdminRequestController) Reschedule(ginContext *gin.Context) {
 
 	administratorID, _ := ginContext.Get(middleware.AdministratorIDKey)
 	if err := c.visitRequestUsecase.Reschedule(ginContext.Request.Context(), usecase.RescheduleInput{
-		VisitRequestID: id, NewDate: input.TanggalKunjungan, NewTime: input.JamKunjungan, AdministratorID: administratorID.(int64),
+		VisitRequestID:  id,
+		NewDate:         input.TanggalKunjungan,
+		NewTime:         input.JamKunjungan,
+		AdministratorID: administratorID.(int64),
 	}); err != nil {
 		if errors.Is(err, repository.ErrVisitRequestNotFound) {
 			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})

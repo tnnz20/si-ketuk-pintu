@@ -259,32 +259,18 @@ func (r *VisitRequestRepository) CountByPeriod(ctx context.Context, period strin
 		end = time.Now().In(loc).Add(24 * time.Hour)
 	}
 
-	var timestamps []int64
+	points := []model.GraphPoint{}
 	if err := r.database.WithContext(ctx).
 		Model(&entity.VisitRequest{}).
+		Select(
+			"(to_timestamp(created_at / 1000.0) AT TIME ZONE ?)::date AS period, COUNT(*) AS count",
+			loc.String(),
+		).
 		Where("created_at >= ? AND created_at < ?", start.UnixMilli(), end.UnixMilli()).
-		Order("created_at ASC").
-		Pluck("created_at", &timestamps).Error; err != nil {
+		Group("period").
+		Order("period").
+		Scan(&points).Error; err != nil {
 		return nil, fmt.Errorf("count visit requests by period: %w", err)
-	}
-
-	countsByDay := make(map[int64]int64, 32)
-	dayOrder := make([]int64, 0, 32)
-	for _, timestamp := range timestamps {
-		local := time.UnixMilli(timestamp).In(loc)
-		dayStart := time.Date(local.Year(), local.Month(), local.Day(), 0, 0, 0, 0, loc).UnixMilli()
-		if _, seen := countsByDay[dayStart]; !seen {
-			dayOrder = append(dayOrder, dayStart)
-		}
-		countsByDay[dayStart]++
-	}
-
-	points := make([]model.GraphPoint, 0, len(dayOrder))
-	for _, dayStart := range dayOrder {
-		points = append(points, model.GraphPoint{
-			Period: time.UnixMilli(dayStart).In(loc),
-			Count:  countsByDay[dayStart],
-		})
 	}
 
 	return points, nil
