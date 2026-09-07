@@ -13,7 +13,7 @@ export const statusDetailColors: Record<Status, string> = {
 };
 
 export const statusLabels: Record<Status, string> = {
-  pending: 'Pending',
+  pending: 'Menunggu',
   approved: 'Disetujui',
   rejected: 'Ditolak',
 };

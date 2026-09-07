@@ -33,18 +33,24 @@ export interface VisitRequest {
   status: 'pending' | 'approved' | 'rejected';
   guests: Guest[];
   attachments: Attachment[];
+  audit_events?: AuditEvent[];
   created_at: number;
   updated_at: number;
 }
 
 export interface AuditEvent {
   id: number;
-  actor_type: 'admin' | 'system';
+  actor_type: 'admin' | 'administrator' | 'system' | 'visitor';
   action: string;
-  previous_value: null | { status: string };
-  new_value: null | { status: string };
+  previous_value: AuditEventValue;
+  new_value: AuditEventValue;
   occurred_at: number;
 }
+
+export type AuditEventValue =
+  | null
+  | { status: string }
+  | { tanggal_kunjungan: number; jam_kunjungan: number };
 
 export interface RequestDetailResponse {
   request: VisitRequest;

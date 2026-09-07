@@ -96,6 +96,9 @@ func (r *VisitRequestRepository) FindByToken(ctx context.Context, token string) 
 			return db.Order("guest_order ASC")
 		}).
 		Preload("Attachments").
+		Preload("AuditEvents", func(db *gorm.DB) *gorm.DB {
+			return db.Order("occurred_at DESC")
+		}).
 		Where("token = ?", token).
 		First(&visitRequest).Error
 	if err != nil {

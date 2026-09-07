@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -172,15 +173,32 @@ func (c *VisitRequestController) FindByToken(ginContext *gin.Context) {
 		return
 	}
 
-	ginContext.JSON(http.StatusOK, toVisitRequestResponse(visitRequest))
+	response := toVisitRequestResponse(visitRequest)
+	response.AuditEvents = toAuditEventResponses(visitRequest.AuditEvents)
+	ginContext.JSON(http.StatusOK, response)
 }
 
 func (c *VisitRequestController) DownloadAttachment(ginContext *gin.Context) {
 	token := ginContext.Param("token")
 	attachmentType := ginContext.Param("type")
-	if attachmentType != "surat_kunjungan" && attachmentType != "surat_tugas" {
+	if attachmentType != "surat_kunjungan" && attachmentType != "surat_tugas" && attachmentType != "surat_persetujuan" && attachmentType != "images" && attachmentType != "daftar_absen" {
 		c.logger.WithField("attachmentType", attachmentType).Warn("invalid attachment type")
-		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "attachment type must be surat_kunjungan or surat_tugas"})
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid attachment type"})
+		return
+	}
+
+	attachmentID := int64(0)
+	attachmentIDParam := ginContext.Param("attachment_id")
+	if attachmentIDParam != "" {
+		parsedID, err := strconv.ParseInt(attachmentIDParam, 10, 64)
+		if err != nil || parsedID <= 0 {
+			ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid attachment id"})
+			return
+		}
+		attachmentID = parsedID
+	}
+	if (attachmentType == "images" || attachmentType == "daftar_absen") && attachmentID == 0 {
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "attachment id is required for archive attachments"})
 		return
 	}
 
@@ -197,8 +215,13 @@ func (c *VisitRequestController) DownloadAttachment(ginContext *gin.Context) {
 		return
 	}
 
+	if (attachmentType == "surat_persetujuan" || attachmentType == "images" || attachmentType == "daftar_absen") && visitRequest.Status != "approved" {
+		ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "attachment not found"})
+		return
+	}
+
 	for _, attachment := range visitRequest.Attachments {
-		if attachment.AttachmentType == attachmentType {
+		if attachment.AttachmentType == attachmentType && (attachmentID == 0 || attachment.ID == attachmentID) {
 			filePath := filepath.Join(c.uploadDir, attachment.StorageKey)
 			if _, err := os.Stat(filePath); err != nil {
 				c.logger.WithError(err).Warn("attachment file not found on disk")
@@ -206,7 +229,13 @@ func (c *VisitRequestController) DownloadAttachment(ginContext *gin.Context) {
 				return
 			}
 
-			ginContext.Header("Content-Disposition", fmt.Sprintf("inline; filename=%s", attachment.OriginalName))
+			safeName := strings.Map(func(r rune) rune {
+				if r == '"' || r < 0x20 || r == 0x7F {
+					return '_'
+				}
+				return r
+			}, filepath.Base(attachment.OriginalName))
+			ginContext.Header("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, safeName))
 			ginContext.File(filePath)
 			return
 		}
@@ -252,6 +281,27 @@ func toAttachmentResponse(a entity.Attachment) model.AttachmentResponse {
 		ContentType:    a.ContentType,
 		SizeBytes:      a.SizeBytes,
 	}
+}
+
+func toAuditEventResponses(events []entity.AuditEvent) []model.AuditEventResponse {
+	responses := make([]model.AuditEventResponse, 0, len(events))
+	for _, event := range events {
+		var previousValue any
+		_ = json.Unmarshal(event.PreviousValue, &previousValue)
+
+		var newValue any
+		_ = json.Unmarshal(event.NewValue, &newValue)
+
+		responses = append(responses, model.AuditEventResponse{
+			ID:            event.ID,
+			ActorType:     event.ActorType,
+			Action:        event.Action,
+			PreviousValue: previousValue,
+			NewValue:      newValue,
+			OccurredAt:    event.OccurredAt,
+		})
+	}
+	return responses
 }
 
 func toVisitRequestResponse(vr *entity.VisitRequest) model.VisitRequestResponse {

@@ -48,6 +48,7 @@ type VisitRequestResponse struct {
 	Status            string               `json:"status"`
 	Guests            []GuestResponse      `json:"guests"`
 	Attachments       []AttachmentResponse `json:"attachments"`
+	AuditEvents       []AuditEventResponse `json:"audit_events,omitempty"`
 	CreatedAt         int64                `json:"created_at"`
 	UpdatedAt         int64                `json:"updated_at"`
 }
