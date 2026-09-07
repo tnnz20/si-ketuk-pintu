@@ -1,244 +1,24 @@
-import { ClipboardList, Download, Eye, FileText, Images, Paperclip } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from '../../components/shared/Empty';
-import LoadingOverlay from '../../components/shared/LoadingOverlay';
-import RequestNotFoundState from '../../components/requests/RequestNotFoundState';
-import RequestDetails from '../../components/requests/RequestDetailDetails';
-import RequestGuests from '../../components/requests/RequestDetailGuests';
-import RequestAuditHistory from '../../components/requests/RequestDetailAuditHistory';
-import RequestSummary from '../../components/requests/RequestDetailSummary';
-import Skeleton from '../../components/shared/Skeleton';
-import { ApiError } from '../../lib/api/client';
-import { downloadAttachmentByToken, getRequestByToken } from '../../lib/api/requests';
-import { generateVisitRequestPdf } from '../../lib/pdf/visitRequestPdf';
-import type { Attachment, VisitRequest } from '@app-types/api';
-
-const attachmentLabels: Record<'surat_kunjungan' | 'surat_tugas', string> = {
-  surat_kunjungan: 'Surat Kunjungan',
-  surat_tugas: 'Surat Tugas',
-};
+import AttendanceCard from '@components/requests/AttendanceCard';
+import AttachedDocumentsCard from '@components/requests/AttachedDocumentsCard';
+import DocumentationCard from '@components/requests/DocumentationCard';
+import RequestAuditHistory from '@components/requests/RequestDetailAuditHistory';
+import RequestDetails from '@components/requests/RequestDetailDetails';
+import RequestGuests from '@components/requests/RequestDetailGuests';
+import RequestNotFoundState from '@components/requests/RequestNotFoundState';
+import RequestSummary from '@components/requests/RequestDetailSummary';
+import SuratPermohonanCard from '@components/requests/SuratPermohonanCard';
+import LoadingOverlay from '@components/shared/LoadingOverlay';
+import Skeleton from '@components/shared/Skeleton';
+import type { Attachment, VisitLetterAttachment, VisitRequest } from '@app-types/api';
+import { ApiError } from '@lib/api/client';
+import { downloadAttachmentByToken, getRequestByToken } from '@lib/api/requests';
+import { generateVisitRequestPdf } from '@lib/pdf/visitRequestPdf';
 
 function isArchiveAttachment(attachment: Attachment) {
   return attachment.attachment_type === 'images' || attachment.attachment_type === 'daftar_absen';
-}
-
-function EmptyAttachmentState({
-  icon,
-  title,
-  description,
-}: {
-  icon: 'images' | 'clipboard';
-  title: string;
-  description: string;
-}) {
-  return (
-    <Empty>
-      <EmptyHeader>
-        <EmptyMedia variant="icon">{icon === 'images' ? <Images /> : <ClipboardList />}</EmptyMedia>
-        <EmptyTitle>{title}</EmptyTitle>
-        <EmptyDescription>{description}</EmptyDescription>
-      </EmptyHeader>
-    </Empty>
-  );
-}
-
-function SuratPermohonanCard({
-  generating,
-  onGeneratePdf,
-}: {
-  generating: boolean;
-  onGeneratePdf: () => void;
-}) {
-  return (
-    <section className="soft-shadow space-y-3.5 rounded-3xl border border-civic-border bg-civic-surface p-6">
-      <div className="flex items-center justify-between border-b border-civic-border pb-3">
-        <h3 className="text-sm font-extrabold text-civic-dark">Surat Permohonan</h3>
-      </div>
-
-      <div className="space-y-2">
-        <div className="bg-civic-cardFill flex items-center justify-between rounded-2xl border border-civic-border p-3">
-          <div className="mr-2 min-w-0 truncate">
-            <p className="text-2xs font-extrabold tracking-wider text-civic-muted uppercase">
-              Surat Permohonan
-            </p>
-            <p className="truncate text-xs font-bold text-civic-dark">Unduh Surat Permohonan</p>
-          </div>
-          <button
-            type="button"
-            onClick={onGeneratePdf}
-            disabled={generating}
-            aria-label="Unduh Surat Permohonan"
-            title="Unduh Berkas"
-            className="shrink-0 cursor-pointer rounded-xl p-1.5 text-civic-muted transition-colors hover:bg-white hover:text-civic-dark disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <Download className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function AttachedDocumentsCard({
-  attachments,
-  onPreview,
-}: {
-  attachments: Attachment[];
-  onPreview: (attachment: Attachment) => void;
-}) {
-  return (
-    <section className="soft-shadow space-y-3.5 rounded-3xl border border-civic-border bg-civic-surface p-6">
-      <div className="flex items-center justify-between border-b border-civic-border pb-3">
-        <h3 className="flex items-center gap-2 text-sm font-extrabold text-civic-dark">
-          <Paperclip className="h-4 w-4 text-civic-muted" />
-          <span>Dokumen Terlampir</span>
-        </h3>
-        <span className="text-xs font-medium text-civic-muted">{attachments.length} berkas</span>
-      </div>
-
-      <div className="space-y-2">
-        {attachments.length === 0 ? (
-          <p className="py-3 text-center text-xs text-civic-muted">Tidak ada berkas terlampir.</p>
-        ) : (
-          attachments.map((attachment) => (
-            <div
-              key={`${attachment.id}-${attachment.attachment_type}`}
-              className="bg-civic-cardFill flex items-center justify-between rounded-2xl border border-civic-border p-3"
-            >
-              <div className="mr-2 min-w-0 truncate">
-                <p className="text-2xs font-extrabold tracking-wider text-civic-muted uppercase">
-                  {attachmentLabels[attachment.attachment_type as 'surat_kunjungan' | 'surat_tugas'] || attachment.attachment_type}
-                </p>
-                <p className="truncate text-xs font-bold text-civic-dark">
-                  {attachment.original_name}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => onPreview(attachment)}
-                aria-label={`Lihat ${attachment.original_name}`}
-                title="Lihat Berkas"
-                className="shrink-0 cursor-pointer rounded-xl p-1.5 text-civic-muted transition-colors hover:bg-white hover:text-civic-dark"
-              >
-                <Eye className="h-4 w-4" />
-              </button>
-            </div>
-          ))
-        )}
-      </div>
-    </section>
-  );
-}
-
-function DocumentationCard({
-  images,
-  onPreview,
-}: {
-  images: Attachment[];
-  onPreview: (attachment: Attachment) => void;
-}) {
-  return (
-    <section className="soft-shadow space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-6">
-      <div className="flex items-center justify-between border-b border-civic-border pb-3">
-        <h3 className="flex items-center gap-2 text-sm font-extrabold text-civic-dark">
-          <Images className="h-4 w-4 text-civic-muted" />
-          <span>Dokumentasi</span>
-        </h3>
-        <span className="text-xs font-medium text-civic-muted">{images.length} berkas</span>
-      </div>
-
-      {images.length === 0 ? (
-        <EmptyAttachmentState
-          icon="images"
-          title="Belum ada dokumentasi"
-          description="Dokumentasi kunjungan belum tersedia."
-        />
-      ) : (
-        <div className="space-y-2">
-          {images.map((image) => (
-            <div
-              key={`${image.id}-${image.attachment_type}`}
-              className="bg-civic-cardFill flex items-center justify-between rounded-2xl border border-civic-border p-3"
-            >
-              <div className="mr-2 flex min-w-0 items-center gap-2">
-                <Images className="h-4 w-4 shrink-0 text-civic-muted" />
-                <span className="truncate text-xs font-bold text-civic-dark">
-                  {image.original_name}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => onPreview(image)}
-                aria-label={`Lihat ${image.original_name}`}
-                title="Lihat Berkas"
-                className="shrink-0 cursor-pointer rounded-xl p-1.5 text-civic-muted transition-colors hover:bg-white hover:text-civic-dark"
-              >
-                <Eye className="h-4 w-4" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </section>
-  );
-}
-
-function AttendanceCard({
-  attachment,
-  onPreview,
-}: {
-  attachment?: Attachment;
-  onPreview: (attachment: Attachment) => void;
-}) {
-  return (
-    <section className="soft-shadow space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-6">
-      <div className="flex items-center justify-between border-b border-civic-border pb-3">
-        <h3 className="flex items-center gap-2 text-sm font-extrabold text-civic-dark">
-          <ClipboardList className="h-4 w-4 text-civic-muted" />
-          <span>Daftar Absen</span>
-        </h3>
-        <span className="text-xs font-medium text-civic-muted">
-          {attachment ? '1 berkas' : '0 berkas'}
-        </span>
-      </div>
-
-      {attachment ? (
-        <div className="bg-civic-cardFill flex items-center justify-between rounded-2xl border border-civic-border p-3.5">
-          <div className="mr-2 flex min-w-0 items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-civic-dark">
-              <FileText className="h-5 w-5" />
-            </div>
-            <span className="truncate text-xs font-bold text-civic-dark">
-              {attachment.original_name}
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => onPreview(attachment)}
-            aria-label={`Lihat ${attachment.original_name}`}
-            title="Lihat Berkas"
-            className="shrink-0 cursor-pointer rounded-xl p-1.5 text-civic-muted transition-colors hover:bg-white hover:text-civic-dark"
-          >
-            <Eye className="h-4 w-4" />
-          </button>
-        </div>
-      ) : (
-        <EmptyAttachmentState
-          icon="clipboard"
-          title="Belum ada daftar absen"
-          description="Daftar absen kunjungan belum tersedia."
-        />
-      )}
-    </section>
-  );
 }
 
 export default function RequestStatus() {
@@ -253,10 +33,13 @@ export default function RequestStatus() {
   const [retry, setRetry] = useState(0);
   const previewUrls = useRef<Set<string>>(new Set());
 
-  useEffect(() => () => {
-    previewUrls.current.forEach((url) => URL.revokeObjectURL(url));
-    previewUrls.current.clear();
-  }, []);
+  useEffect(
+    () => () => {
+      previewUrls.current.forEach((url) => URL.revokeObjectURL(url));
+      previewUrls.current.clear();
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!token) return;
@@ -330,8 +113,17 @@ export default function RequestStatus() {
   if (error === 'network') {
     return (
       <div className="mx-auto max-w-container-max px-margin-mobile py-20 text-center md:px-margin-desktop">
-        <p className="text-sm font-bold text-civic-dark">Terjadi kesalahan saat memuat status permohonan.</p>
-        <button type="button" onClick={() => { setResult({ token, request: null, loading: true, error: null }); setRetry((value) => value + 1); }} className="mt-4 rounded-xl bg-civic-dark px-4 py-2 text-sm font-bold text-white">
+        <p className="text-sm font-bold text-civic-dark">
+          Terjadi kesalahan saat memuat status permohonan.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            setResult({ token, request: null, loading: true, error: null });
+            setRetry((value) => value + 1);
+          }}
+          className="mt-4 rounded-xl bg-civic-dark px-4 py-2 text-sm font-bold text-white"
+        >
           Coba lagi
         </button>
       </div>
@@ -362,7 +154,7 @@ export default function RequestStatus() {
   }
 
   const documents = request.attachments.filter(
-    (attachment) =>
+    (attachment): attachment is VisitLetterAttachment =>
       attachment.attachment_type === 'surat_kunjungan' ||
       attachment.attachment_type === 'surat_tugas',
   );

@@ -18,6 +18,13 @@ export interface Attachment {
   size_bytes: number;
 }
 
+export type VisitLetterType = Extract<
+  Attachment['attachment_type'],
+  'surat_kunjungan' | 'surat_tugas'
+>;
+
+export type VisitLetterAttachment = Attachment & { attachment_type: VisitLetterType };
+
 export interface VisitRequest {
   id: string;
   token: string;
