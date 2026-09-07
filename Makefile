@@ -7,7 +7,7 @@ MIGRATE_VERSION := v4.19.1
 MIGRATE_CLI := go run -tags postgres github.com/golang-migrate/migrate/v4/cmd/migrate@$(MIGRATE_VERSION)
 
 .DEFAULT_GOAL := help
-.PHONY: help check-env check-engine compose-up compose-down compose-stop compose-down-v compose-logs be-run be-build tidy be-test be-test-unit be-test-migrations fe-dev fe-install fe-build fe-lint fe-format-check fe-prettier fe-preview migrate-up migrate-down migrate-version migrate-force migrate-create seed-admin
+.PHONY: help check-env check-engine compose-up compose-down compose-stop compose-down-v compose-logs be-run be-build tidy be-test be-test-unit be-test-migrations fe-dev fe-install fe-build fe-lint fe-format-check fe-prettier fe-preview migrate-up migrate-down migrate-version migrate-force migrate-create seed-admin seed-visit-requests
 
 help:
 	@echo "Backend:"
@@ -23,6 +23,7 @@ help:
 	@echo "  migrate-force version=X Clear dirty migration state"
 	@echo "  migrate-create name=X Create new migration"
 	@echo "  seed-admin           Seed first admin user"
+	@echo "  seed-visit-requests  Seed five sample visitor requests"
 	@echo ""
 	@echo "Frontend:"
 	@echo "  fe-dev               Start frontend dev server"
@@ -122,3 +123,6 @@ migrate-create:
 
 seed-admin: check-env
 	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/seed-admin
+
+seed-visit-requests: check-env
+	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/seed-visit-requests

@@ -8,7 +8,8 @@ Initial Go backend foundation for the Government Visitor Request Platform.
 2. Run `make compose-up` (uses Podman by default; use `make compose-up ENGINE=docker` for Docker).
 3. Run `make migrate-up`.
 4. Set `ADMIN_USERNAME`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD` in `apps/backend/.env`, then run `make seed-admin` once.
-5. Run `make be-run` and check `http://localhost:8080/healthz` and `http://localhost:8080/readyz`.
+5. Run `make seed-visit-requests` to add five sample visitor requests.
+6. Run `make be-run` and check `http://localhost:8080/healthz` and `http://localhost:8080/readyz`.
 
 The backend reads environment variables and optionally loads `apps/backend/.env` for local development. PostgreSQL runs through `compose.yaml` as `postgres:alpine` with a persistent named volume.
 
@@ -37,6 +38,7 @@ Run `make help` for all available commands. The most common are:
 - `make migrate-up` / `make migrate-down` / `make migrate-version` — manage schema migrations.
 - `make migrate-create name=add_feature` — create paired sequential SQL migrations.
 - `make seed-admin` — create the first Administrator; it never overwrites an existing account.
+- `make seed-visit-requests` — create five sample visitor requests; existing samples are skipped.
 - `make fe-install` — install frontend dependencies.
 - `make fe-dev` — start Vite development server.
 - `make fe-build` — build frontend for production.
