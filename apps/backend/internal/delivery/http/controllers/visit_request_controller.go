@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -174,6 +175,7 @@ func (c *VisitRequestController) FindByToken(ginContext *gin.Context) {
 	}
 
 	response := toVisitRequestResponse(visitRequest)
+	response.Attachments = publicAttachments(visitRequest.Attachments, visitRequest.Status)
 	response.AuditEvents = toAuditEventResponses(visitRequest.AuditEvents)
 	ginContext.JSON(http.StatusOK, response)
 }
@@ -181,7 +183,7 @@ func (c *VisitRequestController) FindByToken(ginContext *gin.Context) {
 func (c *VisitRequestController) DownloadAttachment(ginContext *gin.Context) {
 	token := ginContext.Param("token")
 	attachmentType := ginContext.Param("type")
-	if attachmentType != "surat_kunjungan" && attachmentType != "surat_tugas" && attachmentType != "surat_persetujuan" && attachmentType != "images" && attachmentType != "daftar_absen" {
+	if attachmentType != "surat_kunjungan" && attachmentType != "surat_tugas" && attachmentType != "images" && attachmentType != "daftar_absen" {
 		c.logger.WithField("attachmentType", attachmentType).Warn("invalid attachment type")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid attachment type"})
 		return
@@ -215,20 +217,44 @@ func (c *VisitRequestController) DownloadAttachment(ginContext *gin.Context) {
 		return
 	}
 
-	if (attachmentType == "surat_persetujuan" || attachmentType == "images" || attachmentType == "daftar_absen") && visitRequest.Status != "approved" {
+	if (attachmentType == "images" || attachmentType == "daftar_absen") && visitRequest.Status != "approved" {
 		ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "attachment not found"})
 		return
 	}
 
 	for _, attachment := range visitRequest.Attachments {
 		if attachment.AttachmentType == attachmentType && (attachmentID == 0 || attachment.ID == attachmentID) {
-			filePath := filepath.Join(c.uploadDir, attachment.StorageKey)
-			if _, err := os.Stat(filePath); err != nil {
-				c.logger.WithError(err).Warn("attachment file not found on disk")
+			uploadRoot, err := filepath.Abs(c.uploadDir)
+			if err != nil {
+				ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
+				return
+			}
+			filePath, err := filepath.Abs(filepath.Join(uploadRoot, attachment.StorageKey))
+			if err != nil || (filePath != uploadRoot && !strings.HasPrefix(filePath, uploadRoot+string(filepath.Separator))) {
 				ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "file not found"})
 				return
 			}
-
+			resolvedRoot, err := filepath.EvalSymlinks(uploadRoot)
+			if err != nil {
+				ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
+				return
+			}
+			resolvedPath, err := filepath.EvalSymlinks(filePath)
+			if err != nil || (resolvedPath != resolvedRoot && !strings.HasPrefix(resolvedPath, resolvedRoot+string(filepath.Separator))) {
+				ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "file not found"})
+				return
+			}
+			file, err := os.Open(resolvedPath)
+			if err != nil {
+				ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "file not found"})
+				return
+			}
+			defer file.Close()
+			fileInfo, err := file.Stat()
+			if err != nil || !fileInfo.Mode().IsRegular() {
+				ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "file not found"})
+				return
+			}
 			safeName := strings.Map(func(r rune) rune {
 				if r == '"' || r < 0x20 || r == 0x7F {
 					return '_'
@@ -236,7 +262,10 @@ func (c *VisitRequestController) DownloadAttachment(ginContext *gin.Context) {
 				return r
 			}, filepath.Base(attachment.OriginalName))
 			ginContext.Header("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, safeName))
-			ginContext.File(filePath)
+			if contentType := mime.TypeByExtension(filepath.Ext(attachment.OriginalName)); contentType != "" {
+				ginContext.Header("Content-Type", contentType)
+			}
+			http.ServeContent(ginContext.Writer, ginContext.Request, safeName, fileInfo.ModTime(), file)
 			return
 		}
 	}
@@ -300,6 +329,16 @@ func toAuditEventResponses(events []entity.AuditEvent) []model.AuditEventRespons
 			NewValue:      newValue,
 			OccurredAt:    event.OccurredAt,
 		})
+	}
+	return responses
+}
+
+func publicAttachments(attachments []entity.Attachment, status string) []model.AttachmentResponse {
+	responses := make([]model.AttachmentResponse, 0, len(attachments))
+	for _, attachment := range attachments {
+		if attachment.AttachmentType == "surat_kunjungan" || attachment.AttachmentType == "surat_tugas" || (status == "approved" && (attachment.AttachmentType == "images" || attachment.AttachmentType == "daftar_absen")) {
+			responses = append(responses, toAttachmentResponse(attachment))
+		}
 	}
 	return responses
 }

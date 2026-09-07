@@ -6,6 +6,23 @@ interface RequestAuditHistoryProps {
   events: AuditEvent[];
 }
 
+const actionLabels: Record<string, string> = {
+  request_submitted: 'Permohonan dikirim',
+  status_changed: 'Status diubah',
+  approval_letter_uploaded: 'Surat persetujuan diunggah',
+  reschedule_letter_uploaded: 'Surat penjadwalan ulang diunggah',
+  documentation_uploaded: 'Dokumentasi diunggah',
+  attendance_uploaded: 'Daftar absen diunggah',
+};
+
+const actorLabels: Record<string, string> = {
+  visitor: 'Pemohon',
+  administrator: 'Administrator',
+  guest: 'Pemohon',
+  admin: 'Admin',
+  system: 'Sistem',
+};
+
 export default function RequestDetailAuditHistory({ events }: RequestAuditHistoryProps) {
   return (
     <div className="soft-shadow space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-6">
@@ -31,11 +48,11 @@ export default function RequestDetailAuditHistory({ events }: RequestAuditHistor
                   }`}
                 />
                 <p className="text-xs font-extrabold text-civic-dark capitalize">
-                  {event.action.replace('_', ' ')}
+                  {actionLabels[event.action] || event.action.replaceAll('_', ' ')}
                 </p>
                 <p className="mt-0.5 text-2xs font-medium text-civic-muted">
                   {formatDateTime(event.occurred_at)} • oleh{' '}
-                  <span className="font-bold text-civic-dark">{event.actor_type}</span>
+                  <span className="font-bold text-civic-dark">{actorLabels[event.actor_type] || event.actor_type}</span>
                 </p>
               </div>
             );

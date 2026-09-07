@@ -1,5 +1,5 @@
 import { ClipboardList, Download, Eye, FileText, Images, Paperclip } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
@@ -16,18 +16,14 @@ import RequestGuests from '../../components/requests/RequestDetailGuests';
 import RequestAuditHistory from '../../components/requests/RequestDetailAuditHistory';
 import RequestSummary from '../../components/requests/RequestDetailSummary';
 import Skeleton from '../../components/shared/Skeleton';
+import { ApiError } from '../../lib/api/client';
 import { downloadAttachmentByToken, getRequestByToken } from '../../lib/api/requests';
 import { generateVisitRequestPdf } from '../../lib/pdf/visitRequestPdf';
 import type { Attachment, VisitRequest } from '@app-types/api';
 
-const attachmentLabels: Record<
-  Exclude<Attachment['attachment_type'], 'images' | 'daftar_absen'>,
-  string
-> = {
+const attachmentLabels: Record<'surat_kunjungan' | 'surat_tugas', string> = {
   surat_kunjungan: 'Surat Kunjungan',
   surat_tugas: 'Surat Tugas',
-  surat_persetujuan: 'Surat Persetujuan',
-  surat_reschedule: 'Surat Penjadwalan Ulang',
 };
 
 function isArchiveAttachment(attachment: Attachment) {
@@ -119,12 +115,7 @@ function AttachedDocumentsCard({
             >
               <div className="mr-2 min-w-0 truncate">
                 <p className="text-2xs font-extrabold tracking-wider text-civic-muted uppercase">
-                  {attachmentLabels[
-                    attachment.attachment_type as Exclude<
-                      Attachment['attachment_type'],
-                      'images' | 'daftar_absen'
-                    >
-                  ] || attachment.attachment_type}
+                  {attachmentLabels[attachment.attachment_type as 'surat_kunjungan' | 'surat_tugas'] || attachment.attachment_type}
                 </p>
                 <p className="truncate text-xs font-bold text-civic-dark">
                   {attachment.original_name}
@@ -256,9 +247,16 @@ export default function RequestStatus() {
     token: string | null;
     request: VisitRequest | null;
     loading: boolean;
-    error: boolean;
-  }>({ token: null, request: null, loading: true, error: false });
+    error: 'not-found' | 'network' | null;
+  }>({ token: null, request: null, loading: true, error: null });
   const [generating, setGenerating] = useState(false);
+  const [retry, setRetry] = useState(0);
+  const previewUrls = useRef<Set<string>>(new Set());
+
+  useEffect(() => () => {
+    previewUrls.current.forEach((url) => URL.revokeObjectURL(url));
+    previewUrls.current.clear();
+  }, []);
 
   useEffect(() => {
     if (!token) return;
@@ -266,16 +264,23 @@ export default function RequestStatus() {
     let cancelled = false;
     getRequestByToken(token)
       .then((data) => {
-        if (!cancelled) setResult({ token, request: data, loading: false, error: false });
+        if (!cancelled) setResult({ token, request: data, loading: false, error: null });
       })
-      .catch(() => {
-        if (!cancelled) setResult({ token, request: null, loading: false, error: true });
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          setResult({
+            token,
+            request: null,
+            loading: false,
+            error: error instanceof ApiError && error.status === 404 ? 'not-found' : 'network',
+          });
+        }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, retry]);
 
   const hasCurrentResult = result.token === token;
   const request = hasCurrentResult ? result.request : null;
@@ -285,13 +290,22 @@ export default function RequestStatus() {
   async function previewAttachment(attachment: Attachment) {
     if (!token || attachment.attachment_type === 'surat_reschedule') return;
 
+    const previewWindow = window.open('', '_blank');
+    if (!previewWindow) {
+      toast.error('Izinkan popup untuk membuka berkas.');
+      return;
+    }
+
+    let url: string | undefined;
     try {
       const attachmentId = isArchiveAttachment(attachment) ? attachment.id : undefined;
       const blob = await downloadAttachmentByToken(token, attachment.attachment_type, attachmentId);
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank', 'noopener,noreferrer');
-      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      url = URL.createObjectURL(blob);
+      previewUrls.current.add(url);
+      previewWindow.location.href = url;
     } catch {
+      if (url) URL.revokeObjectURL(url);
+      previewWindow.close();
       toast.error('Gagal membuka berkas.');
     }
   }
@@ -309,8 +323,19 @@ export default function RequestStatus() {
     }
   }
 
-  if (!token || error) {
+  if (!token || error === 'not-found') {
     return <RequestNotFoundState token={token || ''} backToHomeIcon="help-circle" />;
+  }
+
+  if (error === 'network') {
+    return (
+      <div className="mx-auto max-w-container-max px-margin-mobile py-20 text-center md:px-margin-desktop">
+        <p className="text-sm font-bold text-civic-dark">Terjadi kesalahan saat memuat status permohonan.</p>
+        <button type="button" onClick={() => { setResult({ token, request: null, loading: true, error: null }); setRetry((value) => value + 1); }} className="mt-4 rounded-xl bg-civic-dark px-4 py-2 text-sm font-bold text-white">
+          Coba lagi
+        </button>
+      </div>
+    );
   }
 
   if (loading) {
@@ -339,8 +364,7 @@ export default function RequestStatus() {
   const documents = request.attachments.filter(
     (attachment) =>
       attachment.attachment_type === 'surat_kunjungan' ||
-      attachment.attachment_type === 'surat_tugas' ||
-      attachment.attachment_type === 'surat_persetujuan',
+      attachment.attachment_type === 'surat_tugas',
   );
   const documentationImages = request.attachments.filter(
     (attachment) => attachment.attachment_type === 'images',

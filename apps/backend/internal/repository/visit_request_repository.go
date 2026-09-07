@@ -97,7 +97,7 @@ func (r *VisitRequestRepository) FindByToken(ctx context.Context, token string) 
 		}).
 		Preload("Attachments").
 		Preload("AuditEvents", func(db *gorm.DB) *gorm.DB {
-			return db.Order("occurred_at DESC")
+			return db.Order("occurred_at DESC, id DESC")
 		}).
 		Where("token = ?", token).
 		First(&visitRequest).Error
@@ -121,7 +121,7 @@ func (r *VisitRequestRepository) FindByID(ctx context.Context, id uuid.UUID) (*e
 		}).
 		Preload("Attachments").
 		Preload("AuditEvents", func(db *gorm.DB) *gorm.DB {
-			return db.Order("occurred_at DESC")
+			return db.Order("occurred_at DESC, id DESC")
 		}).
 		First(&visitRequest, "id = ?", id).Error
 	if err != nil {

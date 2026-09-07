@@ -32,7 +32,7 @@ func (r *AuditEventRepository) ListByVisitRequest(
 	events := []entity.AuditEvent{}
 	err := r.database.WithContext(ctx).
 		Where("visit_request_id = ?", visitRequestID).
-		Order("occurred_at DESC").
+		Order("occurred_at DESC, id DESC").
 		Find(&events).Error
 	if err != nil {
 		return nil, fmt.Errorf("list audit events: %w", err)
