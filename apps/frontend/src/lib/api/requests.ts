@@ -122,7 +122,9 @@ export function downloadAttachment(
 
 export function downloadAttachmentByToken(
   token: string,
-  type: 'surat_kunjungan' | 'surat_tugas',
+  type: 'surat_kunjungan' | 'surat_tugas' | 'surat_persetujuan' | 'images' | 'daftar_absen',
+  attachmentId?: number,
 ): Promise<Blob> {
-  return api(`/api/public/requests/${token}/attachments/${type}`);
+  const suffix = attachmentId === undefined ? '' : `/${attachmentId}`;
+  return api(`/api/public/requests/${token}/attachments/${type}${suffix}`);
 }

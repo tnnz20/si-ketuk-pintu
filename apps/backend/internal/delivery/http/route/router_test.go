@@ -38,6 +38,8 @@ func TestRouterRegistersAllRoutes(t *testing.T) {
 		"GET /api/readyz":                                                         false,
 		"POST /api/public/requests":                                               false,
 		"GET /api/public/requests/:token":                                         false,
+		"GET /api/public/requests/:token/attachments/:type":                       false,
+		"GET /api/public/requests/:token/attachments/:type/:attachment_id":        false,
 		"GET /api/public/requests/:token/qr":                                      false,
 		"POST /api/admin/auth/login":                                              false,
 		"GET /api/admin/requests":                                                 false,

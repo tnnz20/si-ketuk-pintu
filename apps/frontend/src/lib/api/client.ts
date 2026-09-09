@@ -1,5 +1,14 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+  ) {
+    super(message);
+  }
+}
+
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('jwt_token');
   const headers = new Headers(init.headers);
@@ -11,7 +20,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
 
   if (!response.ok) {
     const data = await response.json().catch(() => ({ error: response.statusText }));
-    throw new Error(data.error || response.statusText);
+		throw new ApiError(data.error || response.statusText, response.status);
   }
 
   if (response.headers.get('Content-Type')?.includes('application/json')) {

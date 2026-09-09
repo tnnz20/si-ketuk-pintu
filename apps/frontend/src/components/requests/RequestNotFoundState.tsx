@@ -16,7 +16,7 @@ export default function RequestNotFoundState({
 }: RequestNotFoundStateProps) {
   const tryAnotherToken = (
     <>
-      <Search className="h-4 w-4" aria-hidden="true" /> Try another token
+      <Search className="h-4 w-4" aria-hidden="true" /> Coba token lain
     </>
   );
   const backToHome = (
@@ -26,7 +26,7 @@ export default function RequestNotFoundState({
       ) : (
         <HelpCircle className="h-4 w-4" aria-hidden="true" />
       )}{' '}
-      Back to Home
+      Kembali ke Beranda
     </>
   );
 
@@ -39,9 +39,11 @@ export default function RequestNotFoundState({
           <Search className="h-10 w-10" aria-hidden="true" />
         )}
       </div>
-      <h1 className="font-headline-lg text-headline-lg text-on-surface">Request Not Found</h1>
+      <h1 className="font-headline-lg text-headline-lg text-on-surface">
+        Permohonan Tidak Ditemukan
+      </h1>
       <p className="font-body-md mt-4 text-body-md text-on-surface-variant">
-        No visitor request matches token{' '}
+        Tidak ada permohonan kunjungan yang cocok dengan token{' '}
         <strong className="text-on-surface">{token || tokenFallback}</strong>.
       </p>
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
