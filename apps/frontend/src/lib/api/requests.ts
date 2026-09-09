@@ -17,6 +17,8 @@ export async function createVisitRequest(
     ['email', request.email],
     ['nama_instansi', request.nama_instansi],
     ['alamat_instansi', request.alamat_instansi],
+    ['tujuan_instansi', request.tujuan_instansi],
+    ['tujuan_bagian', request.tujuan_bagian],
     ['tanggal_kunjungan', String(request.tanggal_kunjungan)],
     ['jam_kunjungan', String(request.jam_kunjungan)],
     ['tema_kunjungan', request.tema_kunjungan],

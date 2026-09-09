@@ -1,6 +1,54 @@
 package model
 
-import "time"
+import (
+	"fmt"
+	"slices"
+	"strings"
+	"time"
+)
+
+// TujuanBagianOptions maps each tujuan_instansi to its allowed tujuan_bagian values.
+// Keep in sync with apps/frontend/src/constants/destinations.ts.
+var TujuanBagianOptions = map[string][]string{
+	"Sekretariat DPRD": {
+		"Sekretaris Dewan",
+		"Kabag Fasilitasi",
+		"Kabag Umum dan Keuangan",
+		"Kabag Hukum",
+	},
+	"DPRD Kab. Tapin": {
+		"Ketua DPRD",
+		"Wakil Ketua DPRD I",
+		"Wakil Ketua DPRD II",
+		"Komisi I",
+		"Komisi II",
+		"Komisi III",
+		"BANGGAR",
+		"Bapemperda",
+		"BANMUS",
+		"Badan Kehormatan",
+	},
+}
+
+func TujuanInstansiOptions() []string {
+	options := make([]string, 0, len(TujuanBagianOptions))
+	for instansi := range TujuanBagianOptions {
+		options = append(options, instansi)
+	}
+	slices.Sort(options)
+	return options
+}
+
+func ValidateTujuanDestination(tujuanInstansi, tujuanBagian string) error {
+	bagianOptions, ok := TujuanBagianOptions[tujuanInstansi]
+	if !ok {
+		return fmt.Errorf("tujuan_instansi must be one of: %s", strings.Join(TujuanInstansiOptions(), ", "))
+	}
+	if !slices.Contains(bagianOptions, tujuanBagian) {
+		return fmt.Errorf("tujuan_bagian must be one of: %s", strings.Join(bagianOptions, ", "))
+	}
+	return nil
+}
 
 type GuestInput struct {
 	Nama    string `json:"nama" binding:"required"`
@@ -11,6 +59,8 @@ type CreateVisitRequestRequest struct {
 	Email             string `form:"email" binding:"required,email"`
 	NamaInstansi      string `form:"nama_instansi" binding:"required"`
 	AlamatInstansi    string `form:"alamat_instansi" binding:"required"`
+	TujuanInstansi    string `form:"tujuan_instansi" binding:"required"`
+	TujuanBagian      string `form:"tujuan_bagian" binding:"required"`
 	TanggalKunjungan  int64  `form:"tanggal_kunjungan" binding:"required"`
 	JamKunjungan      int64  `form:"jam_kunjungan" binding:"required"`
 	TemaKunjungan     string `form:"tema_kunjungan" binding:"required"`
@@ -39,6 +89,8 @@ type VisitRequestResponse struct {
 	Email             string               `json:"email"`
 	NamaInstansi      string               `json:"nama_instansi"`
 	AlamatInstansi    string               `json:"alamat_instansi"`
+	TujuanInstansi    string               `json:"tujuan_instansi"`
+	TujuanBagian      string               `json:"tujuan_bagian"`
 	TanggalKunjungan  int64                `json:"tanggal_kunjungan"`
 	JamKunjungan      int64                `json:"jam_kunjungan"`
 	TemaKunjungan     string               `json:"tema_kunjungan"`
@@ -57,6 +109,8 @@ type VisitRequestListItem struct {
 	ID                string `json:"id"`
 	Token             string `json:"token"`
 	NamaInstansi      string `json:"nama_instansi"`
+	TujuanInstansi    string `json:"tujuan_instansi"`
+	TujuanBagian      string `json:"tujuan_bagian"`
 	PimpinanRombongan string `json:"pimpinan_rombongan"`
 	TanggalKunjungan  int64  `json:"tanggal_kunjungan"`
 	JumlahTamu        int    `json:"jumlah_tamu"`

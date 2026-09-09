@@ -24,6 +24,8 @@ func TestCreateVisitRequestSuccess(t *testing.T) {
 	_ = writer.WriteField("email", "test@example.com")
 	_ = writer.WriteField("nama_instansi", "PT Testing")
 	_ = writer.WriteField("alamat_instansi", "Jl. Test 123")
+	_ = writer.WriteField("tujuan_instansi", "Sekretariat DPRD")
+	_ = writer.WriteField("tujuan_bagian", "Kabag Hukum")
 	_ = writer.WriteField("tanggal_kunjungan", epochDateMillis("2030-01-01"))
 	_ = writer.WriteField("jam_kunjungan", epochTimeMillis("10:00"))
 	_ = writer.WriteField("tema_kunjungan", "Studi Banding")
@@ -77,6 +79,14 @@ func TestCreateVisitRequestSuccess(t *testing.T) {
 	if visitRequest.Email != "test@example.com" {
 		t.Errorf("expected email test@example.com, got %s", visitRequest.Email)
 	}
+
+	if visitRequest.TujuanInstansi != "Sekretariat DPRD" {
+		t.Errorf("expected tujuan_instansi Sekretariat DPRD, got %s", visitRequest.TujuanInstansi)
+	}
+
+	if visitRequest.TujuanBagian != "Kabag Hukum" {
+		t.Errorf("expected tujuan_bagian Kabag Hukum, got %s", visitRequest.TujuanBagian)
+	}
 }
 
 func TestGetVisitRequestIncludesAuditEventsNewestFirst(t *testing.T) {
@@ -87,6 +97,8 @@ func TestGetVisitRequestIncludesAuditEventsNewestFirst(t *testing.T) {
 	_ = writer.WriteField("email", "audit@example.com")
 	_ = writer.WriteField("nama_instansi", "PT Audit")
 	_ = writer.WriteField("alamat_instansi", "Jl. Audit 1")
+	_ = writer.WriteField("tujuan_instansi", "DPRD Kab. Tapin")
+	_ = writer.WriteField("tujuan_bagian", "Komisi I")
 	_ = writer.WriteField("tanggal_kunjungan", epochDateMillis("2030-01-01"))
 	_ = writer.WriteField("jam_kunjungan", epochTimeMillis("10:00"))
 	_ = writer.WriteField("tema_kunjungan", "Audit")
@@ -228,6 +240,8 @@ func TestDownloadQRSuccess(t *testing.T) {
 	_ = writer.WriteField("email", "qr@example.com")
 	_ = writer.WriteField("nama_instansi", "PT Testing")
 	_ = writer.WriteField("alamat_instansi", "Jl. Test 123")
+	_ = writer.WriteField("tujuan_instansi", "Sekretariat DPRD")
+	_ = writer.WriteField("tujuan_bagian", "Sekretaris Dewan")
 	_ = writer.WriteField("tanggal_kunjungan", epochDateMillis("2030-01-01"))
 	_ = writer.WriteField("jam_kunjungan", epochTimeMillis("10:00"))
 	_ = writer.WriteField("tema_kunjungan", "Studi Banding")
@@ -307,6 +321,8 @@ func TestCreateVisitRequestRejectsInvalidTemporalValues(t *testing.T) {
 			_ = writer.WriteField("email", "invalid-temporal@example.com")
 			_ = writer.WriteField("nama_instansi", "PT Testing")
 			_ = writer.WriteField("alamat_instansi", "Jl. Test 123")
+			_ = writer.WriteField("tujuan_instansi", "Sekretariat DPRD")
+			_ = writer.WriteField("tujuan_bagian", "Kabag Fasilitasi")
 			_ = writer.WriteField("tanggal_kunjungan", test.tanggal)
 			_ = writer.WriteField("jam_kunjungan", test.jam)
 			_ = writer.WriteField("tema_kunjungan", "Studi Banding")
@@ -345,6 +361,8 @@ func TestCreateVisitRequestRejectsPastVisit(t *testing.T) {
 	_ = writer.WriteField("email", "past@example.com")
 	_ = writer.WriteField("nama_instansi", "PT Testing")
 	_ = writer.WriteField("alamat_instansi", "Jl. Test 123")
+	_ = writer.WriteField("tujuan_instansi", "Sekretariat DPRD")
+	_ = writer.WriteField("tujuan_bagian", "Kabag Hukum")
 	_ = writer.WriteField("tanggal_kunjungan", strconv.FormatInt(pastDate.UnixMilli(), 10))
 	_ = writer.WriteField("jam_kunjungan", epochTimeMillis("10:00"))
 	_ = writer.WriteField("tema_kunjungan", "Studi Banding")
@@ -365,5 +383,99 @@ func TestCreateVisitRequestRejectsPastVisit(t *testing.T) {
 
 	if recorder.Code != http.StatusBadRequest {
 		t.Fatalf("got %d %s, want %d", recorder.Code, recorder.Body.String(), http.StatusBadRequest)
+	}
+}
+
+func TestCreateVisitRequestRejectsInvalidTujuan(t *testing.T) {
+	tests := []struct {
+		name           string
+		tujuanInstansi string
+		tujuanBagian   string
+	}{
+		{name: "unknown tujuan_instansi", tujuanInstansi: "Dinas Pendidikan", tujuanBagian: "Kabag Hukum"},
+		{name: "unknown tujuan_bagian", tujuanInstansi: "Sekretariat DPRD", tujuanBagian: "Kabag Sumber Daya"},
+		{name: "invalid combination", tujuanInstansi: "DPRD Kab. Tapin", tujuanBagian: "Kabag Hukum"},
+		{name: "case mismatch", tujuanInstansi: "sekretariat dprd", tujuanBagian: "Kabag Hukum"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			clearDatabase(t)
+
+			var body bytes.Buffer
+			writer := multipart.NewWriter(&body)
+			_ = writer.WriteField("email", "invalid-tujuan@example.com")
+			_ = writer.WriteField("nama_instansi", "PT Testing")
+			_ = writer.WriteField("alamat_instansi", "Jl. Test 123")
+			_ = writer.WriteField("tujuan_instansi", test.tujuanInstansi)
+			_ = writer.WriteField("tujuan_bagian", test.tujuanBagian)
+			_ = writer.WriteField("tanggal_kunjungan", epochDateMillis("2030-01-01"))
+			_ = writer.WriteField("jam_kunjungan", epochTimeMillis("10:00"))
+			_ = writer.WriteField("tema_kunjungan", "Studi Banding")
+			_ = writer.WriteField("pimpinan_rombongan", "Budi")
+			_ = writer.WriteField("jumlah_tamu", "1")
+			_ = writer.WriteField("kontak_dihubungi", "08123456789")
+			_ = writer.WriteField("guests", `[{"nama": "Budi", "jabatan": "Manager"}]`)
+			suratKunjungan, _ := writer.CreateFormFile("surat_kunjungan", "surat_kunjungan.pdf")
+			_, _ = suratKunjungan.Write([]byte("%PDF-1.4 dummy pdf content"))
+			suratTugas, _ := writer.CreateFormFile("surat_tugas", "surat_tugas.pdf")
+			_, _ = suratTugas.Write([]byte("%PDF-1.4 dummy pdf content"))
+			writer.Close()
+
+			request := httptest.NewRequest(http.MethodPost, "/api/public/requests", &body)
+			request.Header.Set("Content-Type", writer.FormDataContentType())
+			recorder := httptest.NewRecorder()
+			bootstrap.Router.ServeHTTP(recorder, request)
+
+			if recorder.Code != http.StatusBadRequest {
+				t.Fatalf("got %d %s, want %d", recorder.Code, recorder.Body.String(), http.StatusBadRequest)
+			}
+		})
+	}
+}
+
+func TestCreateVisitRequestRejectsMissingTujuan(t *testing.T) {
+	tests := []struct {
+		name          string
+		tujuanInstansi string
+		tujuanBagian  string
+	}{
+		{name: "missing tujuan_instansi", tujuanInstansi: "", tujuanBagian: "Kabag Hukum"},
+		{name: "missing tujuan_bagian", tujuanInstansi: "Sekretariat DPRD", tujuanBagian: ""},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			clearDatabase(t)
+
+			var body bytes.Buffer
+			writer := multipart.NewWriter(&body)
+			_ = writer.WriteField("email", "tujuan@example.com")
+			_ = writer.WriteField("nama_instansi", "PT Testing")
+			_ = writer.WriteField("alamat_instansi", "Jl. Test 123")
+			_ = writer.WriteField("tujuan_instansi", test.tujuanInstansi)
+			_ = writer.WriteField("tujuan_bagian", test.tujuanBagian)
+			_ = writer.WriteField("tanggal_kunjungan", epochDateMillis("2030-01-01"))
+			_ = writer.WriteField("jam_kunjungan", epochTimeMillis("10:00"))
+			_ = writer.WriteField("tema_kunjungan", "Studi Banding")
+			_ = writer.WriteField("pimpinan_rombongan", "Budi")
+			_ = writer.WriteField("jumlah_tamu", "1")
+			_ = writer.WriteField("kontak_dihubungi", "08123456789")
+			_ = writer.WriteField("guests", `[{"nama": "Budi", "jabatan": "Manager"}]`)
+			suratKunjungan, _ := writer.CreateFormFile("surat_kunjungan", "surat_kunjungan.pdf")
+			_, _ = suratKunjungan.Write([]byte("%PDF-1.4 dummy pdf content"))
+			suratTugas, _ := writer.CreateFormFile("surat_tugas", "surat_tugas.pdf")
+			_, _ = suratTugas.Write([]byte("%PDF-1.4 dummy pdf content"))
+			writer.Close()
+
+			request := httptest.NewRequest(http.MethodPost, "/api/public/requests", &body)
+			request.Header.Set("Content-Type", writer.FormDataContentType())
+			recorder := httptest.NewRecorder()
+			bootstrap.Router.ServeHTTP(recorder, request)
+
+			if recorder.Code != http.StatusBadRequest {
+				t.Fatalf("got %d %s, want %d", recorder.Code, recorder.Body.String(), http.StatusBadRequest)
+			}
+		})
 	}
 }

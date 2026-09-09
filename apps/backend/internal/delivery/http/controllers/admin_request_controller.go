@@ -77,6 +77,8 @@ func (c *AdminRequestController) listRequests(ginContext *gin.Context, status st
 			ID:                vr.ID.String(),
 			Token:             vr.Token,
 			NamaInstansi:      vr.NamaInstansi,
+			TujuanInstansi:    vr.TujuanInstansi,
+			TujuanBagian:      vr.TujuanBagian,
 			PimpinanRombongan: vr.PimpinanRombongan,
 			TanggalKunjungan:  vr.TanggalKunjungan,
 			JumlahTamu:        vr.JumlahTamu,

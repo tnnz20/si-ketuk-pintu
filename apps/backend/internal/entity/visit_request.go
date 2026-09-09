@@ -8,6 +8,8 @@ type VisitRequest struct {
 	Email             string    `gorm:"size:255;not null"`
 	NamaInstansi      string    `gorm:"not null"`
 	AlamatInstansi    string    `gorm:"not null"`
+	TujuanInstansi    string    `gorm:"not null"`
+	TujuanBagian      string    `gorm:"not null"`
 	TanggalKunjungan  int64     `gorm:"not null"`
 	JamKunjungan      int64     `gorm:"not null"`
 	TemaKunjungan     string    `gorm:"not null"`

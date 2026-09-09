@@ -68,6 +68,8 @@ func seedVisitRequest(ctx context.Context, store *repository.VisitRequestReposit
 func seedVisitRequests(now time.Time) []entity.VisitRequest {
 	requests := make([]entity.VisitRequest, 0, 5)
 	statuses := []string{"pending", "approved", "rejected", "pending", "approved"}
+	tujuanInstansi := []string{"Sekretariat DPRD", "DPRD Kab. Tapin"}
+	tujuanBagian := []string{"Kabag Hukum", "Komisi II"}
 	seedDate := now.In(model.WITATimeZone).Format("20060102")
 	for i := range 5 {
 		visitDate := now.In(model.WITATimeZone).AddDate(0, 0, i+1)
@@ -84,6 +86,8 @@ func seedVisitRequests(now time.Time) []entity.VisitRequest {
 			Email:             fmt.Sprintf("dummy%d@example.com", i+1),
 			NamaInstansi:      fmt.Sprintf("Instansi Dummy %d", i+1),
 			AlamatInstansi:    fmt.Sprintf("Jl. Dummy No. %d, Makassar", i+1),
+			TujuanInstansi:    tujuanInstansi[i%2],
+			TujuanBagian:      tujuanBagian[i%2],
 			TanggalKunjungan:  time.Date(visitDate.Year(), visitDate.Month(), visitDate.Day(), 0, 0, 0, 0, model.WITATimeZone).UnixMilli(),
 			JamKunjungan:      time.Date(1970, 1, 1, 9+i, 0, 0, 0, model.WITATimeZone).UnixMilli(),
 			TemaKunjungan:     fmt.Sprintf("Kunjungan dummy %d", i+1),

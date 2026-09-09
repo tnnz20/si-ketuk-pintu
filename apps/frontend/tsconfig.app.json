@@ -7,7 +7,8 @@
       "@lib/*": ["./src/lib/*"],
       "@utils/*": ["./src/utils/*"],
       "@app-types/*": ["./src/types/*"],
-      "@constants/*": ["./src/constants/*"]
+      "@constants/*": ["./src/constants/*"],
+      "@schemas/*": ["./src/schemas/*"]
     },
     "target": "ES2022",
     "useDefineForClassFields": true,

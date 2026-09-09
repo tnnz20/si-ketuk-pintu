@@ -22,6 +22,8 @@ func createVisitRequest(t *testing.T) string {
 	_ = writer.WriteField("email", "archive@example.com")
 	_ = writer.WriteField("nama_instansi", "PT Arsip")
 	_ = writer.WriteField("alamat_instansi", "Jl. Arsip 1")
+	_ = writer.WriteField("tujuan_instansi", "DPRD Kab. Tapin")
+	_ = writer.WriteField("tujuan_bagian", "BANGGAR")
 	_ = writer.WriteField("tanggal_kunjungan", epochDateMillis("2030-01-01"))
 	_ = writer.WriteField("jam_kunjungan", epochTimeMillis("10:00"))
 	_ = writer.WriteField("tema_kunjungan", "Kunjungan Arsip")

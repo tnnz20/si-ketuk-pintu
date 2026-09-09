@@ -31,6 +31,8 @@ export interface VisitRequest {
   email: string;
   nama_instansi: string;
   alamat_instansi: string;
+  tujuan_instansi: string;
+  tujuan_bagian: string;
   tanggal_kunjungan: number;
   jam_kunjungan: number;
   tema_kunjungan: string;
@@ -68,6 +70,8 @@ export interface CreateVisitRequestData {
   email: string;
   nama_instansi: string;
   alamat_instansi: string;
+  tujuan_instansi: string;
+  tujuan_bagian: string;
   tanggal_kunjungan: number;
   jam_kunjungan: number;
   tema_kunjungan: string;
@@ -99,6 +103,8 @@ export interface PaginatedRequestsResponse {
     id: string;
     token: string;
     nama_instansi: string;
+    tujuan_instansi: string;
+    tujuan_bagian: string;
     pimpinan_rombongan: string;
     tanggal_kunjungan: number;
     jumlah_tamu: number;

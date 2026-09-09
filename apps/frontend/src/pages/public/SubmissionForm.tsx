@@ -23,16 +23,25 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { fadeInUp, staggerContainer } from '@constants/animations';
-import { createVisitRequest } from '../../lib/api/requests';
+import {
+  TUJUAN_BAGIAN_OPTIONS,
+  TUJUAN_INSTANSI_OPTIONS,
+} from '@constants/destinations';
+import { createVisitRequest } from '@lib/api/requests';
 import { DocumentsStep } from '@components/submission/DocumentsStep';
 import { FileUploadCard } from '@components/submission/FileUploadCard';
 import { FormNavigation } from '@components/submission/FormNavigation';
 import { GuestsStep } from '@components/submission/GuestsStep';
 import { InstitutionStep } from '@components/submission/InstitutionStep';
+import { Select } from '@components/shared/Select';
 import { StepIndicators } from '@components/submission/StepIndicators';
 import { TimePicker } from '@components/submission/TimePicker';
 import { VisitStep } from '@components/submission/VisitStep';
-import { guestSchema, visitRequestSchema } from '../../schemas/visitRequest';
+import {
+  guestSchema,
+  tujuanPairCheck,
+  visitRequestBaseSchema,
+} from '@schemas/visitRequest';
 import { dateInputToEpoch, timeInputToEpoch } from '@lib/dateTime';
 
 interface Guest {
@@ -44,6 +53,8 @@ type FormData = {
   email: string;
   nama_instansi: string;
   alamat_instansi: string;
+  tujuan_instansi: string;
+  tujuan_bagian: string;
   tanggal_kunjungan: string;
   jam_kunjungan: string;
   tema_kunjungan: string;
@@ -55,6 +66,8 @@ const initialFormData: FormData = {
   email: '',
   nama_instansi: '',
   alamat_instansi: '',
+  tujuan_instansi: '',
+  tujuan_bagian: '',
   tanggal_kunjungan: '',
   jam_kunjungan: '',
   tema_kunjungan: '',
@@ -92,6 +105,17 @@ export default function SubmissionForm() {
       return next;
     });
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const updateTujuanInstansi = (value: string) => {
+    setError('');
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next.tujuan_instansi;
+      delete next.tujuan_bagian;
+      return next;
+    });
+    setFormData((prev) => ({ ...prev, tujuan_instansi: value, tujuan_bagian: '' }));
   };
 
   const toggleSection = (section: string) => {
@@ -133,7 +157,7 @@ export default function SubmissionForm() {
     let payload: unknown;
     switch (step) {
       case 1:
-        schema = visitRequestSchema.pick({
+        schema = visitRequestBaseSchema.pick({
           email: true,
           nama_instansi: true,
           alamat_instansi: true,
@@ -141,13 +165,17 @@ export default function SubmissionForm() {
         payload = formData;
         break;
       case 2:
-        schema = visitRequestSchema.pick({
-          tanggal_kunjungan: true,
-          jam_kunjungan: true,
-          tema_kunjungan: true,
-          pimpinan_rombongan: true,
-          kontak_dihubungi: true,
-        });
+        schema = visitRequestBaseSchema
+          .pick({
+            tujuan_instansi: true,
+            tujuan_bagian: true,
+            tanggal_kunjungan: true,
+            jam_kunjungan: true,
+            tema_kunjungan: true,
+            pimpinan_rombongan: true,
+            kontak_dihubungi: true,
+          })
+          .check(tujuanPairCheck);
         payload = formData;
         break;
       case 3:
@@ -222,6 +250,8 @@ export default function SubmissionForm() {
         email: formData.email,
         nama_instansi: formData.nama_instansi,
         alamat_instansi: formData.alamat_instansi,
+        tujuan_instansi: formData.tujuan_instansi,
+        tujuan_bagian: formData.tujuan_bagian,
         tanggal_kunjungan: dateInputToEpoch(formData.tanggal_kunjungan),
         jam_kunjungan: timeInputToEpoch(formData.jam_kunjungan),
         tema_kunjungan: formData.tema_kunjungan,
@@ -545,6 +575,66 @@ export default function SubmissionForm() {
                           {fieldErrors.jam_kunjungan && (
                             <p className="font-label text-label-sm text-error">
                               {fieldErrors.jam_kunjungan}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <label
+                            htmlFor="tujuan_instansi"
+                            className="flex items-center gap-2 font-label text-label-sm font-medium text-on-surface"
+                          >
+                            <Building2 className="h-4 w-4 text-emerald-600" />
+                            Tujuan Instansi
+                          </label>
+                          <Select
+                            id="tujuan_instansi"
+                            value={formData.tujuan_instansi}
+                            onChange={(e) => updateTujuanInstansi(e.target.value)}
+                            className="font-body-md rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+                          >
+                            <option value="">Pilih tujuan instansi</option>
+                            {TUJUAN_INSTANSI_OPTIONS.map((instansi) => (
+                              <option key={instansi} value={instansi}>
+                                {instansi}
+                              </option>
+                            ))}
+                          </Select>
+                          {fieldErrors.tujuan_instansi && (
+                            <p className="font-label text-label-sm text-error">
+                              {fieldErrors.tujuan_instansi}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <label
+                            htmlFor="tujuan_bagian"
+                            className="flex items-center gap-2 font-label text-label-sm font-medium text-on-surface"
+                          >
+                            <Users className="h-4 w-4 text-emerald-600" />
+                            Tujuan Bagian
+                          </label>
+                          <Select
+                            id="tujuan_bagian"
+                            value={formData.tujuan_bagian}
+                            onChange={(e) => updateField('tujuan_bagian', e.target.value)}
+                            disabled={!formData.tujuan_instansi}
+                            className="font-body-md rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none disabled:cursor-not-allowed disabled:bg-surface-alt disabled:text-on-surface-variant"
+                          >
+                            <option value="">Pilih tujuan bagian</option>
+                            {formData.tujuan_instansi &&
+                              TUJUAN_BAGIAN_OPTIONS[
+                                formData.tujuan_instansi as keyof typeof TUJUAN_BAGIAN_OPTIONS
+                              ].map((bagian) => (
+                                <option key={bagian} value={bagian}>
+                                  {bagian}
+                                </option>
+                              ))}
+                          </Select>
+                          {fieldErrors.tujuan_bagian && (
+                            <p className="font-label text-label-sm text-error">
+                              {fieldErrors.tujuan_bagian}
                             </p>
                           )}
                         </div>

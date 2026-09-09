@@ -127,6 +127,8 @@ func TestAdminGetRequestAndStatusUpdate(t *testing.T) {
 	_ = writer.WriteField("email", "qr@example.com")
 	_ = writer.WriteField("nama_instansi", "PT Testing")
 	_ = writer.WriteField("alamat_instansi", "Jl. Test 123")
+	_ = writer.WriteField("tujuan_instansi", "Sekretariat DPRD")
+	_ = writer.WriteField("tujuan_bagian", "Kabag Umum dan Keuangan")
 	_ = writer.WriteField("tanggal_kunjungan", epochDateMillis("2030-01-01"))
 	_ = writer.WriteField("jam_kunjungan", epochTimeMillis("10:00"))
 	_ = writer.WriteField("tema_kunjungan", "Studi Banding")
@@ -316,8 +318,8 @@ func TestAdminRequestsGraphYearlyCoversEarliestData(t *testing.T) {
 
 	created := time.Date(2021, 6, 15, 9, 0, 0, 0, witaZone).UnixMilli()
 	result := appDB.Exec(
-		`INSERT INTO visit_requests (token, email, nama_instansi, alamat_instansi, tanggal_kunjungan, jam_kunjungan, tema_kunjungan, pimpinan_rombongan, jumlah_tamu, kontak_dihubungi, status, created_at, updated_at)
-		 VALUES ('SKP-20210615-OLD1X', 'old@example.com', 'PT Old', 'Jl. Old 1', ?, ?, 'Kunjungan', 'Budi', 1, '08123456789', 'pending', ?, ?)`,
+		`INSERT INTO visit_requests (token, email, nama_instansi, alamat_instansi, tujuan_instansi, tujuan_bagian, tanggal_kunjungan, jam_kunjungan, tema_kunjungan, pimpinan_rombongan, jumlah_tamu, kontak_dihubungi, status, created_at, updated_at)
+		 VALUES ('SKP-20210615-OLD1X', 'old@example.com', 'PT Old', 'Jl. Old 1', 'DPRD Kab. Tapin', 'Komisi I', ?, ?, 'Kunjungan', 'Budi', 1, '08123456789', 'pending', ?, ?)`,
 		time.Date(2021, 6, 20, 0, 0, 0, 0, witaZone).UnixMilli(),
 		time.Date(1970, 1, 1, 9, 0, 0, 0, witaZone).UnixMilli(),
 		created,
