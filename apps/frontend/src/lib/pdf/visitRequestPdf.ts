@@ -126,6 +126,8 @@ export function generateVisitRequestPdf(request: VisitRequest): void {
   addField('Nama', request.pimpinan_rombongan);
   addField('Jumlah Tamu', `${request.jumlah_tamu} Orang`);
   addField('Asal Instansi', request.nama_instansi);
+  addField('Tujuan Instansi', request.tujuan_instansi);
+  addField('Tujuan Bagian', request.tujuan_bagian);
   addField('Nomor Kontak', request.kontak_dihubungi);
 
   y += 8;

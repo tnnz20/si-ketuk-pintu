@@ -176,7 +176,7 @@ export async function generateApprovalLetterPdf(
     },
     { text: 'DISETUJUI ', style: 'bold' },
     {
-      text: 'oleh Pimpinan dan Anggota Komisi I DPRD Kabupaten Tapin dengan rincian jadwal sebagai berikut:',
+      text: `oleh ${request.tujuan_bagian} ${request.tujuan_instansi} dengan rincian jadwal sebagai berikut:`,
       style: 'normal',
     },
   ]);
@@ -187,8 +187,9 @@ export async function generateApprovalLetterPdf(
 
   field('Hari / Tanggal', formatDate(request.tanggal_kunjungan));
   field('Waktu Pelaksanaan', `${formatTime(request.jam_kunjungan)} WITA - Selesai`);
-  field('Tempat / Ruangan', 'Ruang Rapat Komisi I DPRD Kabupaten Tapin');
-  field('Penerima Audiensi', 'Pimpinan dan Anggota Komisi I DPRD Kab. Tapin');
+  field('Tujuan Instansi', request.tujuan_instansi);
+  field('Tujuan Bagian', request.tujuan_bagian);
+  field('Tempat / Ruangan', `${request.tujuan_bagian} ${request.tujuan_instansi}`);
   field('Tema / Agenda', request.tema_kunjungan);
   field('Jumlah Peserta', `${request.jumlah_tamu} Orang`);
   y += 3;

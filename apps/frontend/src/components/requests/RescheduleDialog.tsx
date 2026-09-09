@@ -7,7 +7,7 @@ import { TimePicker } from '@components/submission/TimePicker';
 
 const schema = z.object({
   nomor: z.string().trim().min(1, 'Nomor wajib diisi.'),
-  sifat: z.enum(['Biasa', 'Penting', 'Sangat Penting']),
+  sifat: z.enum(['Biasa', 'Penting', 'Sangat Penting'], 'Sifat surat wajib dipilih.'),
   tanggal_kunjungan: z.string().min(1, 'Tanggal wajib diisi.'),
   jam_kunjungan: z.string().min(1, 'Jam wajib diisi.'),
 });

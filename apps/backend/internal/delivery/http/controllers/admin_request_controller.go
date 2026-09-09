@@ -347,11 +347,13 @@ func (c *AdminRequestController) DeleteRescheduleLetter(ginContext *gin.Context)
 func (c *AdminRequestController) UploadApprovalLetter(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
+		c.logger.WithError(err).Debug("failed to parse approval letter request ID")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
 		return
 	}
 	file, header, err := ginContext.Request.FormFile("file")
 	if err != nil {
+		c.logger.WithError(err).WithField("request_id", id).Debug("failed to read approval letter file")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "file is required"})
 		return
 	}
@@ -361,6 +363,11 @@ func (c *AdminRequestController) UploadApprovalLetter(ginContext *gin.Context) {
 		Reader: file, Filename: header.Filename, Size: header.Size,
 	})
 	if err != nil {
+		c.logger.WithError(err).WithFields(logrus.Fields{
+			"request_id": id,
+			"filename":   header.Filename,
+			"size":       header.Size,
+		}).Debug("failed to save approval letter")
 		if errors.Is(err, repository.ErrVisitRequestNotFound) {
 			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})
 			return
@@ -378,6 +385,7 @@ func (c *AdminRequestController) DeleteApprovalLetter(ginContext *gin.Context) {
 		return
 	}
 	if err := c.visitRequestUsecase.DeleteApprovalLetter(ginContext.Request.Context(), id); err != nil {
+		c.logger.WithError(err).WithField("request_id", id).Debug("failed to delete approval letter")
 		if errors.Is(err, usecase.ErrApprovalLetterNotFound) || errors.Is(err, repository.ErrAttachmentNotFound) || errors.Is(err, repository.ErrVisitRequestNotFound) {
 			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "approval letter not found"})
 			return
