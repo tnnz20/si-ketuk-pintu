@@ -10,6 +10,7 @@ import RequestGuests from '@components/requests/RequestDetailGuests';
 import RequestNotFoundState from '@components/requests/RequestNotFoundState';
 import RequestSummary from '@components/requests/RequestDetailSummary';
 import SuratPermohonanCard from '@components/requests/SuratPermohonanCard';
+import Dialog from '@components/shared/Dialog';
 import LoadingOverlay from '@components/shared/LoadingOverlay';
 import Skeleton from '@components/shared/Skeleton';
 import type { Attachment, VisitLetterAttachment, VisitRequest } from '@app-types/api';
@@ -31,6 +32,7 @@ export default function RequestStatus() {
   }>({ token: null, request: null, loading: true, error: null });
   const [generating, setGenerating] = useState(false);
   const [retry, setRetry] = useState(0);
+  const [imagePreview, setImagePreview] = useState<{ attachment: Attachment; url: string }>();
   const previewUrls = useRef<Set<string>>(new Set());
 
   useEffect(
@@ -73,6 +75,18 @@ export default function RequestStatus() {
   async function previewAttachment(attachment: Attachment) {
     if (!token || attachment.attachment_type === 'surat_reschedule') return;
 
+    if (attachment.attachment_type === 'images') {
+      try {
+        const blob = await downloadAttachmentByToken(token, 'images', attachment.id);
+        const url = URL.createObjectURL(blob);
+        previewUrls.current.add(url);
+        setImagePreview({ attachment, url });
+      } catch {
+        toast.error('Gagal membuka berkas.');
+      }
+      return;
+    }
+
     const previewWindow = window.open('', '_blank');
     if (!previewWindow) {
       toast.error('Izinkan popup untuk membuka berkas.');
@@ -91,6 +105,13 @@ export default function RequestStatus() {
       previewWindow.close();
       toast.error('Gagal membuka berkas.');
     }
+  }
+
+  function closeImagePreview() {
+    if (!imagePreview) return;
+    previewUrls.current.delete(imagePreview.url);
+    URL.revokeObjectURL(imagePreview.url);
+    setImagePreview(undefined);
   }
 
   function generatePdf() {
@@ -210,6 +231,30 @@ export default function RequestStatus() {
           )}
         </div>
       </div>
+
+      {imagePreview && (
+        <Dialog
+          open
+          title="Pratinjau Dokumentasi"
+          description={imagePreview.attachment.original_name}
+          onClose={closeImagePreview}
+          footer={
+            <a
+              href={imagePreview.url}
+              download={imagePreview.attachment.original_name}
+              className="hover:bg-civic-darkHover cursor-pointer rounded-xl bg-civic-dark px-4 py-2 text-xs font-extrabold text-white transition-all"
+            >
+              Unduh
+            </a>
+          }
+        >
+          <img
+            src={imagePreview.url}
+            alt={`Pratinjau ${imagePreview.attachment.original_name}`}
+            className="max-h-96 w-full rounded-xl border border-civic-border object-contain"
+          />
+        </Dialog>
+      )}
 
       {generating && <LoadingOverlay />}
     </div>
