@@ -6,7 +6,7 @@ import { Select } from '@components/shared/Select';
 
 const schema = z.object({
   nomor: z.string().trim().min(1, 'Nomor surat wajib diisi.'),
-  sifat: z.enum(['Biasa', 'Penting', 'Sangat Penting']),
+  sifat: z.enum(['Biasa', 'Penting', 'Sangat Penting'], 'Sifat surat wajib dipilih.'),
 });
 
 interface Props {

@@ -1,4 +1,4 @@
-import { FileText, Mail, MapPin, Phone, User } from 'lucide-react';
+import { Building2, FileText, Mail, MapPin, Phone, User, Users } from 'lucide-react';
 import type { VisitRequest } from '@app-types/api';
 
 interface RequestDetailsProps {
@@ -48,6 +48,22 @@ export default function RequestDetailDetails({ request }: RequestDetailsProps) {
           <p className="flex items-center gap-2 text-xs font-bold text-civic-dark">
             <User className="h-3.5 w-3.5 shrink-0 text-civic-muted" />
             <span>{request.pimpinan_rombongan || '-'}</span>
+          </p>
+        </div>
+
+        <div className="bg-civic-cardFill space-y-0.5 rounded-2xl border border-civic-border p-3.5">
+          <span className="text-label-sm font-semibold text-civic-muted">Tujuan Instansi</span>
+          <p className="flex items-center gap-2 text-xs font-bold text-civic-dark">
+            <Building2 className="h-3.5 w-3.5 shrink-0 text-civic-muted" />
+            <span>{request.tujuan_instansi || '-'}</span>
+          </p>
+        </div>
+
+        <div className="bg-civic-cardFill space-y-0.5 rounded-2xl border border-civic-border p-3.5">
+          <span className="text-label-sm font-semibold text-civic-muted">Tujuan Bagian</span>
+          <p className="flex items-center gap-2 text-xs font-bold text-civic-dark">
+            <Users className="h-3.5 w-3.5 shrink-0 text-civic-muted" />
+            <span>{request.tujuan_bagian || '-'}</span>
           </p>
         </div>
       </div>

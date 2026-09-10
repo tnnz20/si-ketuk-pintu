@@ -68,6 +68,12 @@ func (c *VisitRequestController) Create(ginContext *gin.Context) {
 		return
 	}
 
+	if err := model.ValidateTujuanDestination(request.TujuanInstansi, request.TujuanBagian); err != nil {
+		c.logger.Warn("invalid tujuan destination")
+		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
+		return
+	}
+
 	if !isWITAMidnight(request.TanggalKunjungan) {
 		c.logger.Warn("invalid tanggal_kunjungan epoch value")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "tanggal_kunjungan must be Unix epoch milliseconds of the visit date midnight in Asia/Makassar (UTC+8)"})
@@ -121,6 +127,8 @@ func (c *VisitRequestController) Create(ginContext *gin.Context) {
 		Email:             request.Email,
 		NamaInstansi:      request.NamaInstansi,
 		AlamatInstansi:    request.AlamatInstansi,
+		TujuanInstansi:    request.TujuanInstansi,
+		TujuanBagian:      request.TujuanBagian,
 		TanggalKunjungan:  request.TanggalKunjungan,
 		JamKunjungan:      request.JamKunjungan,
 		TemaKunjungan:     request.TemaKunjungan,
@@ -364,6 +372,8 @@ func toVisitRequestResponse(vr *entity.VisitRequest) model.VisitRequestResponse 
 		Email:             vr.Email,
 		NamaInstansi:      vr.NamaInstansi,
 		AlamatInstansi:    vr.AlamatInstansi,
+		TujuanInstansi:    vr.TujuanInstansi,
+		TujuanBagian:      vr.TujuanBagian,
 		TanggalKunjungan:  vr.TanggalKunjungan,
 		JamKunjungan:      vr.JamKunjungan,
 		TemaKunjungan:     vr.TemaKunjungan,

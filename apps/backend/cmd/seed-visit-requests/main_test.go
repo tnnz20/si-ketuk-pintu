@@ -31,6 +31,9 @@ func TestSeedVisitRequests(t *testing.T) {
 		if request.TanggalKunjungan <= now.UnixMilli() {
 			t.Fatalf("request %q is not scheduled in the future", request.Token)
 		}
+		if request.TujuanInstansi == "" || request.TujuanBagian == "" {
+			t.Fatalf("request %q is missing tujuan data", request.Token)
+		}
 		if request.JumlahTamu <= 0 || len(request.Guests) != request.JumlahTamu {
 			t.Fatalf("request %q has invalid guest data", request.Token)
 		}

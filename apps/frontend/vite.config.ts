@@ -11,6 +11,7 @@ export default defineConfig({
       '@utils': '/src/utils',
       '@app-types': '/src/types',
       '@constants': '/src/constants',
+      '@schemas': '/src/schemas',
     },
   },
   server: {

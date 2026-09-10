@@ -115,6 +115,8 @@ type CreateVisitRequestInput struct {
 	Email             string
 	NamaInstansi      string
 	AlamatInstansi    string
+	TujuanInstansi    string
+	TujuanBagian      string
 	TanggalKunjungan  int64
 	JamKunjungan      int64
 	TemaKunjungan     string
@@ -147,6 +149,8 @@ func (u *VisitRequestUsecase) Create(
 		Email:             input.Email,
 		NamaInstansi:      input.NamaInstansi,
 		AlamatInstansi:    input.AlamatInstansi,
+		TujuanInstansi:    input.TujuanInstansi,
+		TujuanBagian:      input.TujuanBagian,
 		TanggalKunjungan:  input.TanggalKunjungan,
 		JamKunjungan:      input.JamKunjungan,
 		TemaKunjungan:     input.TemaKunjungan,
