@@ -1,11 +1,65 @@
 package controllers
 
 import (
+	"bytes"
+	"context"
+	"errors"
+	"io"
+	"mime/multipart"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 var witaTestZone = time.FixedZone("Asia/Makassar", 8*60*60)
+
+type failTurnstile struct {
+	calls int
+	token string
+}
+
+func (f *failTurnstile) Verify(ctx context.Context, token, ip string) error {
+	f.calls++
+	f.token = token
+	return errors.New("turnstile verification failed")
+}
+
+func TestCreateVerifiesTurnstileTokenBeforeProcessing(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	logger := logrus.New()
+	logger.SetOutput(io.Discard)
+	verifier := &failTurnstile{}
+	controller := NewVisitRequestController(nil, nil, logger, "", verifier)
+
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	_ = writer.WriteField("turnstile_token", "tok-123")
+	if err := writer.Close(); err != nil {
+		t.Fatalf("close multipart writer: %v", err)
+	}
+
+	recorder := httptest.NewRecorder()
+	ginContext, _ := gin.CreateTestContext(recorder)
+	request := httptest.NewRequest(http.MethodPost, "/api/public/requests", &body)
+	request.Header.Set("Content-Type", writer.FormDataContentType())
+	ginContext.Request = request
+
+	controller.Create(ginContext)
+
+	if recorder.Code != http.StatusForbidden {
+		t.Fatalf("create with invalid turnstile token: got %d, want %d", recorder.Code, http.StatusForbidden)
+	}
+	if verifier.calls != 1 {
+		t.Fatalf("verifier called %d times, want 1", verifier.calls)
+	}
+	if verifier.token != "tok-123" {
+		t.Errorf("verifier received token %q, want tok-123", verifier.token)
+	}
+}
 
 func TestIsWITAMidnight(t *testing.T) {
 	tests := []struct {

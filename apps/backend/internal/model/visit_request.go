@@ -67,6 +67,7 @@ type CreateVisitRequestRequest struct {
 	PimpinanRombongan string `form:"pimpinan_rombongan" binding:"required"`
 	JumlahTamu        int    `form:"jumlah_tamu" binding:"required,min=1"`
 	KontakDihubungi   string `form:"kontak_dihubungi" binding:"required"`
+	TurnstileToken    string `form:"turnstile_token"`
 }
 
 type GuestResponse struct {

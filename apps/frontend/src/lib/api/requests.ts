@@ -10,10 +10,11 @@ import type {
 } from '@app-types/api';
 
 export async function createVisitRequest(
-  request: CreateVisitRequestData,
+  request: CreateVisitRequestData & { turnstileToken: string },
 ): Promise<{ token: string; message: string }> {
   const form = new FormData();
   const entries: [string, string | Blob][] = [
+    ['turnstile_token', request.turnstileToken],
     ['email', request.email],
     ['nama_instansi', request.nama_instansi],
     ['alamat_instansi', request.alamat_instansi],

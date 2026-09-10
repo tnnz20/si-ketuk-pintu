@@ -37,6 +37,8 @@ services:
       context: ./apps/frontend
       args:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+        VITE_TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-}
+        VITE_APP_ENV: ${APP_ENV:-}
     ports:
       - "${FRONTEND_PORT:-5173}:80"
     depends_on:
