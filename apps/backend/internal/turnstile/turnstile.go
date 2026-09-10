@@ -27,8 +27,7 @@ func NewVerifier(secret string) *Verifier {
 }
 
 type siteVerifyResponse struct {
-	Success    bool     `json:"success"`
-	ErrorCodes []string `json:"error-codes"`
+	Success bool `json:"success"`
 }
 
 func (v *Verifier) Verify(ctx context.Context, token, remoteIP string) error {
@@ -54,6 +53,10 @@ func (v *Verifier) Verify(ctx context.Context, token, remoteIP string) error {
 		return errors.New("turnstile verification failed")
 	}
 	defer response.Body.Close()
+
+	if response.StatusCode < 200 || response.StatusCode >= 300 {
+		return errors.New("turnstile verification failed")
+	}
 
 	var payload siteVerifyResponse
 	if err := json.NewDecoder(response.Body).Decode(&payload); err != nil {

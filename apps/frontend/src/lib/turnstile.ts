@@ -36,7 +36,10 @@ function loadTurnstile(): Promise<TurnstileApi> {
       script.async = true;
       script.onload = () => {
         if (window.turnstile) resolve(window.turnstile);
-        else reject(new Error('Gagal memuat verifikasi Cloudflare.'));
+        else {
+          scriptPromise = null;
+          reject(new Error('Gagal memuat verifikasi Cloudflare.'));
+        }
       };
       script.onerror = () => {
         scriptPromise = null;
@@ -48,26 +51,58 @@ function loadTurnstile(): Promise<TurnstileApi> {
   return scriptPromise;
 }
 
+const RENDER_TIMEOUT_MS = 60_000;
+
 export async function getTurnstileToken(container: HTMLElement): Promise<string> {
   const turnstile = await loadTurnstile();
   return new Promise<string>((resolve, reject) => {
+    let widgetId: string | null = null;
+    let done = false;
+
+    const fail = (message: string) => {
+      if (done) return;
+      done = true;
+      window.clearTimeout(timer);
+      if (widgetId !== null) {
+        try {
+          turnstile.remove(widgetId);
+        } catch {
+          /* widget already gone */
+        }
+        widgetId = null;
+      }
+      reject(new Error(message));
+    };
+
+    const timer = window.setTimeout(
+      () => fail('Verifikasi membutuhkan waktu terlalu lama. Silakan coba lagi.'),
+      RENDER_TIMEOUT_MS,
+    );
+
     container.replaceChildren();
-    const widgetId = turnstile.render(container, {
-      sitekey: SITE_KEY as string,
-      size: 'normal',
-      'response-field': false,
-      callback: (token) => {
-        turnstile.remove(widgetId);
-        resolve(token);
-      },
-      'expired-callback': () => {
-        turnstile.remove(widgetId);
-        reject(new Error('Verifikasi kedaluwarsa. Silakan coba lagi.'));
-      },
-      'error-callback': () => {
-        turnstile.remove(widgetId);
-        reject(new Error('Verifikasi gagal. Silakan coba lagi.'));
-      },
-    });
+    try {
+      widgetId = turnstile.render(container, {
+        sitekey: SITE_KEY as string,
+        size: 'normal',
+        'response-field': false,
+        callback: (token) => {
+          if (done) return;
+          done = true;
+          window.clearTimeout(timer);
+          turnstile.remove(widgetId as string);
+          resolve(token);
+        },
+        'expired-callback': () => {
+          window.clearTimeout(timer);
+          fail('Verifikasi kedaluwarsa. Silakan coba lagi.');
+        },
+        'error-callback': () => {
+          window.clearTimeout(timer);
+          fail('Verifikasi gagal. Silakan coba lagi.');
+        },
+      });
+    } catch {
+      fail('Verifikasi gagal. Silakan coba lagi.');
+    }
   });
 }

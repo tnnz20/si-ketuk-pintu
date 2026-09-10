@@ -94,3 +94,19 @@ func TestVerifyFailsOnHTTPError(t *testing.T) {
 		t.Fatal("expected error when siteverify request fails")
 	}
 }
+
+func TestVerifyRejectsErrorStatusEvenWithSuccessBody(t *testing.T) {
+	t.Parallel()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadGateway)
+		_, _ = w.Write([]byte(`{"success": true}`))
+	}))
+	defer server.Close()
+
+	verifier := &Verifier{secret: "test-secret", endpoint: server.URL, client: server.Client()}
+	if err := verifier.Verify(context.Background(), "tok-123", ""); err == nil {
+		t.Fatal("expected error for non-2xx siteverify response")
+	}
+}

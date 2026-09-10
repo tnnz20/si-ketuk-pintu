@@ -91,8 +91,8 @@ export default function QRScanner() {
           }
           try {
             scanner.clear();
-          } catch (e) {
-            console.debug('Failed to clear scanner on unmount', e);
+          } catch {
+            /* scanner already cleared */
           }
         }
       } catch {
@@ -115,16 +115,16 @@ export default function QRScanner() {
             .then(() => {
               try {
                 scannerRef.current?.clear();
-              } catch (e) {
-                console.debug('Failed to clear scanner after stop', e);
+              } catch {
+                /* scanner already cleared */
               }
             })
             .catch(() => {});
         } else {
           try {
             scannerRef.current.clear();
-          } catch (e) {
-            console.debug('Failed to clear scanner', e);
+          } catch {
+            /* scanner already cleared */
           }
         }
       }
