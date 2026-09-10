@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -14,12 +13,22 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/sirupsen/logrus"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/config"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
+
+func testDatabaseDSN(t *testing.T) string {
+	t.Helper()
+	applicationConfig, err := config.Load()
+	if err != nil || applicationConfig.TestDatabaseURL == "" {
+		t.Skip("test database is not configured")
+	}
+	return applicationConfig.TestDatabaseURL
+}
 
 func newMigrator(t *testing.T, databaseURL string) *migrate.Migrate {
 	t.Helper()
@@ -118,10 +127,7 @@ func assertTemporalIndexes(t *testing.T, database *sql.DB) {
 }
 
 func TestEpochMigrationRoundTrip(t *testing.T) {
-	databaseURL := os.Getenv("TEST_DATABASE_URL")
-	if databaseURL == "" {
-		t.Skip("TEST_DATABASE_URL is not configured")
-	}
+	databaseURL := testDatabaseDSN(t)
 
 	migrator := newMigrator(t, databaseURL)
 
@@ -200,7 +206,7 @@ func TestEpochMigrationRoundTrip(t *testing.T) {
 	} {
 		var got int64
 		if err := database.QueryRow(
-			"SELECT "+column.name+" FROM "+column.table+" WHERE "+column.name+" IS NOT NULL ORDER BY 1 LIMIT 1",
+			"SELECT " + column.name + " FROM " + column.table + " WHERE " + column.name + " IS NOT NULL ORDER BY 1 LIMIT 1",
 		).Scan(&got); err != nil {
 			t.Fatalf("read %s.%s: %v", column.table, column.name, err)
 		}
@@ -238,7 +244,7 @@ func TestEpochMigrationRoundTrip(t *testing.T) {
 	} {
 		var got time.Time
 		if err := database.QueryRow(
-			"SELECT "+column.name+" FROM "+column.table+" WHERE "+column.where,
+			"SELECT " + column.name + " FROM " + column.table + " WHERE " + column.where,
 		).Scan(&got); err != nil {
 			t.Fatalf("read %s.%s: %v", column.table, column.name, err)
 		}
@@ -253,10 +259,7 @@ func TestEpochMigrationRoundTrip(t *testing.T) {
 }
 
 func TestInitialSchemaMigrationRoundTrip(t *testing.T) {
-	databaseURL := os.Getenv("TEST_DATABASE_URL")
-	if databaseURL == "" {
-		t.Skip("TEST_DATABASE_URL is not configured")
-	}
+	databaseURL := testDatabaseDSN(t)
 
 	migrationDirectory, err := filepath.Abs("../../db/migrations")
 	if err != nil {

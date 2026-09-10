@@ -59,9 +59,12 @@ func TestMain(m *testing.M) {
 	if os.Getenv("APP_ENV") == "" {
 		os.Setenv("APP_ENV", "test")
 	}
-	if os.Getenv("DATABASE_URL") == "" && os.Getenv("TEST_DATABASE_URL") != "" {
-		// Use test DB for standard DATABASE_URL to avoid touching dev DB
-		os.Setenv("DATABASE_URL", os.Getenv("TEST_DATABASE_URL"))
+	if os.Getenv("TEST_POSTGRES_DB") != "" {
+		for _, field := range []string{"HOST", "PORT", "DB", "USER", "PASSWORD", "SSLMODE"} {
+			if value := os.Getenv("TEST_POSTGRES_" + field); value != "" {
+				os.Setenv("POSTGRES_"+field, value)
+			}
+		}
 	}
 	if os.Getenv("JWT_SECRET") == "" {
 		os.Setenv("JWT_SECRET", "test-secret-key-for-integration")
@@ -70,11 +73,11 @@ func TestMain(m *testing.M) {
 		os.Setenv("UPLOAD_DIR", os.TempDir())
 	}
 
-	databaseURL := os.Getenv("DATABASE_URL")
-	if databaseURL == "" {
-		// Skip tests if no database URL is provided
+	applicationConfig, loadErr := config.Load()
+	if loadErr != nil {
 		os.Exit(0)
 	}
+	databaseURL := applicationConfig.DatabaseURL
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

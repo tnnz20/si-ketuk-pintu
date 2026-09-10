@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -10,12 +9,31 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type DatabaseConfig struct {
+	Host     string
+	Port     string
+	User     string
+	Password string
+	DBName   string
+	SSLMode  string
+}
+
+func (c DatabaseConfig) GetDSN() string {
+	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", c.Host, c.Port, c.User, c.Password, c.DBName, c.SSLMode)
+}
+
+func (c DatabaseConfig) GetURL() string {
+	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", c.User, c.Password, c.Host, c.Port, c.DBName, c.SSLMode)
+}
+
 type Config struct {
 	Environment     string
 	Host            string
 	Port            int
 	DatabaseURL     string
 	TestDatabaseURL string
+	Database        DatabaseConfig
+	TestDatabase    DatabaseConfig
 	UploadDir       string
 	LogLevel        string
 	JWTSecret       string
@@ -34,14 +52,21 @@ func (c Config) HTTPAddress() string {
 	return fmt.Sprintf("%s:%d", c.Host, c.Port)
 }
 
-func load(lookup func(string) string) (Config, error) {
-	databaseURL := strings.TrimSpace(lookup("DATABASE_URL"))
-	if databaseURL == "" {
-		return Config{}, fmt.Errorf("DATABASE_URL is required")
+func databaseConfig(lookup func(string) string, prefix string) DatabaseConfig {
+	return DatabaseConfig{
+		Host:     valueOrDefault(lookup(prefix+"_HOST"), "localhost"),
+		Port:     valueOrDefault(lookup(prefix+"_PORT"), "5432"),
+		User:     lookup(prefix + "_USER"),
+		Password: lookup(prefix + "_PASSWORD"),
+		DBName:   lookup(prefix + "_DB"),
+		SSLMode:  valueOrDefault(lookup(prefix+"_SSLMODE"), "disable"),
 	}
+}
 
-	if _, err := url.ParseRequestURI(databaseURL); err != nil {
-		return Config{}, fmt.Errorf("parse DATABASE_URL: %w", err)
+func load(lookup func(string) string) (Config, error) {
+	database := databaseConfig(lookup, "POSTGRES")
+	if database.Host == "" || database.Port == "" || database.User == "" || database.DBName == "" {
+		return Config{}, fmt.Errorf("POSTGRES_HOST, POSTGRES_PORT, POSTGRES_USER, and POSTGRES_DB are required")
 	}
 
 	port, err := parsePort(lookup("APP_PORT"))
@@ -66,12 +91,21 @@ func load(lookup func(string) string) (Config, error) {
 		return Config{}, fmt.Errorf("parse RATE_LIMIT_RPS: %w", err)
 	}
 
+	testDatabase := databaseConfig(lookup, "TEST_POSTGRES")
+	databaseURL := database.GetURL()
+	testDatabaseURL := ""
+	if testDatabase.DBName != "" {
+		testDatabaseURL = testDatabase.GetURL()
+	}
+
 	return Config{
 		Environment:     valueOrDefault(lookup("APP_ENV"), "development"),
 		Host:            valueOrDefault(lookup("APP_HOST"), "0.0.0.0"),
 		Port:            port,
 		DatabaseURL:     databaseURL,
-		TestDatabaseURL: strings.TrimSpace(lookup("TEST_DATABASE_URL")),
+		TestDatabaseURL: testDatabaseURL,
+		Database:        database,
+		TestDatabase:    testDatabase,
 		UploadDir:       valueOrDefault(lookup("UPLOAD_DIR"), "./var/uploads"),
 		LogLevel:        valueOrDefault(lookup("LOG_LEVEL"), "info"),
 		JWTSecret:       jwtSecret,
@@ -158,4 +192,3 @@ func parseCORSOrigins(value string) []string {
 
 	return result
 }
-
