@@ -33,6 +33,14 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 		return nil, err
 	}
 
+	if mode := ginModeFor(applicationConfig.Environment); mode != "" {
+		gin.SetMode(mode)
+	}
+	logger.WithFields(logrus.Fields{
+		"environment": applicationConfig.Environment,
+		"gin_mode":    gin.Mode(),
+	}).Info("application environment loaded")
+
 	database, err := OpenDatabase(ctx, applicationConfig.DatabaseURL, logger)
 	if err != nil {
 		return nil, err
@@ -102,6 +110,14 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 		DB:     database,
 		Router: router,
 	}, nil
+}
+
+func ginModeFor(environment string) string {
+	if environment == "production" {
+		return gin.ReleaseMode
+	}
+
+	return ""
 }
 
 func (b *Bootstrap) Close() error {
