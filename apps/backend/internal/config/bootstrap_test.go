@@ -24,18 +24,9 @@ func TestGinModeFor(t *testing.T) {
 	}
 }
 
-func TestNewBootstrapSetsGinReleaseModeInProduction(t *testing.T) {
-	previousMode := gin.Mode()
-	defer gin.SetMode(previousMode)
-
-	gin.SetMode(gin.DebugMode)
-	if mode := ginModeFor("production"); mode != gin.ReleaseMode {
-		t.Fatalf("expected release mode, got %q", mode)
-	}
-}
-
 func TestEnvironmentLogFields(t *testing.T) {
-	t.Parallel()
+	previousMode := gin.Mode()
+	t.Cleanup(func() { gin.SetMode(previousMode) })
 
 	logger, err := NewLogger("info")
 	if err != nil {
