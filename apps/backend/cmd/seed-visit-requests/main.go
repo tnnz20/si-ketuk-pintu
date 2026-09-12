@@ -4,12 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/config"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/entity"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/model"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/ssh"
 )
 
 func main() {
@@ -23,14 +26,36 @@ func main() {
 		panic(err)
 	}
 
-	database, err := config.OpenDatabase(context.Background(), applicationConfig.DatabaseURL, logger)
+	sshEnabled, _, err := ssh.ParseSSHFlag(os.Args[1:])
 	if err != nil {
 		panic(err)
 	}
 
+	seed := func(databaseURL string) error {
+		return runSeed(context.Background(), databaseURL, logger)
+	}
+
+	if sshEnabled {
+		if err := ssh.RunWithTunnel(context.Background(), applicationConfig.SSH, seed); err != nil {
+			panic(err)
+		}
+		return
+	}
+
+	if err := seed(applicationConfig.DatabaseURL); err != nil {
+		panic(err)
+	}
+}
+
+func runSeed(ctx context.Context, databaseURL string, logger *logrus.Logger) error {
+	database, err := config.OpenDatabase(ctx, databaseURL, logger)
+	if err != nil {
+		return err
+	}
+
 	sqlDatabase, err := database.DB()
 	if err != nil {
-		panic(err)
+		return err
 	}
 	defer sqlDatabase.Close()
 
@@ -38,9 +63,9 @@ func main() {
 	requests := seedVisitRequests(time.Now())
 	created := 0
 	for _, request := range requests {
-		wasCreated, err := seedVisitRequest(context.Background(), store, &request)
+		wasCreated, err := seedVisitRequest(ctx, store, &request)
 		if err != nil {
-			panic(err)
+			return err
 		}
 		if wasCreated {
 			created++
@@ -48,6 +73,7 @@ func main() {
 	}
 
 	logger.WithField("created", created).Info("visit request seed completed")
+	return nil
 }
 
 func seedVisitRequest(ctx context.Context, store *repository.VisitRequestRepository, request *entity.VisitRequest) (bool, error) {

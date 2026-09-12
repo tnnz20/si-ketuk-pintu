@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/joho/godotenv"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/ssh"
 )
 
 // DatabaseConfig holds PostgreSQL connection settings read from
@@ -48,6 +49,7 @@ type Config struct {
 	TurnstileSiteKey   string
 	TurnstileSecretKey string
 	TurnstileEnabled   bool
+	SSH                ssh.TunnelConfig
 }
 
 // Load reads configuration from environment variables, optionally filling
@@ -118,6 +120,20 @@ func load(lookup func(string) string) (Config, error) {
 		return Config{}, fmt.Errorf("TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY are required when APP_ENV is production")
 	}
 
+	sshTunnel := ssh.TunnelConfig{
+		Host:       strings.TrimSpace(lookup("SSH_HOST")),
+		Port:       valueOrDefault(lookup("SSH_PORT"), "22"),
+		User:       strings.TrimSpace(lookup("SSH_USER")),
+		Password:   lookup("SSH_PASSWORD"),
+		KnownHosts: strings.TrimSpace(lookup("SSH_KNOWN_HOSTS_FILE")),
+		DBHost:     valueOrDefault(lookup("SSH_POSTGRES_HOST"), "127.0.0.1"),
+		DBPort:     valueOrDefault(lookup("SSH_POSTGRES_PORT"), "5432"),
+		DBUser:     strings.TrimSpace(lookup("SSH_POSTGRES_USER")),
+		DBPassword: lookup("SSH_POSTGRES_PASSWORD"),
+		DBName:     strings.TrimSpace(lookup("SSH_POSTGRES_DATABASE")),
+		DBSSLMode:  valueOrDefault(lookup("SSH_POSTGRES_SSLMODE"), "disable"),
+	}
+
 	return Config{
 		Environment:        environment,
 		Host:               valueOrDefault(lookup("APP_HOST"), "0.0.0.0"),
@@ -135,7 +151,14 @@ func load(lookup func(string) string) (Config, error) {
 		TurnstileSiteKey:   turnstileSiteKey,
 		TurnstileSecretKey: turnstileSecretKey,
 		TurnstileEnabled:   turnstileEnabled,
+		SSH:                sshTunnel,
 	}, nil
+}
+
+// ValidateSSHTunnelConfig returns an error when required SSH tunnel settings
+// are missing. It is called only when a command opts into SSH tunneling.
+func ValidateSSHTunnelConfig(tunnel ssh.TunnelConfig) error {
+	return ssh.ValidateTunnelConfig(tunnel)
 }
 
 func parsePort(value string) (int, error) {
