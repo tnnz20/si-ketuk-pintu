@@ -18,7 +18,7 @@ import {
   User,
   Users,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -28,6 +28,7 @@ import {
   TUJUAN_INSTANSI_OPTIONS,
 } from '@constants/destinations';
 import { createVisitRequest } from '@lib/api/requests';
+import { getTurnstileToken, turnstileEnabled } from '@lib/turnstile';
 import { DocumentsStep } from '@components/submission/DocumentsStep';
 import { FileUploadCard } from '@components/submission/FileUploadCard';
 import { FormNavigation } from '@components/submission/FormNavigation';
@@ -90,6 +91,7 @@ export default function SubmissionForm() {
   const [guests, setGuests] = useState<Guest[]>([{ name: '', position: '' }]);
   const [files, setFiles] = useState<{ surat_kunjungan?: File; surat_tugas?: File }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const turnstileRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -246,7 +248,17 @@ export default function SubmissionForm() {
     setIsSubmitting(true);
     setError('');
     try {
+      let turnstileToken = '';
+      if (turnstileEnabled()) {
+        try {
+          turnstileToken = await getTurnstileToken(turnstileRef.current!);
+        } catch {
+          toast.error('Verifikasi manusia gagal. Silakan coba lagi.');
+          return;
+        }
+      }
       const result = await createVisitRequest({
+        turnstileToken,
         email: formData.email,
         nama_instansi: formData.nama_instansi,
         alamat_instansi: formData.alamat_instansi,
@@ -894,6 +906,10 @@ export default function SubmissionForm() {
                   </div>
                 </motion.div>
               </DocumentsStep>
+            )}
+
+            {currentStep === 4 && turnstileEnabled() && (
+              <div ref={turnstileRef} className="flex justify-center" />
             )}
 
             <FormNavigation

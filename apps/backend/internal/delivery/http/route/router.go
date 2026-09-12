@@ -42,7 +42,7 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 	public := api.Group("/public")
 	{
 		requests := public.Group("/requests")
-		requests.POST("", deps.VisitRequestController.Create)
+		requests.POST("", deps.RateLimiter.Middleware(), deps.VisitRequestController.Create)
 		requests.GET("/:token", deps.RateLimiter.Middleware(), deps.VisitRequestController.FindByToken)
 		requests.GET("/:token/attachments/:type", deps.RateLimiter.Middleware(), deps.VisitRequestController.DownloadAttachment)
 		requests.GET("/:token/attachments/:type/:attachment_id", deps.RateLimiter.Middleware(), deps.VisitRequestController.DownloadAttachment)
@@ -52,7 +52,7 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 	admin := api.Group("/admin")
 	{
 		auth := admin.Group("/auth")
-		auth.POST("/login", deps.AdminAuthController.Login)
+		auth.POST("/login", deps.RateLimiter.Middleware(), deps.AdminAuthController.Login)
 
 		protected := admin.Group("", middleware.Auth(deps.AuthUsecase))
 		{

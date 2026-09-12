@@ -46,6 +46,10 @@ jobs:
           script: |
             set -e
             cd ${{ secrets.DEPLOY_PATH }}
+            test -f .env.production
+            grep -q '^APP_ENV=production$' .env.production
+            grep -q '^TURNSTILE_SECRET_KEY=' .env.production
+            grep -q '^TURNSTILE_SITE_KEY=' .env.production
             IMG=ghcr.io/${{ github.repository }}/backend:latest
 
             # 1. Pull the new Image

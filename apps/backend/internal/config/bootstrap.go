@@ -10,6 +10,7 @@ import (
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/middleware"
 	httproute "github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/route"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/turnstile"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
 	"gorm.io/gorm"
 )
@@ -59,6 +60,11 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 	)
 	qrUsecase := usecase.NewQRUsecase()
 
+	var turnstileVerifier controllers.TurnstileVerifier
+	if applicationConfig.TurnstileEnabled {
+		turnstileVerifier = turnstile.NewVerifier(applicationConfig.TurnstileSecretKey)
+	}
+
 	// Controllers
 	healthController := controllers.NewHealthController(healthUsecase)
 	visitRequestController := controllers.NewVisitRequestController(
@@ -66,8 +72,9 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 		qrUsecase,
 		logger,
 		applicationConfig.UploadDir,
+		turnstileVerifier,
 	)
-	adminAuthController := controllers.NewAdminAuthController(authUsecase, logger)
+	adminAuthController := controllers.NewAdminAuthController(authUsecase, logger, turnstileVerifier)
 	adminRequestController := controllers.NewAdminRequestController(
 		visitRequestUsecase,
 		logger,

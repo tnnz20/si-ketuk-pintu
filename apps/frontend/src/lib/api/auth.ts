@@ -1,10 +1,14 @@
 import { api } from './client';
 import type { LoginResponse } from '@app-types/api';
 
-export async function login(identifier: string, password: string): Promise<string> {
+export async function login(
+  identifier: string,
+  password: string,
+  turnstileToken: string,
+): Promise<string> {
   const data = await api<LoginResponse>('/api/admin/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ identifier, password }),
+    body: JSON.stringify({ identifier, password, turnstile_token: turnstileToken }),
   });
   localStorage.setItem('jwt_token', data.token);
   return data.token;

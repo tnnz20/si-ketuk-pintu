@@ -27,19 +27,22 @@ func (c DatabaseConfig) GetURL() string {
 }
 
 type Config struct {
-	Environment     string
-	Host            string
-	Port            int
-	DatabaseURL     string
-	TestDatabaseURL string
-	Database        DatabaseConfig
-	TestDatabase    DatabaseConfig
-	UploadDir       string
-	LogLevel        string
-	JWTSecret       string
-	JWTExpiryHours  int
-	CORSOrigins     []string
-	RateLimitRPS    float64
+	Environment        string
+	Host               string
+	Port               int
+	DatabaseURL        string
+	TestDatabaseURL    string
+	Database           DatabaseConfig
+	TestDatabase       DatabaseConfig
+	UploadDir          string
+	LogLevel           string
+	JWTSecret          string
+	JWTExpiryHours     int
+	CORSOrigins        []string
+	RateLimitRPS       float64
+	TurnstileSiteKey   string
+	TurnstileSecretKey string
+	TurnstileEnabled   bool
 }
 
 func Load() (Config, error) {
@@ -98,20 +101,31 @@ func load(lookup func(string) string) (Config, error) {
 		testDatabaseURL = testDatabase.GetURL()
 	}
 
+	environment := valueOrDefault(lookup("APP_ENV"), "development")
+	turnstileSiteKey := strings.TrimSpace(lookup("TURNSTILE_SITE_KEY"))
+	turnstileSecretKey := strings.TrimSpace(lookup("TURNSTILE_SECRET_KEY"))
+	turnstileEnabled := environment == "production"
+	if turnstileEnabled && (turnstileSiteKey == "" || turnstileSecretKey == "") {
+		return Config{}, fmt.Errorf("TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY are required when APP_ENV is production")
+	}
+
 	return Config{
-		Environment:     valueOrDefault(lookup("APP_ENV"), "development"),
-		Host:            valueOrDefault(lookup("APP_HOST"), "0.0.0.0"),
-		Port:            port,
-		DatabaseURL:     databaseURL,
-		TestDatabaseURL: testDatabaseURL,
-		Database:        database,
-		TestDatabase:    testDatabase,
-		UploadDir:       valueOrDefault(lookup("UPLOAD_DIR"), "./var/uploads"),
-		LogLevel:        valueOrDefault(lookup("LOG_LEVEL"), "info"),
-		JWTSecret:       jwtSecret,
-		JWTExpiryHours:  jwtExpiryHours,
-		CORSOrigins:     corsOrigins,
-		RateLimitRPS:    rateLimitRPS,
+		Environment:        environment,
+		Host:               valueOrDefault(lookup("APP_HOST"), "0.0.0.0"),
+		Port:               port,
+		DatabaseURL:        databaseURL,
+		TestDatabaseURL:    testDatabaseURL,
+		Database:           database,
+		TestDatabase:       testDatabase,
+		UploadDir:          valueOrDefault(lookup("UPLOAD_DIR"), "./var/uploads"),
+		LogLevel:           valueOrDefault(lookup("LOG_LEVEL"), "info"),
+		JWTSecret:          jwtSecret,
+		JWTExpiryHours:     jwtExpiryHours,
+		CORSOrigins:        corsOrigins,
+		RateLimitRPS:       rateLimitRPS,
+		TurnstileSiteKey:   turnstileSiteKey,
+		TurnstileSecretKey: turnstileSecretKey,
+		TurnstileEnabled:   turnstileEnabled,
 	}, nil
 }
 

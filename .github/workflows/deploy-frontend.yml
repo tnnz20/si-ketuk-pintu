@@ -23,6 +23,8 @@ jobs:
           context: apps/frontend
           build-args: |
             VITE_API_URL=${{ vars.VITE_API_URL || 'http://localhost:8080' }}
+            VITE_APP_ENV=production
+            VITE_TURNSTILE_SITE_KEY=${{ secrets.TURNSTILE_SITE_KEY }}
 
       - name: Push to GitHub Container Registry
         uses: redhat-actions/push-to-registry@v2

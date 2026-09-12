@@ -44,6 +44,7 @@ type VisitRequestController struct {
 	qrUsecase           *usecase.QRUsecase
 	logger              *logrus.Logger
 	uploadDir           string
+	verifier            TurnstileVerifier
 }
 
 func NewVisitRequestController(
@@ -51,16 +52,26 @@ func NewVisitRequestController(
 	qrUsecase *usecase.QRUsecase,
 	logger *logrus.Logger,
 	uploadDir string,
+	verifier TurnstileVerifier,
 ) *VisitRequestController {
 	return &VisitRequestController{
 		visitRequestUsecase: visitRequestUsecase,
 		qrUsecase:           qrUsecase,
 		logger:              logger,
 		uploadDir:           uploadDir,
+		verifier:            verifier,
 	}
 }
 
 func (c *VisitRequestController) Create(ginContext *gin.Context) {
+	if c.verifier != nil {
+		if err := c.verifier.Verify(ginContext.Request.Context(), ginContext.PostForm("turnstile_token"), ginContext.ClientIP()); err != nil {
+			c.logger.WithError(err).Warn("turnstile verification failed for visit request")
+			ginContext.JSON(http.StatusForbidden, model.ErrorResponse{Error: "turnstile verification failed"})
+			return
+		}
+	}
+
 	var request model.CreateVisitRequestRequest
 	if err := ginContext.ShouldBind(&request); err != nil {
 		c.logger.WithError(err).Warn("failed to bind request body")

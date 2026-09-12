@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -10,13 +11,18 @@ import (
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
 )
 
+type TurnstileVerifier interface {
+	Verify(ctx context.Context, token, remoteIP string) error
+}
+
 type AdminAuthController struct {
 	authUsecase *usecase.AuthUsecase
 	logger      *logrus.Logger
+	verifier    TurnstileVerifier
 }
 
-func NewAdminAuthController(authUsecase *usecase.AuthUsecase, logger *logrus.Logger) *AdminAuthController {
-	return &AdminAuthController{authUsecase: authUsecase, logger: logger}
+func NewAdminAuthController(authUsecase *usecase.AuthUsecase, logger *logrus.Logger, verifier TurnstileVerifier) *AdminAuthController {
+	return &AdminAuthController{authUsecase: authUsecase, logger: logger, verifier: verifier}
 }
 
 func (c *AdminAuthController) Login(ginContext *gin.Context) {
@@ -25,6 +31,14 @@ func (c *AdminAuthController) Login(ginContext *gin.Context) {
 		c.logger.WithError(err).Warn("failed to bind login request")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
 		return
+	}
+
+	if c.verifier != nil {
+		if err := c.verifier.Verify(ginContext.Request.Context(), request.TurnstileToken, ginContext.ClientIP()); err != nil {
+			c.logger.WithError(err).Warn("turnstile verification failed for login")
+			ginContext.JSON(http.StatusForbidden, model.ErrorResponse{Error: "turnstile verification failed"})
+			return
+		}
 	}
 
 	tokenString, err := c.authUsecase.Login(ginContext.Request.Context(), request.Identifier, request.Password)

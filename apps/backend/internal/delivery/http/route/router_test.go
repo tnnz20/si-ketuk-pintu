@@ -69,6 +69,42 @@ func TestRouterRegistersAllRoutes(t *testing.T) {
 	}
 }
 
+func TestRouterRateLimitsLoginAndCreateRequest(t *testing.T) {
+	t.Parallel()
+
+	logger := logrus.New()
+	logger.SetOutput(io.Discard)
+
+	deps := RouterDeps{
+		Logger:                 logger,
+		CORSOrigins:            []string{"*"},
+		RateLimiter:            middleware.NewRateLimiter(10.0, 1),
+		AuthUsecase:            usecase.NewAuthUsecase(nil, "secret", 24, logger),
+		HealthController:       &controllers.HealthController{},
+		VisitRequestController: &controllers.VisitRequestController{},
+		AdminAuthController:    &controllers.AdminAuthController{},
+		AdminRequestController: &controllers.AdminRequestController{},
+	}
+	router := NewRouter(deps)
+
+	for _, test := range []struct{ method, path, contentType string }{
+		{http.MethodPost, "/api/admin/auth/login", "application/json"},
+		{http.MethodPost, "/api/public/requests", "multipart/form-data; boundary=x"},
+	} {
+		codes := make([]int, 0, 3)
+		for i := 0; i < 3; i++ {
+			req, _ := http.NewRequest(test.method, test.path, nil)
+			req.Header.Set("Content-Type", test.contentType)
+			recorder := httptest.NewRecorder()
+			router.ServeHTTP(recorder, req)
+			codes = append(codes, recorder.Code)
+		}
+		if codes[1] != http.StatusTooManyRequests || codes[2] != http.StatusTooManyRequests {
+			t.Errorf("%s %s beyond rate limit: got codes %v, want 429 after first request", test.method, test.path, codes)
+		}
+	}
+}
+
 func TestRouterGraphRouteRequiresAuth(t *testing.T) {
 	t.Parallel()
 

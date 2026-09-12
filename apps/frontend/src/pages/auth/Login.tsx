@@ -10,11 +10,12 @@ import {
   User,
   ClipboardList,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { login } from '../../lib/api/auth';
 import { loginSchema } from '../../schemas/login';
+import { getTurnstileToken, turnstileEnabled } from '../../lib/turnstile';
 
 const features = [
   {
@@ -41,6 +42,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const turnstileRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const reduce = useReducedMotion();
 
@@ -70,7 +72,17 @@ export default function Login() {
     setError('');
 
     try {
-      await login(identifier, password);
+      let turnstileToken = '';
+      if (turnstileEnabled()) {
+        try {
+          turnstileToken = await getTurnstileToken(turnstileRef.current!);
+        } catch {
+          setError('Verifikasi manusia gagal. Silakan coba lagi.');
+          toast.error('Verifikasi manusia gagal. Silakan coba lagi.');
+          return;
+        }
+      }
+      await login(identifier, password, turnstileToken);
       navigate('/dashboard');
     } catch {
       setError('Email, username, atau password salah.');
@@ -323,6 +335,8 @@ export default function Login() {
                   <p className="font-label text-label-sm text-error">{fieldErrors.password}</p>
                 )}
               </div>
+
+              {turnstileEnabled() && <div ref={turnstileRef} className="flex justify-center" />}
 
               <motion.button
                 type="submit"

@@ -23,7 +23,7 @@ The backend reads environment variables and optionally loads `apps/backend/.env`
 
 The frontend provides a public submission flow (multi-step visitor request form with per-step validation, status lookup by token, and QR preview), an admin area (login, dashboard with latest requests, paginated request management, QR scanner), and route-protected screens. Zod schemas live in `apps/frontend/src/schemas/`.
 
-Use `make frontend-lint`, `make frontend-prettier`, and `make frontend-build` before deployment. `apps/frontend/nginx.conf` serves the generated single-page application from `/usr/share/nginx/html`.
+Use `make fe-lint`, `make fe-prettier`, and `make fe-build` before deployment. `apps/frontend/nginx.conf` serves the generated single-page application from `/usr/share/nginx/html`.
 
 ## Commands
 
