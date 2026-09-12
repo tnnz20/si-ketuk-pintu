@@ -19,6 +19,8 @@ func (w gormLogWriter) Printf(message string, values ...interface{}) {
 	w.logger.WithField("component", "gorm").Debugf(message, values...)
 }
 
+// OpenDatabase connects to PostgreSQL using the given URL, verifies the
+// connection with a ping, and returns the GORM database handle.
 func OpenDatabase(ctx context.Context, databaseURL string, logger *logrus.Logger) (*gorm.DB, error) {
 	gormLogger := gormlogger.New(
 		gormLogWriter{logger: logger},

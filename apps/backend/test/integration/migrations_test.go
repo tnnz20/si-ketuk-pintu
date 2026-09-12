@@ -12,7 +12,6 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"github.com/sirupsen/logrus"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/config"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
@@ -322,7 +321,7 @@ func assertAdministratorSeedIsCreateOnly(t *testing.T, databaseURL string) {
 	}
 
 	seedUsecase := usecase.NewSeedAdministratorUsecase(
-		repository.NewAdministratorRepository(database, logrus.New()),
+		repository.NewAdministratorRepository(database),
 	)
 	input := usecase.SeedAdministratorInput{
 		Username: "migration-test-admin",

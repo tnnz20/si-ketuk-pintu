@@ -2,6 +2,8 @@ package entity
 
 import "github.com/google/uuid"
 
+// VisitRequest is a guest institution's request to visit, tracked by a
+// public Token and a review Status (pending, approved, or rejected).
 type VisitRequest struct {
 	ID                uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey"`
 	Token             string    `gorm:"size:18;not null;uniqueIndex"`

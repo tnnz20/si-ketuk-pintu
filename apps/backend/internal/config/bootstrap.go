@@ -15,6 +15,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Bootstrap contains application configuration and initialized dependencies.
 type Bootstrap struct {
 	Config Config
 	Logger *logrus.Logger
@@ -22,16 +23,27 @@ type Bootstrap struct {
 	Router *gin.Engine
 }
 
+// NewBootstrap loads configuration and constructs the logger, database
+// connection, and HTTP router with all repositories, usecases, controllers,
+// and middleware wired together. It returns an error if any step fails.
 func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 	applicationConfig, err := Load()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("load config: %w", err)
 	}
 
 	logger, err := NewLogger(applicationConfig.LogLevel)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("new logger: %w", err)
 	}
+
+	if mode := ginModeFor(applicationConfig.Environment); mode != "" {
+		gin.SetMode(mode)
+	}
+	logger.WithFields(logrus.Fields{
+		"environment": applicationConfig.Environment,
+		"gin_mode":    gin.Mode(),
+	}).Info("application environment loaded")
 
 	database, err := OpenDatabase(ctx, applicationConfig.DatabaseURL, logger)
 	if err != nil {
@@ -40,8 +52,8 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 
 	// Repositories
 	healthRepository := repository.NewDatabaseHealthRepository(database)
-	administratorRepository := repository.NewAdministratorRepository(database, logger)
-	visitRequestRepository := repository.NewVisitRequestRepository(database, logger)
+	administratorRepository := repository.NewAdministratorRepository(database)
+	visitRequestRepository := repository.NewVisitRequestRepository(database)
 	auditEventRepository := repository.NewAuditEventRepository(database)
 
 	// Usecases
@@ -104,6 +116,15 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 	}, nil
 }
 
+func ginModeFor(environment string) string {
+	if environment == "production" {
+		return gin.ReleaseMode
+	}
+
+	return ""
+}
+
+// Close releases the underlying database connection pool.
 func (b *Bootstrap) Close() error {
 	sqlDatabase, err := b.DB.DB()
 	if err != nil {

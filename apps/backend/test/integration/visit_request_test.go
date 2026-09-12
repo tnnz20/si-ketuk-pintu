@@ -436,9 +436,9 @@ func TestCreateVisitRequestRejectsInvalidTujuan(t *testing.T) {
 
 func TestCreateVisitRequestRejectsMissingTujuan(t *testing.T) {
 	tests := []struct {
-		name          string
+		name           string
 		tujuanInstansi string
-		tujuanBagian  string
+		tujuanBagian   string
 	}{
 		{name: "missing tujuan_instansi", tujuanInstansi: "", tujuanBagian: "Kabag Hukum"},
 		{name: "missing tujuan_bagian", tujuanInstansi: "Sekretariat DPRD", tujuanBagian: ""},

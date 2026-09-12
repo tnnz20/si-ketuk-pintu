@@ -7,6 +7,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// RequestLogger returns gin middleware that logs method, path, status, and
+// duration for every request after it completes.
 func RequestLogger(logger *logrus.Logger) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		startedAt := time.Now()

@@ -30,6 +30,8 @@ var TujuanBagianOptions = map[string][]string{
 	},
 }
 
+// TujuanInstansiOptions returns the sorted list of allowed tujuan_instansi
+// values.
 func TujuanInstansiOptions() []string {
 	options := make([]string, 0, len(TujuanBagianOptions))
 	for instansi := range TujuanBagianOptions {
@@ -39,6 +41,8 @@ func TujuanInstansiOptions() []string {
 	return options
 }
 
+// ValidateTujuanDestination checks that the given tujuan_bagian is valid for
+// the given tujuan_instansi, returning an error listing valid options if not.
 func ValidateTujuanDestination(tujuanInstansi, tujuanBagian string) error {
 	bagianOptions, ok := TujuanBagianOptions[tujuanInstansi]
 	if !ok {
@@ -50,11 +54,14 @@ func ValidateTujuanDestination(tujuanInstansi, tujuanBagian string) error {
 	return nil
 }
 
+// GuestInput is a single guest entry submitted with a visit request.
 type GuestInput struct {
 	Nama    string `json:"nama" binding:"required"`
 	Jabatan string `json:"jabatan" binding:"required"`
 }
 
+// CreateVisitRequestRequest is the multipart form payload for creating a
+// visit request (files are bound separately).
 type CreateVisitRequestRequest struct {
 	Email             string `form:"email" binding:"required,email"`
 	NamaInstansi      string `form:"nama_instansi" binding:"required"`
@@ -70,12 +77,14 @@ type CreateVisitRequestRequest struct {
 	TurnstileToken    string `form:"turnstile_token"`
 }
 
+// GuestResponse is the API representation of a visit request guest.
 type GuestResponse struct {
 	GuestOrder int    `json:"guest_order"`
 	Nama       string `json:"nama"`
 	Jabatan    string `json:"jabatan"`
 }
 
+// AttachmentResponse is the API representation of a visit request attachment.
 type AttachmentResponse struct {
 	ID             int64  `json:"id"`
 	AttachmentType string `json:"attachment_type"`
@@ -84,6 +93,7 @@ type AttachmentResponse struct {
 	SizeBytes      int64  `json:"size_bytes"`
 }
 
+// VisitRequestResponse is the full API representation of a visit request.
 type VisitRequestResponse struct {
 	ID                string               `json:"id"`
 	Token             string               `json:"token"`
@@ -106,6 +116,7 @@ type VisitRequestResponse struct {
 	UpdatedAt         int64                `json:"updated_at"`
 }
 
+// VisitRequestListItem is a single row in the paginated admin list response.
 type VisitRequestListItem struct {
 	ID                string `json:"id"`
 	Token             string `json:"token"`
@@ -119,6 +130,7 @@ type VisitRequestListItem struct {
 	CreatedAt         int64  `json:"created_at"`
 }
 
+// VisitRequestListResponse is the paginated admin list response.
 type VisitRequestListResponse struct {
 	Data       []VisitRequestListItem `json:"data"`
 	Total      int64                  `json:"total"`
@@ -127,11 +139,15 @@ type VisitRequestListResponse struct {
 	TotalPages int                    `json:"total_pages"`
 }
 
+// CreateVisitRequestResponse returns the public token a visitor uses to
+// track their request.
 type CreateVisitRequestResponse struct {
 	Token   string `json:"token"`
 	Message string `json:"message"`
 }
 
+// ListFilter holds admin list query parameters: free-text search, status,
+// date (YYYY-MM-DD), pagination.
 type ListFilter struct {
 	Search    string
 	Status    string
@@ -141,11 +157,13 @@ type ListFilter struct {
 	Size      int
 }
 
+// GraphPoint is a single aggregate count for a period in the stats graph.
 type GraphPoint struct {
 	Period time.Time
 	Count  int64
 }
 
+// GraphPointResponse is the API representation of a GraphPoint.
 type GraphPointResponse struct {
 	Period string `json:"period"`
 	Count  int64  `json:"count"`

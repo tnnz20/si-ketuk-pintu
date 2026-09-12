@@ -9,6 +9,8 @@ import (
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
 )
 
+// RouterDeps holds the controllers, middleware, and config the router
+// wires into routes.
 type RouterDeps struct {
 	Logger                 *logrus.Logger
 	CORSOrigins            []string
@@ -20,6 +22,8 @@ type RouterDeps struct {
 	AdminRequestController *controllers.AdminRequestController
 }
 
+// NewRouter builds the gin engine with CORS, rate limiting, logging, and
+// recovery middleware, and registers public, health, and admin routes.
 func NewRouter(deps RouterDeps) *gin.Engine {
 	router := gin.New()
 	if err := router.SetTrustedProxies(nil); err != nil {

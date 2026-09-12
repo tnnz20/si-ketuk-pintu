@@ -11,20 +11,26 @@ import (
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
 )
 
+// TurnstileVerifier validates a Cloudflare Turnstile token.
 type TurnstileVerifier interface {
 	Verify(ctx context.Context, token, remoteIP string) error
 }
 
+// AdminAuthController handles admin login requests.
 type AdminAuthController struct {
 	authUsecase *usecase.AuthUsecase
 	logger      *logrus.Logger
 	verifier    TurnstileVerifier
 }
 
+// NewAdminAuthController creates an AdminAuthController. When verifier is
+// non-nil, login requests must pass Turnstile verification first.
 func NewAdminAuthController(authUsecase *usecase.AuthUsecase, logger *logrus.Logger, verifier TurnstileVerifier) *AdminAuthController {
 	return &AdminAuthController{authUsecase: authUsecase, logger: logger, verifier: verifier}
 }
 
+// Login authenticates an administrator with identifier and password and
+// returns a JWT, optionally verifying a Turnstile token first.
 func (c *AdminAuthController) Login(ginContext *gin.Context) {
 	var request model.LoginRequest
 	if err := ginContext.ShouldBindJSON(&request); err != nil {

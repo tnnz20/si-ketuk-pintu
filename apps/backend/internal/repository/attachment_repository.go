@@ -10,16 +10,21 @@ import (
 	"gorm.io/gorm"
 )
 
+// ErrAttachmentNotFound is returned when no attachment matches the lookup.
 var ErrAttachmentNotFound = errors.New("attachment not found")
 
+// AttachmentRepository stores and retrieves file attachment records.
 type AttachmentRepository struct {
 	database *gorm.DB
 }
 
+// NewAttachmentRepository creates an AttachmentRepository backed by the
+// given database handle.
 func NewAttachmentRepository(database *gorm.DB) *AttachmentRepository {
 	return &AttachmentRepository{database: database}
 }
 
+// Create persists a new attachment record.
 func (r *AttachmentRepository) Create(ctx context.Context, attachment *entity.Attachment) error {
 	if err := r.database.WithContext(ctx).Create(attachment).Error; err != nil {
 		return fmt.Errorf("create attachment: %w", err)
@@ -27,6 +32,7 @@ func (r *AttachmentRepository) Create(ctx context.Context, attachment *entity.At
 	return nil
 }
 
+// Delete removes the attachment record from the database.
 func (r *AttachmentRepository) Delete(ctx context.Context, attachment *entity.Attachment) error {
 	if err := r.database.WithContext(ctx).Delete(&entity.Attachment{}, attachment.ID).Error; err != nil {
 		return fmt.Errorf("delete attachment: %w", err)
@@ -34,6 +40,8 @@ func (r *AttachmentRepository) Delete(ctx context.Context, attachment *entity.At
 	return nil
 }
 
+// FindByVisitRequestAndType returns the attachment of the given type for a
+// visit request, or ErrAttachmentNotFound if absent.
 func (r *AttachmentRepository) FindByVisitRequestAndType(
 	ctx context.Context,
 	visitRequestID uuid.UUID,

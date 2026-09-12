@@ -12,19 +12,25 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// ErrInvalidCredentials is returned when login fails due to unknown
+// identifier, inactive account, or wrong password.
 var ErrInvalidCredentials = errors.New("invalid username/email or password")
 
+// AdministratorFinder looks up administrators by username or email.
 type AdministratorFinder interface {
 	FindByIdentifier(ctx context.Context, identifier string) (*entity.Administrator, error)
 }
 
+// AuthUsecase handles administrator login and JWT issuance and validation.
 type AuthUsecase struct {
-	repository  AdministratorFinder
-	jwtSecret   []byte
-	jwtExpiry   time.Duration
-	logger      *logrus.Logger
+	repository AdministratorFinder
+	jwtSecret  []byte
+	jwtExpiry  time.Duration
+	logger     *logrus.Logger
 }
 
+// NewAuthUsecase creates an AuthUsecase that signs JWTs with jwtSecret and
+// expires them after jwtExpiryHours.
 func NewAuthUsecase(
 	repository AdministratorFinder,
 	jwtSecret string,
@@ -32,13 +38,15 @@ func NewAuthUsecase(
 	logger *logrus.Logger,
 ) *AuthUsecase {
 	return &AuthUsecase{
-		repository:  repository,
-		jwtSecret:   []byte(jwtSecret),
-		jwtExpiry:   time.Duration(jwtExpiryHours) * time.Hour,
-		logger:      logger,
+		repository: repository,
+		jwtSecret:  []byte(jwtSecret),
+		jwtExpiry:  time.Duration(jwtExpiryHours) * time.Hour,
+		logger:     logger,
 	}
 }
 
+// Login verifies the identifier and password, returning a signed JWT on
+// success or ErrInvalidCredentials on failure.
 func (u *AuthUsecase) Login(ctx context.Context, identifier string, password string) (string, error) {
 	administrator, err := u.repository.FindByIdentifier(ctx, identifier)
 	if err != nil {
@@ -73,6 +81,8 @@ func (u *AuthUsecase) Login(ctx context.Context, identifier string, password str
 	return tokenString, nil
 }
 
+// ValidateToken parses and validates a JWT, returning the administrator ID
+// from its subject claim.
 func (u *AuthUsecase) ValidateToken(tokenString string) (int64, error) {
 	token, err := jwt.ParseWithClaims(
 		tokenString,

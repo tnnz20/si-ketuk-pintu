@@ -7,6 +7,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// NewLogger creates a logrus logger writing JSON to stdout at the given
+// level (e.g. "info", "debug"). Invalid levels return an error.
 func NewLogger(level string) (*logrus.Logger, error) {
 	parsedLevel, err := logrus.ParseLevel(level)
 	if err != nil {

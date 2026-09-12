@@ -34,7 +34,7 @@ func main() {
 	}
 	defer sqlDatabase.Close()
 
-	store := repository.NewVisitRequestRepository(database, logger)
+	store := repository.NewVisitRequestRepository(database)
 	requests := seedVisitRequests(time.Now())
 	created := 0
 	for _, request := range requests {
