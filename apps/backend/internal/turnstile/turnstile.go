@@ -10,14 +10,19 @@ import (
 	"time"
 )
 
+// SiteVerifyEndpoint is the Cloudflare Turnstile siteverify API URL.
 const SiteVerifyEndpoint = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
 
+// Verifier validates Cloudflare Turnstile widget tokens against the
+// siteverify API.
 type Verifier struct {
 	secret   string
 	endpoint string
 	client   *http.Client
 }
 
+// NewVerifier creates a Verifier using the given site secret, with a 10s
+// HTTP timeout for siteverify requests.
 func NewVerifier(secret string) *Verifier {
 	return &Verifier{
 		secret:   secret,
@@ -30,6 +35,8 @@ type siteVerifyResponse struct {
 	Success bool `json:"success"`
 }
 
+// Verify submits the token and remote IP to siteverify, returning an error
+// if verification fails or is unreachable.
 func (v *Verifier) Verify(ctx context.Context, token, remoteIP string) error {
 	if strings.TrimSpace(token) == "" {
 		return errors.New("turnstile token missing")

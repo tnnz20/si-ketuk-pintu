@@ -2,6 +2,7 @@ package entity
 
 import "github.com/google/uuid"
 
+// Guest is a member of a visit request delegation, ordered by GuestOrder.
 type Guest struct {
 	ID             int64     `gorm:"primaryKey"`
 	VisitRequestID uuid.UUID `gorm:"type:uuid;not null;index"`

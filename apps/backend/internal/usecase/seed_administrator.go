@@ -9,24 +9,31 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// AdministratorCreator persists new administrator accounts.
 type AdministratorCreator interface {
 	Create(ctx context.Context, administrator *entity.Administrator) error
 }
 
+// SeedAdministratorInput holds the credentials for a new administrator.
 type SeedAdministratorInput struct {
 	Username string
 	Email    string
 	Password string
 }
 
+// SeedAdministratorUsecase creates the initial administrator account.
 type SeedAdministratorUsecase struct {
 	repository AdministratorCreator
 }
 
+// NewSeedAdministratorUsecase creates a SeedAdministratorUsecase backed by
+// the given repository.
 func NewSeedAdministratorUsecase(repository AdministratorCreator) *SeedAdministratorUsecase {
 	return &SeedAdministratorUsecase{repository: repository}
 }
 
+// Seed validates the input, hashes the password, and creates the
+// administrator account with IsActive set.
 func (u *SeedAdministratorUsecase) Seed(ctx context.Context, input SeedAdministratorInput) error {
 	username := strings.TrimSpace(input.Username)
 	email := strings.TrimSpace(input.Email)

@@ -8,8 +8,12 @@ import (
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
 )
 
+// AdministratorIDKey is the gin context key under which the authenticated
+// administrator's ID is stored.
 const AdministratorIDKey = "administrator_id"
 
+// Auth returns middleware that rejects requests without a valid Bearer
+// JWT, storing the administrator ID in the gin context.
 func Auth(authUsecase *usecase.AuthUsecase) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		header := context.GetHeader("Authorization")

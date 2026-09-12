@@ -39,6 +39,8 @@ func isWITATimeOfDay(value int64) bool {
 	return timeOfDay >= 0 && timeOfDay < 24*60*60*1000 && timeOfDay%60000 == 0
 }
 
+// VisitRequestController handles public visitor-facing visit request
+// endpoints.
 type VisitRequestController struct {
 	visitRequestUsecase *usecase.VisitRequestUsecase
 	qrUsecase           *usecase.QRUsecase
@@ -47,6 +49,9 @@ type VisitRequestController struct {
 	verifier            TurnstileVerifier
 }
 
+// NewVisitRequestController creates a VisitRequestController. When verifier
+// is non-nil, submitters must pass Turnstile verification; files are served
+// from uploadDir.
 func NewVisitRequestController(
 	visitRequestUsecase *usecase.VisitRequestUsecase,
 	qrUsecase *usecase.QRUsecase,
@@ -63,6 +68,8 @@ func NewVisitRequestController(
 	}
 }
 
+// Create accepts a multipart form visit request with guests and two PDF
+// letters, validating dates, files, and Turnstile before persisting it.
 func (c *VisitRequestController) Create(ginContext *gin.Context) {
 	if c.verifier != nil {
 		if err := c.verifier.Verify(ginContext.Request.Context(), ginContext.PostForm("turnstile_token"), ginContext.ClientIP()); err != nil {
@@ -178,6 +185,8 @@ func (c *VisitRequestController) Create(ginContext *gin.Context) {
 	})
 }
 
+// FindByToken returns the public view of a visit request by its token,
+// hiding archive attachments unless the request is approved.
 func (c *VisitRequestController) FindByToken(ginContext *gin.Context) {
 	token := ginContext.Param("token")
 	visitRequest, err := c.visitRequestUsecase.FindByToken(ginContext.Request.Context(), token)
@@ -199,6 +208,9 @@ func (c *VisitRequestController) FindByToken(ginContext *gin.Context) {
 	ginContext.JSON(http.StatusOK, response)
 }
 
+// DownloadAttachment streams a request's uploaded attachment inline,
+// restricting archive attachments to approved requests and verifying the
+// path stays inside the upload directory.
 func (c *VisitRequestController) DownloadAttachment(ginContext *gin.Context) {
 	token := ginContext.Param("token")
 	attachmentType := ginContext.Param("type")
@@ -293,6 +305,7 @@ func (c *VisitRequestController) DownloadAttachment(ginContext *gin.Context) {
 	ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "attachment not found"})
 }
 
+// DownloadQR returns the request token as a PNG QR code for download.
 func (c *VisitRequestController) DownloadQR(ginContext *gin.Context) {
 	token := ginContext.Param("token")
 

@@ -12,16 +12,23 @@ import (
 	"gorm.io/gorm"
 )
 
+// ErrVisitRequestNotFound is returned when no visit request matches the
+// lookup.
 var ErrVisitRequestNotFound = errors.New("visit request not found")
 
+// VisitRequestRepository stores visit requests, their guests, attachments,
+// and audit events using GORM.
 type VisitRequestRepository struct {
 	database *gorm.DB
 }
 
+// NewVisitRequestRepository creates a VisitRequestRepository backed by the
+// given database handle.
 func NewVisitRequestRepository(database *gorm.DB) *VisitRequestRepository {
 	return &VisitRequestRepository{database: database}
 }
 
+// CreateAttachment persists a new attachment record.
 func (r *VisitRequestRepository) CreateAttachment(ctx context.Context, attachment *entity.Attachment) error {
 	if err := r.database.WithContext(ctx).Create(attachment).Error; err != nil {
 		return fmt.Errorf("create attachment: %w", err)
@@ -29,6 +36,8 @@ func (r *VisitRequestRepository) CreateAttachment(ctx context.Context, attachmen
 	return nil
 }
 
+// FindAttachment returns the attachment of the given type for a visit
+// request, or (nil, nil) if none exists.
 func (r *VisitRequestRepository) FindAttachment(ctx context.Context, visitRequestID uuid.UUID, attachmentType string) (*entity.Attachment, error) {
 	var attachment entity.Attachment
 	err := r.database.WithContext(ctx).Where("visit_request_id = ? AND attachment_type = ?", visitRequestID, attachmentType).First(&attachment).Error
@@ -41,6 +50,8 @@ func (r *VisitRequestRepository) FindAttachment(ctx context.Context, visitReques
 	return &attachment, nil
 }
 
+// FindAttachmentByID returns the attachment with the given ID belonging to
+// a visit request, or (nil, nil) if none exists.
 func (r *VisitRequestRepository) FindAttachmentByID(ctx context.Context, visitRequestID uuid.UUID, attachmentID int64) (*entity.Attachment, error) {
 	var attachment entity.Attachment
 	err := r.database.WithContext(ctx).
@@ -55,6 +66,8 @@ func (r *VisitRequestRepository) FindAttachmentByID(ctx context.Context, visitRe
 	return &attachment, nil
 }
 
+// ListAttachments returns all attachments of the given type for a visit
+// request, ordered by ID.
 func (r *VisitRequestRepository) ListAttachments(ctx context.Context, visitRequestID uuid.UUID, attachmentType string) ([]entity.Attachment, error) {
 	attachments := []entity.Attachment{}
 	err := r.database.WithContext(ctx).
@@ -68,6 +81,7 @@ func (r *VisitRequestRepository) ListAttachments(ctx context.Context, visitReque
 	return attachments, nil
 }
 
+// DeleteAttachment removes the attachment record from the database.
 func (r *VisitRequestRepository) DeleteAttachment(ctx context.Context, attachment *entity.Attachment) error {
 	if err := r.database.WithContext(ctx).Delete(&entity.Attachment{}, attachment.ID).Error; err != nil {
 		return fmt.Errorf("delete attachment: %w", err)
@@ -75,6 +89,7 @@ func (r *VisitRequestRepository) DeleteAttachment(ctx context.Context, attachmen
 	return nil
 }
 
+// Create persists a new visit request with its guests in a transaction.
 func (r *VisitRequestRepository) Create(ctx context.Context, visitRequest *entity.VisitRequest) error {
 	return r.database.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(visitRequest).Error; err != nil {
@@ -85,6 +100,9 @@ func (r *VisitRequestRepository) Create(ctx context.Context, visitRequest *entit
 	})
 }
 
+// FindByToken returns the visit request with the given public token and its
+// guests, attachments, and audit events, or ErrVisitRequestNotFound if
+// absent.
 func (r *VisitRequestRepository) FindByToken(ctx context.Context, token string) (*entity.VisitRequest, error) {
 	var visitRequest entity.VisitRequest
 	err := r.database.WithContext(ctx).
@@ -108,6 +126,8 @@ func (r *VisitRequestRepository) FindByToken(ctx context.Context, token string) 
 	return &visitRequest, nil
 }
 
+// FindByID returns the visit request with the given UUID and its guests,
+// attachments, and audit events, or ErrVisitRequestNotFound if absent.
 func (r *VisitRequestRepository) FindByID(ctx context.Context, id uuid.UUID) (*entity.VisitRequest, error) {
 	var visitRequest entity.VisitRequest
 	err := r.database.WithContext(ctx).
@@ -130,6 +150,8 @@ func (r *VisitRequestRepository) FindByID(ctx context.Context, id uuid.UUID) (*e
 	return &visitRequest, nil
 }
 
+// List returns the visit requests matching the filter (status, date,
+// free-text search) with pagination, plus the total matching count.
 func (r *VisitRequestRepository) List(
 	ctx context.Context,
 	filter model.ListFilter,
@@ -184,6 +206,8 @@ func (r *VisitRequestRepository) List(
 	return visitRequests, total, nil
 }
 
+// UpdateSchedule sets the visit date and time for a request, returning
+// ErrVisitRequestNotFound if the request does not exist.
 func (r *VisitRequestRepository) UpdateSchedule(ctx context.Context, id uuid.UUID, tanggalKunjungan int64, jamKunjungan int64) error {
 	result := r.database.WithContext(ctx).Model(&entity.VisitRequest{}).Where("id = ?", id).Updates(map[string]any{
 		"tanggal_kunjungan": tanggalKunjungan,
@@ -199,6 +223,8 @@ func (r *VisitRequestRepository) UpdateSchedule(ctx context.Context, id uuid.UUI
 	return nil
 }
 
+// UpdateStatus sets the status for a request, returning
+// ErrVisitRequestNotFound if the request does not exist.
 func (r *VisitRequestRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status string) error {
 	result := r.database.WithContext(ctx).
 		Model(&entity.VisitRequest{}).
@@ -215,6 +241,8 @@ func (r *VisitRequestRepository) UpdateStatus(ctx context.Context, id uuid.UUID,
 	return nil
 }
 
+// Stats returns the count of requests created in [start, end), the count of
+// pending requests, and the total request count.
 func (r *VisitRequestRepository) Stats(ctx context.Context, start, end int64) (int64, int64, int64, error) {
 	var today, pending, total int64
 	if err := r.database.WithContext(ctx).Model(&entity.VisitRequest{}).Where("created_at >= ? AND created_at < ?", start, end).Count(&today).Error; err != nil {
@@ -229,6 +257,9 @@ func (r *VisitRequestRepository) Stats(ctx context.Context, start, end int64) (i
 	return today, pending, total, nil
 }
 
+// CountByPeriod aggregates visit request counts per day ("daily"), per
+// month ("monthly"), or per year (any other value) within the range implied
+// by year and month, in the given time zone.
 func (r *VisitRequestRepository) CountByPeriod(ctx context.Context, period string, year, month int, loc *time.Location) ([]model.GraphPoint, error) {
 	var start, end time.Time
 	switch period {
@@ -270,6 +301,9 @@ func (r *VisitRequestRepository) CountByPeriod(ctx context.Context, period strin
 	return points, nil
 }
 
+// Delete removes a visit request and all its related records in a
+// transaction, returning ErrVisitRequestNotFound if the request does not
+// exist.
 func (r *VisitRequestRepository) Delete(ctx context.Context, id uuid.UUID) error {
 	var affected int64
 	err := r.database.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -294,6 +328,7 @@ func (r *VisitRequestRepository) Delete(ctx context.Context, id uuid.UUID) error
 	return nil
 }
 
+// TokenExists reports whether a visit request with the given token exists.
 func (r *VisitRequestRepository) TokenExists(ctx context.Context, token string) (bool, error) {
 	var count int64
 	err := r.database.WithContext(ctx).

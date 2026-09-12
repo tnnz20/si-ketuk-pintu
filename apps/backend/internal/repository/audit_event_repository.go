@@ -9,14 +9,18 @@ import (
 	"gorm.io/gorm"
 )
 
+// AuditEventRepository stores and lists audit trail events.
 type AuditEventRepository struct {
 	database *gorm.DB
 }
 
+// NewAuditEventRepository creates an AuditEventRepository backed by the
+// given database handle.
 func NewAuditEventRepository(database *gorm.DB) *AuditEventRepository {
 	return &AuditEventRepository{database: database}
 }
 
+// Create persists a new audit event.
 func (r *AuditEventRepository) Create(ctx context.Context, event *entity.AuditEvent) error {
 	if err := r.database.WithContext(ctx).Create(event).Error; err != nil {
 		return fmt.Errorf("create audit event: %w", err)
@@ -25,6 +29,8 @@ func (r *AuditEventRepository) Create(ctx context.Context, event *entity.AuditEv
 	return nil
 }
 
+// ListByVisitRequest returns all audit events for a visit request, newest
+// first.
 func (r *AuditEventRepository) ListByVisitRequest(
 	ctx context.Context,
 	visitRequestID uuid.UUID,

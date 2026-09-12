@@ -20,12 +20,16 @@ import (
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
 )
 
+// AdminRequestController handles admin-facing visit request and archive
+// endpoints.
 type AdminRequestController struct {
 	visitRequestUsecase *usecase.VisitRequestUsecase
 	logger              *logrus.Logger
 	uploadDir           string
 }
 
+// NewAdminRequestController creates an AdminRequestController serving files
+// from uploadDir.
 func NewAdminRequestController(
 	visitRequestUsecase *usecase.VisitRequestUsecase,
 	logger *logrus.Logger,
@@ -38,10 +42,12 @@ func NewAdminRequestController(
 	}
 }
 
+// List returns a paginated, filterable list of all visit requests.
 func (c *AdminRequestController) List(ginContext *gin.Context) {
 	c.listRequests(ginContext, ginContext.Query("status"))
 }
 
+// ListArchives returns a paginated list of approved visit requests.
 func (c *AdminRequestController) ListArchives(ginContext *gin.Context) {
 	c.listRequests(ginContext, "approved")
 }
@@ -102,6 +108,7 @@ func (c *AdminRequestController) listRequests(ginContext *gin.Context, status st
 	})
 }
 
+// Stats returns today's request count, pending count, and total count.
 func (c *AdminRequestController) Stats(ginContext *gin.Context) {
 	today, pending, total, err := c.visitRequestUsecase.Stats(ginContext.Request.Context())
 	if err != nil {
@@ -117,6 +124,7 @@ func (c *AdminRequestController) Stats(ginContext *gin.Context) {
 	})
 }
 
+// Graph returns aggregated visit request counts per day, month, or year.
 func (c *AdminRequestController) Graph(ginContext *gin.Context) {
 	period := ginContext.Query("period")
 	if period != "daily" && period != "monthly" && period != "yearly" {
@@ -149,6 +157,7 @@ func (c *AdminRequestController) Graph(ginContext *gin.Context) {
 	ginContext.JSON(http.StatusOK, gin.H{"data": resp})
 }
 
+// FindByID returns a single visit request with its audit events.
 func (c *AdminRequestController) FindByID(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
@@ -197,6 +206,7 @@ func (c *AdminRequestController) FindByID(ginContext *gin.Context) {
 	})
 }
 
+// UpdateStatus approves or rejects a pending visit request.
 func (c *AdminRequestController) UpdateStatus(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
@@ -239,6 +249,7 @@ func (c *AdminRequestController) UpdateStatus(ginContext *gin.Context) {
 	ginContext.JSON(http.StatusOK, gin.H{"message": "status updated"})
 }
 
+// Delete removes a visit request and all its related records.
 func (c *AdminRequestController) Delete(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
@@ -260,6 +271,7 @@ func (c *AdminRequestController) Delete(ginContext *gin.Context) {
 	ginContext.JSON(http.StatusOK, gin.H{"message": "Permohonan berhasil dihapus"})
 }
 
+// Reschedule updates a pending request's visit date and time.
 func (c *AdminRequestController) Reschedule(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
@@ -303,6 +315,7 @@ func (c *AdminRequestController) Reschedule(ginContext *gin.Context) {
 	ginContext.JSON(http.StatusOK, gin.H{"message": "schedule rescheduled"})
 }
 
+// UploadRescheduleLetter stores a replacement reschedule letter PDF.
 func (c *AdminRequestController) UploadRescheduleLetter(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
@@ -327,6 +340,7 @@ func (c *AdminRequestController) UploadRescheduleLetter(ginContext *gin.Context)
 	ginContext.JSON(http.StatusCreated, gin.H{"attachment": attachment})
 }
 
+// DeleteRescheduleLetter removes the pending request's reschedule letter.
 func (c *AdminRequestController) DeleteRescheduleLetter(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
@@ -344,6 +358,8 @@ func (c *AdminRequestController) DeleteRescheduleLetter(ginContext *gin.Context)
 	ginContext.JSON(http.StatusOK, gin.H{"message": "reschedule letter deleted"})
 }
 
+// UploadApprovalLetter stores an approval letter PDF for an approved
+// request.
 func (c *AdminRequestController) UploadApprovalLetter(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
@@ -378,6 +394,7 @@ func (c *AdminRequestController) UploadApprovalLetter(ginContext *gin.Context) {
 	ginContext.JSON(http.StatusCreated, gin.H{"attachment": attachment})
 }
 
+// DeleteApprovalLetter removes the approved request's approval letter.
 func (c *AdminRequestController) DeleteApprovalLetter(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
@@ -396,6 +413,8 @@ func (c *AdminRequestController) DeleteApprovalLetter(ginContext *gin.Context) {
 	ginContext.JSON(http.StatusOK, gin.H{"message": "approval letter deleted"})
 }
 
+// DownloadAttachment streams a request letter PDF (initial or
+// reschedule/approval, depending on status) as an attachment.
 func (c *AdminRequestController) DownloadAttachment(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
@@ -469,6 +488,7 @@ func respondArchiveError(ginContext *gin.Context, err error) {
 	}
 }
 
+// UploadDocumentations stores documentation images for an approved request.
 func (c *AdminRequestController) UploadDocumentations(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
@@ -512,6 +532,7 @@ func (c *AdminRequestController) UploadDocumentations(ginContext *gin.Context) {
 	ginContext.JSON(http.StatusCreated, gin.H{"attachments": response})
 }
 
+// DeleteDocumentation removes a documentation image.
 func (c *AdminRequestController) DeleteDocumentation(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
@@ -531,6 +552,7 @@ func (c *AdminRequestController) DeleteDocumentation(ginContext *gin.Context) {
 	ginContext.JSON(http.StatusOK, gin.H{"message": "documentation image deleted"})
 }
 
+// UploadDaftarAbsen stores the attendance list PDF for an approved request.
 func (c *AdminRequestController) UploadDaftarAbsen(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
@@ -554,6 +576,7 @@ func (c *AdminRequestController) UploadDaftarAbsen(ginContext *gin.Context) {
 	ginContext.JSON(http.StatusCreated, gin.H{"attachment": toAttachmentResponse(*attachment)})
 }
 
+// DeleteDaftarAbsen removes the attendance list.
 func (c *AdminRequestController) DeleteDaftarAbsen(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
@@ -568,6 +591,8 @@ func (c *AdminRequestController) DeleteDaftarAbsen(ginContext *gin.Context) {
 	ginContext.JSON(http.StatusOK, gin.H{"message": "attendance list deleted"})
 }
 
+// DownloadArchiveAttachment streams an approved request's documentation
+// image or attendance list.
 func (c *AdminRequestController) DownloadArchiveAttachment(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {

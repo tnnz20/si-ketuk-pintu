@@ -15,6 +15,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Bootstrap contains application configuration and initialized dependencies.
 type Bootstrap struct {
 	Config Config
 	Logger *logrus.Logger
@@ -22,6 +23,9 @@ type Bootstrap struct {
 	Router *gin.Engine
 }
 
+// NewBootstrap loads configuration and constructs the logger, database
+// connection, and HTTP router with all repositories, usecases, controllers,
+// and middleware wired together. It returns an error if any step fails.
 func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 	applicationConfig, err := Load()
 	if err != nil {
@@ -120,6 +124,7 @@ func ginModeFor(environment string) string {
 	return ""
 }
 
+// Close releases the underlying database connection pool.
 func (b *Bootstrap) Close() error {
 	sqlDatabase, err := b.DB.DB()
 	if err != nil {

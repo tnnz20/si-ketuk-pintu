@@ -9,6 +9,8 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// DatabaseConfig holds PostgreSQL connection settings read from
+// POSTGRES_* environment variables.
 type DatabaseConfig struct {
 	Host     string
 	Port     string
@@ -18,14 +20,17 @@ type DatabaseConfig struct {
 	SSLMode  string
 }
 
+// GetDSN returns the key-value DSN string for the database connection.
 func (c DatabaseConfig) GetDSN() string {
 	return fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", c.Host, c.Port, c.User, c.Password, c.DBName, c.SSLMode)
 }
 
+// GetURL returns the PostgreSQL connection URL for the database.
 func (c DatabaseConfig) GetURL() string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s", c.User, c.Password, c.Host, c.Port, c.DBName, c.SSLMode)
 }
 
+// Config holds all application settings loaded from environment variables.
 type Config struct {
 	Environment        string
 	Host               string
@@ -45,12 +50,16 @@ type Config struct {
 	TurnstileEnabled   bool
 }
 
+// Load reads configuration from environment variables, optionally filling
+// in defaults from a .env file. It returns an error if required variables
+// are missing or invalid.
 func Load() (Config, error) {
 	_ = godotenv.Load()
 
 	return load(os.Getenv)
 }
 
+// HTTPAddress returns the host:port address the HTTP server should listen on.
 func (c Config) HTTPAddress() string {
 	return fmt.Sprintf("%s:%d", c.Host, c.Port)
 }

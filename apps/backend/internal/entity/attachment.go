@@ -2,6 +2,8 @@ package entity
 
 import "github.com/google/uuid"
 
+// Attachment is metadata for a file uploaded for a visit request; file
+// contents live on disk under StorageKey.
 type Attachment struct {
 	ID             int64     `gorm:"primaryKey"`
 	VisitRequestID uuid.UUID `gorm:"type:uuid;not null;index"`

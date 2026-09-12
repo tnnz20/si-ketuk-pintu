@@ -49,6 +49,8 @@ var ErrDaftarAbsenExists = errors.New("attendance list already exists")
 var ErrDaftarAbsenNotFound = errors.New("attendance list not found")
 var ErrInvalidImageFile = errors.New("files must be valid PNG or JPG images")
 
+// VisitRequestStore defines the persistence operations required by
+// VisitRequestUsecase.
 type VisitRequestStore interface {
 	Create(ctx context.Context, visitRequest *entity.VisitRequest) error
 	CreateAttachment(ctx context.Context, attachment *entity.Attachment) error
@@ -67,16 +69,21 @@ type VisitRequestStore interface {
 	TokenExists(ctx context.Context, token string) (bool, error)
 }
 
+// AuditEventCreator persists audit trail events.
 type AuditEventCreator interface {
 	Create(ctx context.Context, event *entity.AuditEvent) error
 }
 
+// UpdateStatusInput identifies a visit request status change and the
+// administrator performing it.
 type UpdateStatusInput struct {
 	VisitRequestID  uuid.UUID
 	NewStatus       string
 	AdministratorID int64
 }
 
+// RescheduleInput identifies a visit request schedule change and the
+// administrator performing it.
 type RescheduleInput struct {
 	VisitRequestID  uuid.UUID
 	NewDate         int64
@@ -84,6 +91,8 @@ type RescheduleInput struct {
 	AdministratorID int64
 }
 
+// VisitRequestUsecase orchestrates visit request business logic: creation,
+// review, rescheduling, and archive attachment management.
 type VisitRequestUsecase struct {
 	store     VisitRequestStore
 	auditor   AuditEventCreator
@@ -91,6 +100,8 @@ type VisitRequestUsecase struct {
 	uploadDir string
 }
 
+// NewVisitRequestUsecase creates a VisitRequestUsecase using the given
+// store, auditor, and upload directory for files.
 func NewVisitRequestUsecase(
 	store VisitRequestStore,
 	auditor AuditEventCreator,
@@ -105,12 +116,16 @@ func NewVisitRequestUsecase(
 	}
 }
 
+// FileInput describes an uploaded file: its content reader, original
+// filename, and declared size in bytes.
 type FileInput struct {
 	Reader   io.Reader
 	Filename string
 	Size     int64
 }
 
+// CreateVisitRequestInput holds all visitor-provided data for a new visit
+// request, including the required PDF letters.
 type CreateVisitRequestInput struct {
 	Email             string
 	NamaInstansi      string
@@ -128,6 +143,9 @@ type CreateVisitRequestInput struct {
 	SuratTugas        FileInput
 }
 
+// Create persists a new pending visit request with its guests and PDF
+// attachments, generating a unique public token and a request_submitted
+// audit event.
 func (u *VisitRequestUsecase) Create(
 	ctx context.Context,
 	input CreateVisitRequestInput,
@@ -201,14 +219,18 @@ func (u *VisitRequestUsecase) Create(
 	return visitRequest, nil
 }
 
+// FindByToken returns the visit request with the given public token.
 func (u *VisitRequestUsecase) FindByToken(ctx context.Context, token string) (*entity.VisitRequest, error) {
 	return u.store.FindByToken(ctx, token)
 }
 
+// FindByID returns the visit request with the given UUID.
 func (u *VisitRequestUsecase) FindByID(ctx context.Context, id uuid.UUID) (*entity.VisitRequest, error) {
 	return u.store.FindByID(ctx, id)
 }
 
+// List returns visit requests matching the filter, converting a YYYY-MM-DD
+// date filter (in WITA) to an epoch range first.
 func (u *VisitRequestUsecase) List(
 	ctx context.Context,
 	filter model.ListFilter,
@@ -223,20 +245,28 @@ func (u *VisitRequestUsecase) List(
 	return u.store.List(ctx, filter)
 }
 
+// Stats returns the count of requests created today (WITA), the pending
+// count, and the total count.
 func (u *VisitRequestUsecase) Stats(ctx context.Context) (int64, int64, int64, error) {
 	now := time.Now().In(model.WITATimeZone)
 	start := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, model.WITATimeZone).UnixMilli()
 	return u.store.Stats(ctx, start, start+24*60*60*1000)
 }
 
+// Graph returns per-day, per-month, or per-year visit request counts in
+// WITA for the given year and (for daily) month.
 func (u *VisitRequestUsecase) Graph(ctx context.Context, period string, year, month int) ([]model.GraphPoint, error) {
 	return u.store.CountByPeriod(ctx, period, year, month, model.WITATimeZone)
 }
 
+// Delete removes a visit request and all its related records.
 func (u *VisitRequestUsecase) Delete(ctx context.Context, id uuid.UUID) error {
 	return u.store.Delete(ctx, id)
 }
 
+// SaveApprovalLetter stores a surat_persetujuan PDF for an approved
+// request, returning ErrApprovalLetterNotAllowed if the request is not
+// approved or ErrApprovalLetterExists if one already exists.
 func (u *VisitRequestUsecase) SaveApprovalLetter(ctx context.Context, requestID uuid.UUID, file FileInput) (*entity.Attachment, error) {
 	request, err := u.store.FindByID(ctx, requestID)
 	if err != nil {
@@ -267,6 +297,8 @@ func (u *VisitRequestUsecase) SaveApprovalLetter(ctx context.Context, requestID 
 	return attachment, nil
 }
 
+// SaveRescheduleLetter stores a surat_reschedule PDF for a pending
+// request, replacing any existing reschedule letter.
 func (u *VisitRequestUsecase) SaveRescheduleLetter(ctx context.Context, requestID uuid.UUID, file FileInput) (*entity.Attachment, error) {
 	request, err := u.store.FindByID(ctx, requestID)
 	if err != nil {
@@ -299,6 +331,8 @@ func (u *VisitRequestUsecase) SaveRescheduleLetter(ctx context.Context, requestI
 	return attachment, nil
 }
 
+// DeleteRescheduleLetter removes the reschedule letter and its file,
+// returning ErrRescheduleLetterNotFound if absent.
 func (u *VisitRequestUsecase) DeleteRescheduleLetter(ctx context.Context, requestID uuid.UUID) error {
 	attachment, err := u.store.FindAttachment(ctx, requestID, "surat_reschedule")
 	if err != nil {
@@ -313,6 +347,8 @@ func (u *VisitRequestUsecase) DeleteRescheduleLetter(ctx context.Context, reques
 	return u.store.DeleteAttachment(ctx, attachment)
 }
 
+// DeleteApprovalLetter removes the approval letter and its file, returning
+// ErrApprovalLetterNotFound if absent.
 func (u *VisitRequestUsecase) DeleteApprovalLetter(ctx context.Context, requestID uuid.UUID) error {
 	attachment, err := u.store.FindAttachment(ctx, requestID, "surat_persetujuan")
 	if err != nil {
@@ -327,6 +363,9 @@ func (u *VisitRequestUsecase) DeleteApprovalLetter(ctx context.Context, requestI
 	return u.store.DeleteAttachment(ctx, attachment)
 }
 
+// SaveDocumentationImages stores documentation images for an approved
+// request, enforcing per-file and aggregate size limits and cleaning up on
+// partial failure.
 func (u *VisitRequestUsecase) SaveDocumentationImages(ctx context.Context, requestID uuid.UUID, files []FileInput) ([]entity.Attachment, error) {
 	request, err := u.store.FindByID(ctx, requestID)
 	if err != nil {
@@ -389,6 +428,8 @@ func (u *VisitRequestUsecase) cleanupDocumentation(ctx context.Context, created 
 	}
 }
 
+// DeleteDocumentationImage removes a documentation image and its file,
+// returning ErrDocumentationNotFound if absent.
 func (u *VisitRequestUsecase) DeleteDocumentationImage(ctx context.Context, requestID uuid.UUID, attachmentID int64) error {
 	attachment, err := u.store.FindAttachmentByID(ctx, requestID, attachmentID)
 	if err != nil {
@@ -403,6 +444,8 @@ func (u *VisitRequestUsecase) DeleteDocumentationImage(ctx context.Context, requ
 	return u.store.DeleteAttachment(ctx, attachment)
 }
 
+// SaveDaftarAbsen stores the attendance list PDF for an approved request,
+// returning ErrDaftarAbsenExists if one already exists.
 func (u *VisitRequestUsecase) SaveDaftarAbsen(ctx context.Context, requestID uuid.UUID, file FileInput) (*entity.Attachment, error) {
 	request, err := u.store.FindByID(ctx, requestID)
 	if err != nil {
@@ -431,6 +474,8 @@ func (u *VisitRequestUsecase) SaveDaftarAbsen(ctx context.Context, requestID uui
 	return attachment, nil
 }
 
+// DeleteDaftarAbsen removes the attendance list and its file, returning
+// ErrDaftarAbsenNotFound if absent.
 func (u *VisitRequestUsecase) DeleteDaftarAbsen(ctx context.Context, requestID uuid.UUID) error {
 	attachment, err := u.store.FindAttachment(ctx, requestID, "daftar_absen")
 	if err != nil {
@@ -445,6 +490,9 @@ func (u *VisitRequestUsecase) DeleteDaftarAbsen(ctx context.Context, requestID u
 	return u.store.DeleteAttachment(ctx, attachment)
 }
 
+// GetArchiveAttachment returns an approved request's archive attachment of
+// the expected type, or an error if the request is not approved or the
+// attachment is missing.
 func (u *VisitRequestUsecase) GetArchiveAttachment(ctx context.Context, requestID uuid.UUID, attachmentID int64, expectedType string) (*entity.Attachment, error) {
 	request, err := u.store.FindByID(ctx, requestID)
 	if err != nil {
@@ -465,6 +513,8 @@ func (u *VisitRequestUsecase) GetArchiveAttachment(ctx context.Context, requestI
 	return attachment, nil
 }
 
+// Reschedule updates a pending request's visit date and time in WITA and
+// records a schedule_rescheduled audit event.
 func (u *VisitRequestUsecase) Reschedule(ctx context.Context, input RescheduleInput) error {
 	request, err := u.store.FindByID(ctx, input.VisitRequestID)
 	if err != nil {
@@ -495,6 +545,8 @@ func (u *VisitRequestUsecase) Reschedule(ctx context.Context, input RescheduleIn
 	})
 }
 
+// UpdateStatus transitions a pending request to approved or rejected and
+// records a status_changed audit event, rejecting invalid transitions.
 func (u *VisitRequestUsecase) UpdateStatus(ctx context.Context, input UpdateStatusInput) error {
 	visitRequest, err := u.store.FindByID(ctx, input.VisitRequestID)
 	if err != nil {

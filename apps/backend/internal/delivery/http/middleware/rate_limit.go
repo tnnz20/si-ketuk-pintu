@@ -14,6 +14,7 @@ type visitor struct {
 	lastSeen time.Time
 }
 
+// RateLimiter limits requests per client IP using token buckets.
 type RateLimiter struct {
 	visitors map[string]*visitor
 	mu       sync.Mutex
@@ -21,6 +22,9 @@ type RateLimiter struct {
 	burst    int
 }
 
+// NewRateLimiter creates a RateLimiter allowing requestsPerSecond with the
+// given burst per IP, starting a background goroutine that prunes stale
+// visitors.
 func NewRateLimiter(requestsPerSecond float64, burst int) *RateLimiter {
 	rl := &RateLimiter{
 		visitors: map[string]*visitor{},
@@ -61,6 +65,8 @@ func (rl *RateLimiter) cleanup() {
 	}
 }
 
+// Middleware returns gin middleware that returns HTTP 429 when a client IP
+// exceeds its rate limit.
 func (rl *RateLimiter) Middleware() gin.HandlerFunc {
 	return func(context *gin.Context) {
 		limiter := rl.getVisitor(context.ClientIP())

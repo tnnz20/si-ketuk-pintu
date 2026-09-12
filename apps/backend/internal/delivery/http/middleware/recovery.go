@@ -7,6 +7,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// Recovery returns gin middleware that logs panics and responds with HTTP
+// 500 instead of crashing the server.
 func Recovery(logger *logrus.Logger) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		defer func() {

@@ -6,6 +6,8 @@ import (
 	"github.com/google/uuid"
 )
 
+// AuditEvent records an immutable before/after snapshot of an action taken
+// on a visit request by a visitor or administrator.
 type AuditEvent struct {
 	ID              int64           `gorm:"primaryKey"`
 	VisitRequestID  *uuid.UUID      `gorm:"type:uuid;index"`
