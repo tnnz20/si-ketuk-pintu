@@ -53,9 +53,17 @@ func (c *AdminRequestController) ListArchives(ginContext *gin.Context) {
 }
 
 func (c *AdminRequestController) listRequests(ginContext *gin.Context, status string) {
-	page, _ := strconv.Atoi(ginContext.DefaultQuery("page", "1"))
-	size, _ := strconv.Atoi(ginContext.DefaultQuery("page_size", "20"))
+	page, err := strconv.Atoi(ginContext.DefaultQuery("page", "1"))
+	if err != nil || page < 1 {
+		page = 1
+	}
 
+	size, err := strconv.Atoi(ginContext.DefaultQuery("page_size", "20"))
+	if err != nil || size < 1 {
+		size = 20
+	} else if size > 100 {
+		size = 100
+	}
 	filter := model.ListFilter{
 		Search: ginContext.Query("search"),
 		Status: status,
@@ -91,10 +99,6 @@ func (c *AdminRequestController) listRequests(ginContext *gin.Context, status st
 			Status:            vr.Status,
 			CreatedAt:         vr.CreatedAt,
 		})
-	}
-
-	if size < 1 {
-		size = 20
 	}
 
 	totalPages := int(math.Ceil(float64(total) / float64(size)))
