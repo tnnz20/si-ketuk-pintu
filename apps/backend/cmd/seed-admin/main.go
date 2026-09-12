@@ -33,7 +33,7 @@ func main() {
 	}
 	defer sqlDatabase.Close()
 
-	repository := repository.NewAdministratorRepository(database, logger)
+	repository := repository.NewAdministratorRepository(database)
 	seedUsecase := usecase.NewSeedAdministratorUsecase(repository)
 	if err := seedUsecase.Seed(context.Background(), usecase.SeedAdministratorInput{
 		Username: os.Getenv("ADMIN_USERNAME"),

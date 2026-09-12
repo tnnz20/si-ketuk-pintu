@@ -20,23 +20,31 @@ import (
 )
 
 type statusStoreStub struct {
-	request      *entity.VisitRequest
-	updated      string
-	graphPoints  []model.GraphPoint
-	attachments  map[string]*entity.Attachment // key: type or "type:id"
-	imageList    []entity.Attachment
-	createErr    error
-	createdCount int
+	request        *entity.VisitRequest
+	updated        string
+	graphPoints    []model.GraphPoint
+	attachments    map[string]*entity.Attachment // key: type or "type:id"
+	imageList      []entity.Attachment
+	createErr      error
+	createVisitErr error
+	createErrAfter int
+	deleteErr      error
+	createdCount   int
 }
 
 func attachmentKey(attachmentType string, id int64) string {
 	return fmt.Sprintf("%s:%d", attachmentType, id)
 }
 
-func (s *statusStoreStub) Create(context.Context, *entity.VisitRequest) error         { return nil }
+func (s *statusStoreStub) Create(context.Context, *entity.VisitRequest) error {
+	return s.createVisitErr
+}
 func (s *statusStoreStub) CreateAttachment(context.Context, *entity.Attachment) error {
 	if s.createErr != nil {
 		return s.createErr
+	}
+	if s.createErrAfter > 0 && s.createdCount >= s.createErrAfter {
+		return errors.New("db down after first insert")
 	}
 	s.createdCount++
 	return nil
@@ -50,7 +58,9 @@ func (s *statusStoreStub) FindAttachmentByID(_ context.Context, _ uuid.UUID, att
 func (s *statusStoreStub) ListAttachments(context.Context, uuid.UUID, string) ([]entity.Attachment, error) {
 	return s.imageList, nil
 }
-func (s *statusStoreStub) DeleteAttachment(context.Context, *entity.Attachment) error { return nil }
+func (s *statusStoreStub) DeleteAttachment(context.Context, *entity.Attachment) error {
+	return s.deleteErr
+}
 func (s *statusStoreStub) FindByToken(context.Context, string) (*entity.VisitRequest, error) {
 	return nil, nil
 }
@@ -111,10 +121,15 @@ func TestUpdateStatusCreatesAuditEvent(t *testing.T) {
 
 func TestUpdateStatusReturnsAuditError(t *testing.T) {
 	store := &statusStoreStub{request: &entity.VisitRequest{Status: "pending"}}
-	audit := &auditStub{err: errors.New("audit failed")}
+	auditErr := errors.New("audit failed")
+	audit := &auditStub{err: auditErr}
 	usecase := NewVisitRequestUsecase(store, audit, logrus.New(), t.TempDir())
-	if err := usecase.UpdateStatus(context.Background(), UpdateStatusInput{VisitRequestID: uuid.New(), NewStatus: "rejected", AdministratorID: 7}); err == nil {
-		t.Fatal("expected audit error")
+	err := usecase.UpdateStatus(context.Background(), UpdateStatusInput{VisitRequestID: uuid.New(), NewStatus: "rejected", AdministratorID: 7})
+	if !errors.Is(err, auditErr) {
+		t.Fatalf("err = %v, want errors.Is auditErr", err)
+	}
+	if !strings.Contains(err.Error(), "create status change audit event") {
+		t.Fatalf("err = %v, want operation context", err)
 	}
 }
 
@@ -294,6 +309,92 @@ func TestSaveDocumentationImagesCleansUpOnDBFailure(t *testing.T) {
 	})
 	if err == nil {
 		t.Fatal("expected db error")
+	}
+}
+
+func newTestLogger() (*logrus.Logger, *bytes.Buffer) {
+	logger := logrus.New()
+	buffer := &bytes.Buffer{}
+	logger.SetOutput(buffer)
+	logger.SetLevel(logrus.DebugLevel)
+	return logger, buffer
+}
+
+func validCreateInput() CreateVisitRequestInput {
+	return CreateVisitRequestInput{
+		Email:            "visitor@example.com",
+		NamaInstansi:     "PT Testing",
+		TanggalKunjungan: time.Now().Add(48 * time.Hour).UnixMilli(),
+		JamKunjungan:     time.Date(1970, 1, 1, 9, 0, 0, 0, model.WITATimeZone).UnixMilli(),
+		JumlahTamu:       1,
+		Guests:           []model.GuestInput{{Nama: "Budi", Jabatan: "Manager"}},
+		SuratKunjungan:   FileInput{Reader: bytes.NewReader([]byte("%PDF-1.4 test")), Filename: "kunjungan.pdf"},
+		SuratTugas:       FileInput{Reader: bytes.NewReader([]byte("%PDF-1.4 test")), Filename: "tugas.pdf"},
+	}
+}
+
+func TestCreateLogsFailedAuditCreation(t *testing.T) {
+	store := &statusStoreStub{}
+	audit := &auditStub{err: errors.New("audit down")}
+	logger, buffer := newTestLogger()
+	usecase := NewVisitRequestUsecase(store, audit, logger, t.TempDir())
+
+	visitRequest, err := usecase.Create(context.Background(), validCreateInput())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if visitRequest == nil {
+		t.Fatal("expected visit request to be returned")
+	}
+	if audit.event == nil || audit.event.Action != "request_submitted" {
+		t.Fatalf("audit event = %#v", audit.event)
+	}
+	if !strings.Contains(buffer.String(), "failed to create request_submitted audit event") {
+		t.Fatalf("log output = %q, want audit failure entry", buffer.String())
+	}
+}
+
+func TestCreateWrapsStoreError(t *testing.T) {
+	storeErr := errors.New("db down")
+	store := &statusStoreStub{createVisitErr: storeErr}
+	usecase := NewVisitRequestUsecase(store, &auditStub{}, logrus.New(), t.TempDir())
+
+	_, err := usecase.Create(context.Background(), validCreateInput())
+	if !errors.Is(err, storeErr) {
+		t.Fatalf("err = %v, want errors.Is storeErr", err)
+	}
+	if !strings.Contains(err.Error(), "create visit request") {
+		t.Fatalf("err = %v, want operation context", err)
+	}
+}
+
+func TestSaveDocumentationImagesLogsCleanupFailure(t *testing.T) {
+	store := &statusStoreStub{
+		request:        &entity.VisitRequest{Status: "approved"},
+		createErrAfter: 1,
+		deleteErr:      errors.New("delete failed"),
+	}
+	logger, buffer := newTestLogger()
+	usecase := NewVisitRequestUsecase(store, nil, logger, t.TempDir())
+
+	_, err := usecase.SaveDocumentationImages(context.Background(), uuid.New(), []FileInput{
+		{Reader: bytes.NewReader(pngBytes), Filename: "a.png"},
+		{Reader: bytes.NewReader(pngBytes), Filename: "b.png"},
+	})
+	if err == nil {
+		t.Fatal("expected db error")
+	}
+	if !strings.Contains(buffer.String(), "failed to delete documentation attachment record during cleanup") {
+		t.Fatalf("log output = %q, want cleanup failure entry", buffer.String())
+	}
+}
+
+func TestListWrapsInvalidDateFilter(t *testing.T) {
+	usecase := NewVisitRequestUsecase(&statusStoreStub{}, nil, logrus.New(), t.TempDir())
+
+	_, _, err := usecase.List(context.Background(), model.ListFilter{Date: "not-a-date"})
+	if !errors.Is(err, ErrInvalidDateFilter) {
+		t.Fatalf("err = %v, want errors.Is ErrInvalidDateFilter", err)
 	}
 }
 

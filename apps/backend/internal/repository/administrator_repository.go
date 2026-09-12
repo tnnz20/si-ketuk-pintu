@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/sirupsen/logrus"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/entity"
 	"gorm.io/gorm"
 )
@@ -14,11 +13,10 @@ var ErrAdministratorExists = errors.New("administrator already exists")
 
 type AdministratorRepository struct {
 	database *gorm.DB
-	logger   *logrus.Logger
 }
 
-func NewAdministratorRepository(database *gorm.DB, logger *logrus.Logger) *AdministratorRepository {
-	return &AdministratorRepository{database: database, logger: logger}
+func NewAdministratorRepository(database *gorm.DB) *AdministratorRepository {
+	return &AdministratorRepository{database: database}
 }
 
 func (r *AdministratorRepository) Create(ctx context.Context, administrator *entity.Administrator) error {
@@ -31,12 +29,10 @@ func (r *AdministratorRepository) Create(ctx context.Context, administrator *ent
 	}
 
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
-		r.logger.WithError(err).Error("failed to find existing administrator")
 		return fmt.Errorf("find existing administrator: %w", err)
 	}
 
 	if err := r.database.WithContext(ctx).Create(administrator).Error; err != nil {
-		r.logger.WithError(err).Error("failed to create administrator")
 		return fmt.Errorf("create administrator: %w", err)
 	}
 
@@ -55,7 +51,6 @@ func (r *AdministratorRepository) FindByIdentifier(ctx context.Context, identifi
 			return nil, ErrAdministratorNotFound
 		}
 
-		r.logger.WithError(err).Error("failed to find administrator by identifier")
 		return nil, fmt.Errorf("find administrator by identifier: %w", err)
 	}
 

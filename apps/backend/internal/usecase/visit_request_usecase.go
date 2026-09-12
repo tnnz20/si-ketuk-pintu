@@ -133,14 +133,11 @@ func (u *VisitRequestUsecase) Create(
 	input CreateVisitRequestInput,
 ) (*entity.VisitRequest, error) {
 	if len(input.Guests) != input.JumlahTamu {
-		err := fmt.Errorf("guest count (%d) does not match jumlah_tamu (%d)", len(input.Guests), input.JumlahTamu)
-		u.logger.WithError(err).Error("invalid guest count")
-		return nil, err
+		return nil, fmt.Errorf("guest count (%d) does not match jumlah_tamu (%d)", len(input.Guests), input.JumlahTamu)
 	}
 
 	token, err := u.generateUniqueToken(ctx)
 	if err != nil {
-		u.logger.WithError(err).Error("failed to generate unique token")
 		return nil, err
 	}
 
@@ -172,32 +169,34 @@ func (u *VisitRequestUsecase) Create(
 
 	suratKunjunganAttachment, err := u.savePDF(visitRequest.ID, "surat_kunjungan", input.SuratKunjungan)
 	if err != nil {
-		u.logger.WithError(err).Error("failed to save surat_kunjungan")
 		return nil, fmt.Errorf("save surat_kunjungan: %w", err)
 	}
 
 	suratTugasAttachment, err := u.savePDF(visitRequest.ID, "surat_tugas", input.SuratTugas)
 	if err != nil {
-		u.logger.WithError(err).Error("failed to save surat_tugas")
 		return nil, fmt.Errorf("save surat_tugas: %w", err)
 	}
 
 	visitRequest.Attachments = []entity.Attachment{*suratKunjunganAttachment, *suratTugasAttachment}
 
 	if err := u.store.Create(ctx, visitRequest); err != nil {
-		u.logger.WithError(err).Error("failed to create visit request in store")
-		return nil, err
+		return nil, fmt.Errorf("create visit request: %w", err)
 	}
 
-	auditValue, _ := json.Marshal(map[string]string{"status": "pending"})
-	_ = u.auditor.Create(ctx, &entity.AuditEvent{
+	auditValue, err := json.Marshal(map[string]string{"status": "pending"})
+	if err != nil {
+		return nil, fmt.Errorf("marshal request_submitted audit value: %w", err)
+	}
+	if err := u.auditor.Create(ctx, &entity.AuditEvent{
 		VisitRequestID: &visitRequest.ID,
 		ActorType:      "visitor",
 		Action:         "request_submitted",
 		PreviousValue:  json.RawMessage("{}"),
 		NewValue:       auditValue,
 		OccurredAt:     time.Now().UnixMilli(),
-	})
+	}); err != nil {
+		u.logger.WithError(err).WithField("visit_request_id", visitRequest.ID).Error("failed to create request_submitted audit event")
+	}
 
 	return visitRequest, nil
 }
@@ -260,7 +259,9 @@ func (u *VisitRequestUsecase) SaveApprovalLetter(ctx context.Context, requestID 
 	}
 	attachment.VisitRequestID = requestID
 	if err := u.store.CreateAttachment(ctx, attachment); err != nil {
-		_ = os.Remove(filepath.Join(u.uploadDir, filepath.FromSlash(attachment.StorageKey)))
+		if removeErr := os.Remove(filepath.Join(u.uploadDir, filepath.FromSlash(attachment.StorageKey))); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
+			u.logger.WithError(removeErr).WithField("storage_key", attachment.StorageKey).Error("failed to remove orphaned approval letter file")
+		}
 		return nil, err
 	}
 	return attachment, nil
@@ -275,7 +276,9 @@ func (u *VisitRequestUsecase) SaveRescheduleLetter(ctx context.Context, requestI
 		return nil, ErrRescheduleLetterNotAllowed
 	}
 	if existing, err := u.store.FindAttachment(ctx, requestID, "surat_reschedule"); err == nil && existing != nil {
-		_ = os.Remove(filepath.Join(u.uploadDir, filepath.FromSlash(existing.StorageKey)))
+		if removeErr := os.Remove(filepath.Join(u.uploadDir, filepath.FromSlash(existing.StorageKey))); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
+			u.logger.WithError(removeErr).WithField("storage_key", existing.StorageKey).Error("failed to remove replaced reschedule letter file")
+		}
 		if err := u.store.DeleteAttachment(ctx, existing); err != nil {
 			return nil, err
 		}
@@ -288,7 +291,9 @@ func (u *VisitRequestUsecase) SaveRescheduleLetter(ctx context.Context, requestI
 	}
 	attachment.VisitRequestID = requestID
 	if err := u.store.CreateAttachment(ctx, attachment); err != nil {
-		_ = os.Remove(filepath.Join(u.uploadDir, filepath.FromSlash(attachment.StorageKey)))
+		if removeErr := os.Remove(filepath.Join(u.uploadDir, filepath.FromSlash(attachment.StorageKey))); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
+			u.logger.WithError(removeErr).WithField("storage_key", attachment.StorageKey).Error("failed to remove orphaned reschedule letter file")
+		}
 		return nil, err
 	}
 	return attachment, nil
@@ -374,8 +379,12 @@ func (u *VisitRequestUsecase) SaveDocumentationImages(ctx context.Context, reque
 func (u *VisitRequestUsecase) cleanupDocumentation(ctx context.Context, created []entity.Attachment) {
 	for i := range created {
 		attachment := &created[i]
-		if u.store.DeleteAttachment(ctx, attachment) == nil {
-			_ = os.Remove(filepath.Join(u.uploadDir, filepath.FromSlash(attachment.StorageKey)))
+		if err := u.store.DeleteAttachment(ctx, attachment); err != nil {
+			u.logger.WithError(err).WithField("attachment_id", attachment.ID).Error("failed to delete documentation attachment record during cleanup")
+			continue
+		}
+		if removeErr := os.Remove(filepath.Join(u.uploadDir, filepath.FromSlash(attachment.StorageKey))); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
+			u.logger.WithError(removeErr).WithField("storage_key", attachment.StorageKey).Error("failed to remove documentation image file during cleanup")
 		}
 	}
 }
@@ -414,7 +423,9 @@ func (u *VisitRequestUsecase) SaveDaftarAbsen(ctx context.Context, requestID uui
 	}
 	attachment.VisitRequestID = requestID
 	if err := u.store.CreateAttachment(ctx, attachment); err != nil {
-		_ = os.Remove(filepath.Join(u.uploadDir, filepath.FromSlash(attachment.StorageKey)))
+		if removeErr := os.Remove(filepath.Join(u.uploadDir, filepath.FromSlash(attachment.StorageKey))); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
+			u.logger.WithError(removeErr).WithField("storage_key", attachment.StorageKey).Error("failed to remove orphaned attendance list file")
+		}
 		return nil, err
 	}
 	return attachment, nil
@@ -487,7 +498,6 @@ func (u *VisitRequestUsecase) Reschedule(ctx context.Context, input RescheduleIn
 func (u *VisitRequestUsecase) UpdateStatus(ctx context.Context, input UpdateStatusInput) error {
 	visitRequest, err := u.store.FindByID(ctx, input.VisitRequestID)
 	if err != nil {
-		u.logger.WithError(err).Error("failed to find visit request by ID for status update")
 		return err
 	}
 
@@ -496,7 +506,6 @@ func (u *VisitRequestUsecase) UpdateStatus(ctx context.Context, input UpdateStat
 		return fmt.Errorf("status transition from %s to %s is not allowed", previousStatus, input.NewStatus)
 	}
 	if err := u.store.UpdateStatus(ctx, input.VisitRequestID, input.NewStatus); err != nil {
-		u.logger.WithError(err).Error("failed to update visit request status in store")
 		return err
 	}
 
@@ -511,7 +520,6 @@ func (u *VisitRequestUsecase) UpdateStatus(ctx context.Context, input UpdateStat
 		NewValue:        newValue,
 		OccurredAt:      time.Now().UnixMilli(),
 	}); err != nil {
-		u.logger.WithError(err).Error("failed to create status change audit event")
 		return fmt.Errorf("create status change audit event: %w", err)
 	}
 
@@ -525,15 +533,13 @@ func (u *VisitRequestUsecase) generateUniqueToken(ctx context.Context) (string, 
 	for range maxTokenRetries {
 		suffix, err := randomAlphanumeric(tokenSuffixLen)
 		if err != nil {
-			u.logger.WithError(err).Error("failed to generate token suffix")
 			return "", fmt.Errorf("generate token suffix: %w", err)
 		}
 
 		token := datePrefix + suffix
 		exists, err := u.store.TokenExists(ctx, token)
 		if err != nil {
-			u.logger.WithError(err).Error("failed to check token existence")
-			return "", err
+			return "", fmt.Errorf("check token exists: %w", err)
 		}
 
 		if !exists {
@@ -541,9 +547,7 @@ func (u *VisitRequestUsecase) generateUniqueToken(ctx context.Context) (string, 
 		}
 	}
 
-	err := fmt.Errorf("failed to generate unique token after %d attempts", maxTokenRetries)
-	u.logger.WithError(err).Error("token generation exhausted retries")
-	return "", err
+	return "", fmt.Errorf("failed to generate unique token after %d attempts", maxTokenRetries)
 }
 
 func randomAlphanumeric(length int) (string, error) {
@@ -579,34 +583,25 @@ func (u *VisitRequestUsecase) savePDF(
 	case "daftar_absen":
 		directory = daftarAbsenDir
 	default:
-		err := fmt.Errorf("unsupported attachment type: %s", attachmentType)
-		u.logger.WithError(err).Error("unsupported attachment type in savePDF")
-		return nil, err
+		return nil, fmt.Errorf("unsupported attachment type: %s", attachmentType)
 	}
 
 	if file.Size > maxPDFSize {
-		err := fmt.Errorf("%s: file exceeds 5 MB limit", attachmentType)
-		u.logger.WithError(err).Error("file size exceeds limit in savePDF")
-		return nil, err
+		return nil, fmt.Errorf("%s: file exceeds 5 MB limit", attachmentType)
 	}
 
 	content, err := io.ReadAll(io.LimitReader(file.Reader, maxPDFSize+1))
 	if err != nil {
-		u.logger.WithError(err).Error("failed to read file content")
 		return nil, fmt.Errorf("read %s: %w", attachmentType, err)
 	}
 
 	if int64(len(content)) > maxPDFSize {
-		err := fmt.Errorf("%s: file exceeds 5 MB limit", attachmentType)
-		u.logger.WithError(err).Error("file content exceeds limit in savePDF")
-		return nil, err
+		return nil, fmt.Errorf("%s: file exceeds 5 MB limit", attachmentType)
 	}
 
 	detectedType := http.DetectContentType(content)
 	if detectedType != "application/pdf" {
-		err := fmt.Errorf("%s: %w (detected: %s)", attachmentType, ErrInvalidPDF, detectedType)
-		u.logger.WithError(err).Error("invalid file type detected")
-		return nil, err
+		return nil, fmt.Errorf("%s: %w (detected: %s)", attachmentType, ErrInvalidPDF, detectedType)
 	}
 
 	checksum := sha256.Sum256(content)
@@ -615,25 +610,20 @@ func (u *VisitRequestUsecase) savePDF(
 	filename := fmt.Sprintf("%s_%d.pdf", attachmentType, time.Now().UnixNano())
 	storageDir := filepath.Join(u.uploadDir, directory)
 	if err := os.MkdirAll(storageDir, 0o750); err != nil {
-		u.logger.WithError(err).Error("failed to ensure attachment directory exists")
 		return nil, fmt.Errorf("create attachment directory %s: %w", storageDir, err)
 	}
 
 	info, err := os.Stat(storageDir)
 	if err != nil {
-		u.logger.WithError(err).Error("failed to inspect attachment directory")
 		return nil, fmt.Errorf("inspect attachment directory %s: %w", storageDir, err)
 	}
 	if !info.IsDir() {
-		err := fmt.Errorf("attachment path is not a directory: %s", storageDir)
-		u.logger.WithError(err).Error("invalid attachment directory")
-		return nil, err
+		return nil, fmt.Errorf("attachment path is not a directory: %s", storageDir)
 	}
 
 	fullPath := filepath.Join(storageDir, filename)
 	storageKey := filepath.ToSlash(filepath.Join(directory, filename))
 	if err := os.WriteFile(fullPath, content, 0o640); err != nil {
-		u.logger.WithError(err).Error("failed to write file")
 		return nil, fmt.Errorf("write %s: %w", attachmentType, err)
 	}
 

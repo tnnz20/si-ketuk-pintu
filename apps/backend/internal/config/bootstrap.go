@@ -25,12 +25,12 @@ type Bootstrap struct {
 func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 	applicationConfig, err := Load()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("load config: %w", err)
 	}
 
 	logger, err := NewLogger(applicationConfig.LogLevel)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("new logger: %w", err)
 	}
 
 	if mode := ginModeFor(applicationConfig.Environment); mode != "" {
@@ -48,8 +48,8 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 
 	// Repositories
 	healthRepository := repository.NewDatabaseHealthRepository(database)
-	administratorRepository := repository.NewAdministratorRepository(database, logger)
-	visitRequestRepository := repository.NewVisitRequestRepository(database, logger)
+	administratorRepository := repository.NewAdministratorRepository(database)
+	visitRequestRepository := repository.NewVisitRequestRepository(database)
 	auditEventRepository := repository.NewAuditEventRepository(database)
 
 	// Usecases
