@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -11,11 +12,20 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/config"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/ssh"
 )
 
 func main() {
-	if len(os.Args) < 2 || len(os.Args) > 3 {
-		panic("usage: migrate [up|down|version|force VERSION]")
+	if len(os.Args) < 2 {
+		panic("usage: migrate [--ssh] [up|down|version|force VERSION]")
+	}
+
+	sshEnabled, remainingArgs, err := ssh.ParseSSHFlag(os.Args[1:])
+	if err != nil {
+		panic(err)
+	}
+	if len(remainingArgs) < 1 || len(remainingArgs) > 2 {
+		panic("usage: migrate [--ssh] [up|down|version|force VERSION]")
 	}
 
 	applicationConfig, err := config.Load()
@@ -28,18 +38,29 @@ func main() {
 		panic(err)
 	}
 
-	migrator, err := migrate.New(sourceURL, applicationConfig.DatabaseURL)
-	if err != nil {
-		panic(err)
-	}
-	defer migrator.Close()
-
-	command := os.Args[1]
-	if command == "force" && len(os.Args) != 3 {
+	command := remainingArgs[0]
+	if command == "force" && len(remainingArgs) != 2 {
 		panic("usage: migrate force VERSION")
 	}
 
-	if err := execute(migrator, command, os.Args[2:]); err != nil {
+	run := func(databaseURL string) error {
+		migrator, err := migrate.New(sourceURL, databaseURL)
+		if err != nil {
+			return err
+		}
+		defer migrator.Close()
+
+		return execute(migrator, command, remainingArgs[1:])
+	}
+
+	if sshEnabled {
+		if err := ssh.RunWithTunnel(context.Background(), applicationConfig.SSH, run); err != nil {
+			panic(err)
+		}
+		return
+	}
+
+	if err := run(applicationConfig.DatabaseURL); err != nil {
 		panic(err)
 	}
 }
