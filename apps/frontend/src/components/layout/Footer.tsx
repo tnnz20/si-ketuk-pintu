@@ -1,3 +1,5 @@
+import { Link } from 'react-router';
+
 export default function Footer() {
   return (
     <footer className="border-t border-outline-variant bg-surface-container px-margin-mobile py-10 md:px-margin-desktop">
@@ -10,18 +12,18 @@ export default function Footer() {
           </p>
         </div>
         <div className="flex flex-wrap gap-6 font-label text-label-sm text-on-surface-variant">
-          <a href="#privacy" className="transition-colors hover:text-emerald-600">
+          <Link to="#privacy" className="transition-colors hover:text-emerald-600">
             Kebijakan Privasi
-          </a>
-          <a href="#terms" className="transition-colors hover:text-emerald-600">
+          </Link>
+          <Link to="#terms" className="transition-colors hover:text-emerald-600">
             Syarat & Ketentuan
-          </a>
-          <a href="#support" className="transition-colors hover:text-emerald-600">
+          </Link>
+          <Link to="#support" className="transition-colors hover:text-emerald-600">
             Hubungi Kami
-          </a>
-          <a href="#accessibility" className="transition-colors hover:text-emerald-600">
+          </Link>
+          <Link to="#accessibility" className="transition-colors hover:text-emerald-600">
             Aksesibilitas
-          </a>
+          </Link>
         </div>
       </div>
       <div className="mx-auto mt-8 max-w-container-max border-t border-surface-alt pt-6">

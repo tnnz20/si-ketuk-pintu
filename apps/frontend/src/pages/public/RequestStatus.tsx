@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { toast } from 'sonner';
 import AttendanceCard from '@components/requests/AttendanceCard';
 import AttachedDocumentsCard from '@components/requests/AttachedDocumentsCard';

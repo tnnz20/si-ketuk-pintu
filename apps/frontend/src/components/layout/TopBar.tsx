@@ -1,6 +1,6 @@
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 export default function TopBar() {
   const [open, setOpen] = useState(false);
@@ -25,18 +25,18 @@ export default function TopBar() {
         <div
           className={`${open ? 'absolute top-20 left-0 flex w-full flex-col border-b border-outline-variant bg-surface p-4' : 'hidden'} gap-4 md:static md:flex md:flex-row md:items-center md:border-0 md:bg-transparent md:p-0`}
         >
-          <a
-            href="/#process"
+          <Link
+            to="/#process"
             className="font-label text-label-md text-on-surface-variant transition-colors hover:text-emerald-600"
           >
             Cara Kerja
-          </a>
-          <a
-            href="/#status"
+          </Link>
+          <Link
+            to="/#status"
             className="font-label text-label-md text-on-surface-variant transition-colors hover:text-emerald-600"
           >
             Cek Status
-          </a>
+          </Link>
           <Link
             to="/login"
             className="rounded-lg bg-emerald-600 px-5 py-2 font-label text-label-md font-medium text-white transition-all hover:bg-emerald-700 hover:shadow-md"

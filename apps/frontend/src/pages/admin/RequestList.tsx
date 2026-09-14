@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import ConfirmDialog from '@components/shared/ConfirmDialog';
 import RequestActionMenu from '@components/requests/RequestActionMenu';
 import RequestFilters from '@components/requests/RequestFilters';
 import RequestPagination from '@components/requests/RequestPagination';
 import RequestTableContent from '@components/requests/RequestTableContent';
-import { deleteRequest, getRequests, getStats } from '../../lib/api/requests';
+import { deleteRequest, getRequests, getStats } from '@lib/api/requests';
 import type { PaginatedRequestsResponse, StatsResponse } from '@app-types/api';
 
 type RequestRow = PaginatedRequestsResponse['data'][number];

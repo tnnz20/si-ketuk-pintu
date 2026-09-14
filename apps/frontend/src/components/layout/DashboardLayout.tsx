@@ -12,9 +12,9 @@ import {
   Search,
   X,
 } from 'lucide-react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import { logout } from '../../lib/api/auth';
+import { logout } from '@lib/api/auth';
 import ConfirmDialog from '@components/shared/ConfirmDialog';
 
 interface NavItem {

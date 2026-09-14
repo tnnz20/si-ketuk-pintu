@@ -1,8 +1,8 @@
 import { CheckCircle, Copy, Download } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/shared/Tooltip';
-import { downloadQR } from '../../lib/api/requests';
+import { Link, useSearchParams } from 'react-router';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@components/shared/Tooltip';
+import { downloadQR } from '@lib/api/requests';
 
 export default function SubmissionSuccess() {
   const [copied, setCopied] = useState(false);

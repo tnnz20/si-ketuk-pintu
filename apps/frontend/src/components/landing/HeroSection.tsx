@@ -1,6 +1,6 @@
 import { motion, useReducedMotion } from 'motion/react';
 import { ArrowRight, CheckCircle2, Copy, QrCode, ShieldCheck } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { useState } from 'react';
 import { wordReveal, fadeInUp } from '@constants/animations';
 import { useMouseTilt } from '../../hooks/useMousePosition';
@@ -119,13 +119,13 @@ export default function HeroSection() {
               <ArrowRight className="relative z-10 h-4 w-4 transition-transform group-hover:translate-x-1" />
               <div className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent transition-transform duration-500 group-hover:translate-x-full" />
             </Link>
-            <a
-              href="#status"
+            <Link
+              to="#status"
               className="flex items-center justify-center gap-2 rounded-xl border border-outline-variant bg-surface px-8 py-4 font-label text-label-md text-on-surface transition-all hover:border-emerald-500/30 hover:bg-emerald-500/5 active:scale-[0.98]"
             >
               <QrCode className="h-4 w-4" />
               Cek Status
-            </a>
+            </Link>
           </motion.div>
         </div>
 

@@ -4,7 +4,7 @@ import SummaryCards from '@components/dashboard-admin/SummaryCards';
 import TodaySchedule from '@components/dashboard-admin/TodaySchedule';
 import RecentRequests from '@components/dashboard-admin/RecentRequests';
 import RequestsChart from '@components/dashboard-admin/RequestsChart';
-import { getRequests, getStats } from '../../lib/api/requests';
+import { getRequests, getStats } from '@lib/api/requests';
 import type { PaginatedRequestsResponse, StatsResponse } from '@app-types/api';
 
 type RequestItem = PaginatedRequestsResponse['data'][number];

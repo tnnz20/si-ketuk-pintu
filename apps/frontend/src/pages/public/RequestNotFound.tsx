@@ -1,5 +1,5 @@
-import { useSearchParams } from 'react-router-dom';
-import RequestNotFoundState from '../../components/requests/RequestNotFoundState';
+import { useSearchParams } from 'react-router';
+import RequestNotFoundState from '@components/requests/RequestNotFoundState';
 
 export default function RequestNotFound() {
   const [params] = useSearchParams();

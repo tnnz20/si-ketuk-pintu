@@ -1,6 +1,6 @@
 import { ArrowLeft } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import { toast } from 'sonner';
 import ConfirmDialog from '@components/shared/ConfirmDialog';
 import ApprovalLetterDialog from '@components/requests/ApprovalLetterDialog';
@@ -22,10 +22,10 @@ import {
   updateStatus,
   uploadApprovalLetter,
   uploadRescheduleLetter,
-} from '../../lib/api/requests';
-import { generateApprovalLetterPdf } from '../../lib/pdf/approvalLetterPdf';
-import { generateRescheduleLetterPdf } from '../../lib/pdf/rescheduleLetterPdf';
-import { generateVisitRequestPdf } from '../../lib/pdf/visitRequestPdf';
+} from '@lib/api/requests';
+import { generateApprovalLetterPdf } from '@lib/pdf/approvalLetterPdf';
+import { generateRescheduleLetterPdf } from '@lib/pdf/rescheduleLetterPdf';
+import { generateVisitRequestPdf } from '@lib/pdf/visitRequestPdf';
 import type { RequestDetailResponse } from '@app-types/api';
 import { dateInputToEpoch, timeInputToEpoch } from '@lib/dateTime';
 

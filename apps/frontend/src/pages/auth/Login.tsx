@@ -11,11 +11,11 @@ import {
   ClipboardList,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import { login } from '../../lib/api/auth';
-import { loginSchema } from '../../schemas/login';
-import { getTurnstileToken, turnstileEnabled } from '../../lib/turnstile';
+import { login } from '@lib/api/auth';
+import { loginSchema } from '@schemas/login';
+import { getTurnstileToken, turnstileEnabled } from '@lib/turnstile';
 
 const features = [
   {
@@ -300,12 +300,12 @@ export default function Login() {
                   <label htmlFor="password" className="font-label-md text-label-md text-on-surface">
                     Password
                   </label>
-                  <a
+                  <Link
                     className="font-label-sm text-label-sm text-emerald-700 transition-colors hover:text-emerald-800 hover:underline"
-                    href="#"
+                    to="#"
                   >
                     Lupa Password?
-                  </a>
+                  </Link>
                 </div>
                 <div className="group relative">
                   <Lock className="absolute top-1/2 left-3.5 h-5 w-5 -translate-y-1/2 text-outline transition-colors group-focus-within:text-emerald-600" />

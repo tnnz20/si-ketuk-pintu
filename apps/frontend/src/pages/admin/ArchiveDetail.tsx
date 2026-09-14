@@ -1,6 +1,6 @@
 import { ArrowLeft, SearchX } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router';
 import DaftarAbsenCard from '@components/archives/DaftarAbsenCard';
 import AttachedDocumentsCard from '@components/archives/AttachedDocumentsCard';
 import DocumentationCard from '@components/archives/DocumentationCard';

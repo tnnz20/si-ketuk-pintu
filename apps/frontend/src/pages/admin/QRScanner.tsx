@@ -1,9 +1,9 @@
 import { Html5Qrcode, type Html5QrcodeCameraScanConfig } from 'html5-qrcode';
 import { Camera, CameraOff, QrCode, ScanLine, Search } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import { getRequestByToken } from '../../lib/api/requests';
+import { getRequestByToken } from '@lib/api/requests';
 
 const TOKEN_REGEX = /^[A-Za-z0-9-]+$/;
 const SCAN_CONFIG: Html5QrcodeCameraScanConfig = {

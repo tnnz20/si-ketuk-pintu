@@ -1,5 +1,5 @@
 import { ArrowLeft, FileQuestion, HelpCircle, Search } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 type RequestNotFoundStateProps = {
   token: string;
@@ -55,12 +55,12 @@ export default function RequestNotFoundState({
             {tryAnotherToken}
           </Link>
         ) : (
-          <a
-            href="/#status"
+          <Link
+            to="/#status"
             className="font-label-md flex items-center justify-center gap-2 rounded bg-primary px-6 py-3 text-label-md text-on-primary"
           >
             {tryAnotherToken}
-          </a>
+          </Link>
         )}
         <Link
           to="/"

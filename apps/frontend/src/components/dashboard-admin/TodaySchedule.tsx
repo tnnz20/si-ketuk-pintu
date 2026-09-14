@@ -1,5 +1,5 @@
 import { Calendar as CalendarIcon, ChevronRight, Clock } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import type { PaginatedRequestsResponse } from '@app-types/api';
 import { formatDate, todayEpoch } from '@lib/dateTime';
 
