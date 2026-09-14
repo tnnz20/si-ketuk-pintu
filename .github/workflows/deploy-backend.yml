@@ -21,7 +21,10 @@ jobs:
         uses: redhat-actions/buildah-build@v3
         with:
           image: backend
-          tags: latest ${{ github.sha }} ${{ github.ref_name }}
+          tags: |
+            latest
+            ${{ github.sha }}
+            ${{ github.ref_name }}
           containerfiles: apps/backend/Dockerfile
           context: apps/backend
 
@@ -29,12 +32,14 @@ jobs:
         uses: redhat-actions/push-to-registry@v3
         with:
           image: ${{ steps.build-image.outputs.image }}
-          tags: ${{ steps.build-image.outputs.tags }}
+          tags: |
+            latest
+            ${{ github.ref_name }}
           registry: ghcr.io/${{ github.repository }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-  deploy:
+deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
@@ -50,17 +55,19 @@ jobs:
             set -e
             cd ${{ secrets.DEPLOY_PATH }}
             
-            IMG=ghcr.io/${{ github.repository }}/backend:${{ github.ref_name }}
+            # Export the version tag and full image path for the session
+            export VERSION_TAG=${{ github.ref_name }}
+            export BACKEND_IMAGE=ghcr.io/${{ github.repository }}/backend:$VERSION_TAG
 
             # Pull the new Image
-            BACKEND_IMAGE=$IMG podman compose -p si-ketuk-pintu pull backend
+            podman compose -p si-ketuk-pintu pull backend
 
             # Stop and remove ONLY the backend service using compose
-            BACKEND_IMAGE=$IMG podman compose -p si-ketuk-pintu stop backend
-            BACKEND_IMAGE=$IMG podman compose -p si-ketuk-pintu rm -f backend
+            podman compose -p si-ketuk-pintu stop backend
+            podman compose -p si-ketuk-pintu rm -f backend
 
             # Start the updated backend container isolated from postgres
-            BACKEND_IMAGE=$IMG podman compose -p si-ketuk-pintu up -d --no-deps backend
+            podman compose -p si-ketuk-pintu up -d --no-deps backend
 
             # Clean up old images
             podman image prune -f

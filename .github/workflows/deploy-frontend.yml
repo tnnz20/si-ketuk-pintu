@@ -21,7 +21,10 @@ jobs:
         uses: redhat-actions/buildah-build@v3
         with:
           image: frontend
-          tags: latest ${{ github.sha }} ${{ github.ref_name }}
+          tags: |
+            latest
+            ${{ github.sha }}
+            ${{ github.ref_name }}
           containerfiles: apps/frontend/Dockerfile
           context: apps/frontend
           build-args: |
@@ -33,7 +36,9 @@ jobs:
         uses: redhat-actions/push-to-registry@v3
         with:
           image: ${{ steps.build-image.outputs.image }}
-          tags: ${{ steps.build-image.outputs.tags }}
+          tags: |
+            latest
+            ${{ github.ref_name }}
           registry: ghcr.io/${{ github.repository }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
@@ -53,18 +58,20 @@ jobs:
           script: |
             set -e
             cd ${{ secrets.DEPLOY_PATH }}
-    
-            IMG=ghcr.io/${{ github.repository }}/frontend:${{ github.ref_name }}
+            
+            # Export the version tag and full image path for the session
+            export VERSION_TAG=${{ github.ref_name }}
+            export FRONTEND_IMAGE=ghcr.io/${{ github.repository }}/frontend:$VERSION_TAG
 
             # Pull the new Image
-            FRONTEND_IMAGE=$IMG podman compose -p si-ketuk-pintu pull frontend
+            podman compose -p si-ketuk-pintu pull frontend
 
             # Forcefully stop and remove the old container
-            FRONTEND_IMAGE=$IMG podman compose -p si-ketuk-pintu stop frontend
-            FRONTEND_IMAGE=$IMG podman compose -p si-ketuk-pintu rm -f frontend
+            podman compose -p si-ketuk-pintu stop frontend
+            podman compose -p si-ketuk-pintu rm -f frontend
 
             # Start the new container (--no-deps ensures it NEVER touches postgres)
-            FRONTEND_IMAGE=$IMG podman compose -p si-ketuk-pintu up -d --no-deps frontend
+            podman compose -p si-ketuk-pintu up -d --no-deps frontend
 
             # Clean up dangling images
             podman image prune -f
