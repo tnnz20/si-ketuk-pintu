@@ -19,7 +19,7 @@ import {
   Users,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import { fadeInUp, staggerContainer } from '@constants/animations';

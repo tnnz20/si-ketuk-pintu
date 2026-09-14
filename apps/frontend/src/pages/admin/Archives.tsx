@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import RequestActionMenu from '@components/requests/RequestActionMenu';
 import RequestPagination from '@components/requests/RequestPagination';

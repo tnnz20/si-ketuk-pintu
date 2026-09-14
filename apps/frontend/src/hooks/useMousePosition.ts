@@ -32,19 +32,3 @@ export function useMouseTilt(stiffness = 150, damping = 15) {
 
   return { rotateX, rotateY, handleMouseMove, handleMouseLeave };
 }
-
-export function useMousePosition() {
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent<HTMLElement>) => {
-      const rect = e.currentTarget.getBoundingClientRect();
-      x.set(e.clientX - rect.left);
-      y.set(e.clientY - rect.top);
-    },
-    [x, y],
-  );
-
-  return { x, y, handleMouseMove };
-}
