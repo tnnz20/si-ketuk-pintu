@@ -18,10 +18,6 @@ export function logout(): void {
   localStorage.removeItem('jwt_token');
 }
 
-export function getToken(): string | null {
-  return localStorage.getItem('jwt_token');
-}
-
 export function isAuthenticated(): boolean {
-  return !!getToken();
+  return !!localStorage.getItem('jwt_token');
 }

@@ -54,5 +54,3 @@ export const tujuanPairCheck = z.superRefine(
 );
 
 export const visitRequestSchema = visitRequestBaseSchema.check(tujuanPairCheck);
-
-export type VisitRequestInput = z.input<typeof visitRequestSchema>;

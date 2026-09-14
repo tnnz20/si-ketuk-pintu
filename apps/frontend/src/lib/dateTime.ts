@@ -23,10 +23,6 @@ export function formatTime(value: number): string {
   return dt.isValid ? dt.toFormat('HH:mm') : String(value);
 }
 
-export function todayISO(): string {
-  return DateTime.now().setZone(WITA_ZONE).toISODate() ?? '';
-}
-
 export function todayEpoch(): number {
   return DateTime.now().setZone(WITA_ZONE).startOf('day').toMillis();
 }

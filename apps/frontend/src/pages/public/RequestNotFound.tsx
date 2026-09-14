@@ -9,7 +9,6 @@ export default function RequestNotFound() {
     <RequestNotFoundState
       token={token}
       tokenFallback="provided"
-      tryAnotherTokenLink
       backToHomeIcon="arrow-left"
     />
   );

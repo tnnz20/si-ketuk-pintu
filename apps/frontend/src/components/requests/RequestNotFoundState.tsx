@@ -4,14 +4,12 @@ import { Link } from 'react-router';
 type RequestNotFoundStateProps = {
   token: string;
   tokenFallback?: string;
-  tryAnotherTokenLink?: boolean;
   backToHomeIcon: 'arrow-left' | 'help-circle';
 };
 
 export default function RequestNotFoundState({
   token,
   tokenFallback,
-  tryAnotherTokenLink = false,
   backToHomeIcon,
 }: RequestNotFoundStateProps) {
   const tryAnotherToken = (
@@ -47,21 +45,12 @@ export default function RequestNotFoundState({
         <strong className="text-on-surface">{token || tokenFallback}</strong>.
       </p>
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-        {tryAnotherTokenLink ? (
-          <Link
-            to="/#status"
-            className="font-label-md flex items-center justify-center gap-2 rounded bg-primary px-6 py-3 text-label-md text-on-primary"
-          >
-            {tryAnotherToken}
-          </Link>
-        ) : (
-          <Link
-            to="/#status"
-            className="font-label-md flex items-center justify-center gap-2 rounded bg-primary px-6 py-3 text-label-md text-on-primary"
-          >
-            {tryAnotherToken}
-          </Link>
-        )}
+        <Link
+          to="/#status"
+          className="font-label-md flex items-center justify-center gap-2 rounded bg-primary px-6 py-3 text-label-md text-on-primary"
+        >
+          {tryAnotherToken}
+        </Link>
         <Link
           to="/"
           className="font-label-md flex items-center justify-center gap-2 rounded border border-outline px-6 py-3 text-label-md text-on-surface"

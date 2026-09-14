@@ -15,6 +15,7 @@ const RequestDetail = lazy(() => import('./pages/admin/RequestDetail'));
 const RequestList = lazy(() => import('./pages/admin/RequestList'));
 const LandingPage = lazy(() => import('./pages/public/LandingPage'));
 const RequestStatus = lazy(() => import('./pages/public/RequestStatus'));
+const RequestNotFound = lazy(() => import('./pages/public/RequestNotFound'));
 const SubmissionForm = lazy(() => import('./pages/public/SubmissionForm'));
 const SubmissionSuccess = lazy(() => import('./pages/public/SubmissionSuccess'));
 
@@ -40,19 +41,20 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/form" element={<SubmissionForm />} />
           <Route path="/status/:token" element={<RequestStatus />} />
-          <Route path="/success" element={<SubmissionSuccess />} />
-        </Route>
-        <Route path="/login" element={<Login />} />
-        <Route element={<AuthGuard />}>
-          <Route element={<DashboardLayout />}>
+            <Route path="/success" element={<SubmissionSuccess />} />
+          </Route>
+          <Route path="/login" element={<Login />} />
+          <Route element={<AuthGuard />}>
+            <Route element={<DashboardLayout />}>
             <Route path="/dashboard" element={<AdminDashboard />} />
             <Route path="/dashboard/requests" element={<RequestList />} />
             <Route path="/dashboard/requests/:id" element={<RequestDetail />} />
             <Route path="/dashboard/archives" element={<Archives />} />
             <Route path="/dashboard/archives/:id" element={<ArchiveDetail />} />
-            <Route path="/dashboard/scanner" element={<QRScanner />} />
+              <Route path="/dashboard/scanner" element={<QRScanner />} />
+            </Route>
           </Route>
-          </Route>
+          <Route path="*" element={<RequestNotFound />} />
         </Routes>
       </Suspense>
       <Toaster position="top-right" richColors />

@@ -83,11 +83,6 @@ export interface CreateVisitRequestData {
   surat_tugas: File;
 }
 
-export interface LoginRequest {
-  identifier: string;
-  password: string;
-}
-
 export interface LoginResponse {
   token: string;
 }
@@ -115,10 +110,6 @@ export interface PaginatedRequestsResponse {
   page: number;
   page_size: number;
   total_pages: number;
-}
-
-export interface ErrorResponse {
-  error: string;
 }
 
 export interface GraphPoint {
