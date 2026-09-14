@@ -11,7 +11,7 @@ export default function TopBar() {
           <img
             src="/assets/logo.webp"
             alt="Logo Si Ketuk Pintu"
-            className="xs:h-24 xs:w-24 h-36 w-36 rounded-full object-contain"
+            className="xs:h-24 xs:w-24 h-48 w-48 rounded-full object-contain"
           />
         </Link>
         <button
