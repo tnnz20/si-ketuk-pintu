@@ -2,6 +2,9 @@ name: Deploy Frontend
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - 'v*.*.*'
 
 jobs:
   build-and-push:
@@ -18,7 +21,7 @@ jobs:
         uses: redhat-actions/buildah-build@v3
         with:
           image: frontend
-          tags: latest ${{ github.sha }}
+          tags: latest ${{ github.sha }} ${{ github.ref_name }}
           containerfiles: apps/frontend/Dockerfile
           context: apps/frontend
           build-args: |
@@ -50,8 +53,8 @@ jobs:
           script: |
             set -e
             cd ${{ secrets.DEPLOY_PATH }}
-
-            IMG=ghcr.io/${{ github.repository }}/frontend:latest
+    
+            IMG=ghcr.io/${{ github.repository }}/frontend:${{ github.ref_name }}
 
             # Pull the new Image
             FRONTEND_IMAGE=$IMG podman compose -p si-ketuk-pintu pull frontend
