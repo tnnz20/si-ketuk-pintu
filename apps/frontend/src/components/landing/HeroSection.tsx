@@ -12,7 +12,7 @@ export default function HeroSection() {
   const { rotateX, rotateY, handleMouseMove, handleMouseLeave } = useMouseTilt();
   const [copied, setCopied] = useState(false);
 
-  const sampleToken = 'SKP-2026-0812-XY7K';
+  const sampleToken = 'XXX-XXX-XXX';
   const copyToken = () => {
     navigator.clipboard.writeText(sampleToken);
     setCopied(true);

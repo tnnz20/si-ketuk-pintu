@@ -11,13 +11,13 @@ export default function TopBar() {
           <img
             src="/assets/logo.webp"
             alt="Logo Si Ketuk Pintu"
-            className="xs:h-24 xs:w-24 h-48 w-48 rounded-full object-contain"
+            className="h-12 w-auto shrink-0 object-contain"
           />
         </Link>
         <button
           type="button"
           aria-label="Buka navigasi"
-          className="cursor-pointer md:hidden"
+          className="shrink-0 cursor-pointer md:hidden"
           onClick={() => setOpen(!open)}
         >
           {open ? <X /> : <Menu />}

@@ -11,6 +11,7 @@ import RequestNotFoundState from '@components/requests/RequestNotFoundState';
 import RequestSummary from '@components/requests/RequestDetailSummary';
 import SuratPermohonanCard from '@components/requests/SuratPermohonanCard';
 import Dialog from '@components/shared/Dialog';
+import Seo from '@components/shared/Seo';
 import LoadingOverlay from '@components/shared/LoadingOverlay';
 import Skeleton from '@components/shared/Skeleton';
 import type { Attachment, VisitLetterAttachment, VisitRequest } from '@app-types/api';
@@ -128,12 +129,18 @@ export default function RequestStatus() {
   }
 
   if (!token || error === 'not-found') {
-    return <RequestNotFoundState token={token || ''} backToHomeIcon="help-circle" />;
+    return (
+      <>
+        <Seo title="Status Tidak Ditemukan — Si Ketuk Pintu" noindex />
+        <RequestNotFoundState token={token || ''} backToHomeIcon="help-circle" />
+      </>
+    );
   }
 
   if (error === 'network') {
     return (
       <div className="mx-auto max-w-container-max px-margin-mobile py-20 text-center md:px-margin-desktop">
+        <Seo title="Status Permohonan — Si Ketuk Pintu" noindex />
         <p className="text-sm font-bold text-civic-dark">
           Terjadi kesalahan saat memuat status permohonan.
         </p>
@@ -154,6 +161,7 @@ export default function RequestStatus() {
   if (loading) {
     return (
       <div className="animate-fade-in space-y-5 px-margin-mobile py-12 md:px-margin-desktop">
+        <Seo title="Status Permohonan — Si Ketuk Pintu" noindex />
         <Skeleton className="h-10 w-48 rounded-2xl" />
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
           <div className="space-y-5 lg:col-span-8">
@@ -171,7 +179,12 @@ export default function RequestStatus() {
   }
 
   if (!request) {
-    return <RequestNotFoundState token={token || ''} backToHomeIcon="help-circle" />;
+    return (
+      <>
+        <Seo title="Status Tidak Ditemukan — Si Ketuk Pintu" noindex />
+        <RequestNotFoundState token={token || ''} backToHomeIcon="help-circle" />
+      </>
+    );
   }
 
   const documents = request.attachments.filter(
@@ -189,6 +202,7 @@ export default function RequestStatus() {
 
   return (
     <div className="animate-fade-in mx-auto max-w-container-max space-y-5 px-margin-mobile py-12 md:px-margin-desktop">
+      <Seo title="Status Permohonan — Si Ketuk Pintu" noindex />
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
           <p className="text-xs font-bold tracking-wider text-civic-muted uppercase">

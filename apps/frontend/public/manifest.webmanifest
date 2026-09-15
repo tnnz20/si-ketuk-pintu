@@ -1,0 +1,18 @@
+{
+  "name": "Si Ketuk Pintu",
+  "short_name": "Si Ketuk Pintu",
+  "description": "Layanan permohonan kunjungan tamu daring Pemerintah Kabupaten Tapin.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f6f2",
+  "theme_color": "#18181b",
+  "lang": "id",
+  "icons": [
+    {
+      "src": "/assets/web-icon.png",
+      "sizes": "any",
+      "type": "image/png"
+    }
+  ]
+}
