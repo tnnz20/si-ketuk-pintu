@@ -128,10 +128,17 @@ export default function RequestStatus() {
     }
   }
 
+  const isNotFound = !token || error === 'not-found' || (!loading && !request);
+  const pageTitle = isNotFound
+    ? 'Status Tidak Ditemukan — Si Ketuk Pintu'
+    : request?.token
+      ? `Status Permohonan ${request.token} — Si Ketuk Pintu`
+      : 'Status Permohonan — Si Ketuk Pintu';
+
   if (!token || error === 'not-found') {
     return (
       <>
-        <Seo title="Status Tidak Ditemukan — Si Ketuk Pintu" noindex />
+        <Seo title={pageTitle} noindex />
         <RequestNotFoundState token={token || ''} backToHomeIcon="help-circle" />
       </>
     );
@@ -140,7 +147,7 @@ export default function RequestStatus() {
   if (error === 'network') {
     return (
       <div className="mx-auto max-w-container-max px-margin-mobile py-20 text-center md:px-margin-desktop">
-        <Seo title="Status Permohonan — Si Ketuk Pintu" noindex />
+        <Seo title={pageTitle} noindex />
         <p className="text-sm font-bold text-civic-dark">
           Terjadi kesalahan saat memuat status permohonan.
         </p>
@@ -161,7 +168,7 @@ export default function RequestStatus() {
   if (loading) {
     return (
       <div className="animate-fade-in space-y-5 px-margin-mobile py-12 md:px-margin-desktop">
-        <Seo title="Status Permohonan — Si Ketuk Pintu" noindex />
+        <Seo title={pageTitle} noindex />
         <Skeleton className="h-10 w-48 rounded-2xl" />
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
           <div className="space-y-5 lg:col-span-8">
@@ -181,7 +188,7 @@ export default function RequestStatus() {
   if (!request) {
     return (
       <>
-        <Seo title="Status Tidak Ditemukan — Si Ketuk Pintu" noindex />
+        <Seo title={pageTitle} noindex />
         <RequestNotFoundState token={token || ''} backToHomeIcon="help-circle" />
       </>
     );
@@ -202,7 +209,7 @@ export default function RequestStatus() {
 
   return (
     <div className="animate-fade-in mx-auto max-w-container-max space-y-5 px-margin-mobile py-12 md:px-margin-desktop">
-      <Seo title="Status Permohonan — Si Ketuk Pintu" noindex />
+      <Seo title={pageTitle} noindex />
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
         <div>
           <p className="text-xs font-bold tracking-wider text-civic-muted uppercase">
