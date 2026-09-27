@@ -30,18 +30,21 @@ export default function TopBar() {
         >
           <a
             href="/#process"
+            onClick={() => setOpen(false)}
             className="font-label text-label-md text-on-surface-variant transition-colors hover:text-emerald-600"
           >
             Cara Kerja
           </a>
           <a
             href="/#status"
+            onClick={() => setOpen(false)}
             className="font-label text-label-md text-on-surface-variant transition-colors hover:text-emerald-600"
           >
             Cek Status
           </a>
           <Link
             to="/login"
+            onClick={() => setOpen(false)}
             className="rounded-lg bg-emerald-600 px-5 py-2 font-label text-label-md font-medium text-white transition-all hover:bg-emerald-700 hover:shadow-md"
           >
             Masuk Admin

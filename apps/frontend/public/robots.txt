@@ -2,7 +2,5 @@ User-agent: *
 Allow: /
 Disallow: /dashboard
 Disallow: /login
-Disallow: /status
-Disallow: /form
 
 Sitemap: https://siketukpintu.tapinkab.go.id/sitemap.xml
