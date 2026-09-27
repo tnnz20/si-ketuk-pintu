@@ -16,13 +16,16 @@ export default function TopBar() {
         </Link>
         <button
           type="button"
-          aria-label="Buka navigasi"
+          aria-label={open ? 'Tutup navigasi' : 'Buka navigasi'}
+          aria-expanded={open}
+          aria-controls="mobile-navigation"
           className="shrink-0 cursor-pointer md:hidden"
           onClick={() => setOpen(!open)}
         >
           {open ? <X /> : <Menu />}
         </button>
         <div
+          id="mobile-navigation"
           className={`${open ? 'absolute top-20 left-0 flex w-full flex-col border-b border-outline-variant bg-surface p-4' : 'hidden'} gap-4 md:static md:flex md:flex-row md:items-center md:border-0 md:bg-transparent md:p-0`}
         >
           <a
