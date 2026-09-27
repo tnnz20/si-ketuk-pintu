@@ -10,12 +10,11 @@ export default function StatusSection() {
   const navigate = useNavigate();
   const [token, setToken] = useState('');
   const [isTracking, setIsTracking] = useState(false);
-  const [charCount, setCharCount] = useState(0);
+  const charCount = token.length;
 
   const handleTokenChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '');
     setToken(value);
-    setCharCount(value.length);
   };
 
   const trackVisit = async () => {
@@ -151,7 +150,7 @@ export default function StatusSection() {
                       <input
                         id="token-search"
                         type="text"
-                        placeholder="SKP-2026-XXXX-XXXX"
+                        placeholder="SKP-YYYYMMDD-XXXXX"
                         value={token}
                         onChange={handleTokenChange}
                         maxLength={18}
@@ -166,7 +165,7 @@ export default function StatusSection() {
                       </div>
                     </div>
                     <p className="mt-2 font-label text-label-sm text-on-surface-variant">
-                      Format: SKP-YYYY-XXXX-XXXX (18 digit)
+                      Format: SKP-YYYYMMDD-XXXXX (18 karakter)
                     </p>
                   </div>
 
@@ -198,10 +197,10 @@ export default function StatusSection() {
                   </p>
                   <button
                     type="button"
-                    onClick={() => setToken('SKP-2026-0812-XY7K')}
+                    onClick={() => setToken('SKP-20260915-ABCDE')}
                     className="cursor-pointer font-mono text-body-md text-emerald-600 underline decoration-emerald-600/30 underline-offset-2 transition-colors hover:decoration-emerald-600"
                   >
-                    SKP-2026-0812-XY7K
+                    SKP-20260915-ABCDE
                   </button>
                 </div>
               </div>

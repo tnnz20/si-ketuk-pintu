@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@components/shared/Tooltip';
 import { downloadQR } from '@lib/api/requests';
+import Seo from '@components/shared/Seo';
 
 export default function SubmissionSuccess() {
   const [copied, setCopied] = useState(false);
@@ -41,6 +42,7 @@ export default function SubmissionSuccess() {
 
   return (
     <div className="flex grow flex-col items-center justify-center px-margin-mobile py-16 md:px-margin-desktop md:py-24">
+      <Seo title="Pengajuan Berhasil — Si Ketuk Pintu" noindex />
       <div className="w-full max-w-2xl rounded-xl border border-surface-alt bg-surface-container-lowest p-8 text-center md:p-12">
         <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-secondary-container text-on-secondary-container">
           <CheckCircle className="h-10 w-10" />

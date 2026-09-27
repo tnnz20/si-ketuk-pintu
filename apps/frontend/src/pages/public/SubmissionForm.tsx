@@ -29,6 +29,7 @@ import {
 } from '@constants/destinations';
 import { createVisitRequest } from '@lib/api/requests';
 import { getTurnstileToken, turnstileEnabled } from '@lib/turnstile';
+import Seo from '@components/shared/Seo';
 import { DocumentsStep } from '@components/submission/DocumentsStep';
 import { FileUploadCard } from '@components/submission/FileUploadCard';
 import { FormNavigation } from '@components/submission/FormNavigation';
@@ -289,6 +290,7 @@ export default function SubmissionForm() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Seo title="Ajukan Permohonan Kunjungan — Si Ketuk Pintu" noindex />
       {/* Hero Header */}
       <section className="relative overflow-hidden border-b border-surface-alt bg-surface">
         {/* Animated background */}
@@ -923,20 +925,6 @@ export default function SubmissionForm() {
         </div>
       </section>
 
-      {/* Side info panel - only visible on desktop */}
-      <aside className="fixed right-8 bottom-8 hidden max-w-xs rounded-2xl border border-surface-alt bg-surface-container-lowest p-4 shadow-lg xl:block">
-        <h4 className="font-headline-md mb-3 text-headline-md text-on-surface">Butuh Bantuan?</h4>
-        <p className="font-body-md mb-4 text-body-md text-on-surface-variant">
-          Jika Anda mengalami kesulitan dalam mengisi formulir, silakan hubungi tim dukungan kami.
-        </p>
-        <a
-          href="mailto:support@siketukpintu.go.id"
-          className="flex items-center gap-2 font-label text-label-sm font-medium text-emerald-600 transition-colors hover:text-emerald-700"
-        >
-          <Mail className="h-4 w-4" />
-          support@siketukpintu.go.id
-        </a>
-      </aside>
     </div>
   );
 }

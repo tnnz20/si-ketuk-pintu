@@ -11,34 +11,40 @@ export default function TopBar() {
           <img
             src="/assets/logo.webp"
             alt="Logo Si Ketuk Pintu"
-            className="xs:h-24 xs:w-24 h-48 w-48 rounded-full object-contain"
+            className="h-12 w-auto shrink-0 object-contain"
           />
         </Link>
         <button
           type="button"
-          aria-label="Buka navigasi"
-          className="cursor-pointer md:hidden"
+          aria-label={open ? 'Tutup navigasi' : 'Buka navigasi'}
+          aria-expanded={open}
+          aria-controls="mobile-navigation"
+          className="shrink-0 cursor-pointer md:hidden"
           onClick={() => setOpen(!open)}
         >
           {open ? <X /> : <Menu />}
         </button>
         <div
+          id="mobile-navigation"
           className={`${open ? 'absolute top-20 left-0 flex w-full flex-col border-b border-outline-variant bg-surface p-4' : 'hidden'} gap-4 md:static md:flex md:flex-row md:items-center md:border-0 md:bg-transparent md:p-0`}
         >
           <a
             href="/#process"
+            onClick={() => setOpen(false)}
             className="font-label text-label-md text-on-surface-variant transition-colors hover:text-emerald-600"
           >
             Cara Kerja
           </a>
           <a
             href="/#status"
+            onClick={() => setOpen(false)}
             className="font-label text-label-md text-on-surface-variant transition-colors hover:text-emerald-600"
           >
             Cek Status
           </a>
           <Link
             to="/login"
+            onClick={() => setOpen(false)}
             className="rounded-lg bg-emerald-600 px-5 py-2 font-label text-label-md font-medium text-white transition-all hover:bg-emerald-700 hover:shadow-md"
           >
             Masuk Admin
