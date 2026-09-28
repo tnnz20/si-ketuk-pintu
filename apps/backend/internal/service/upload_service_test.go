@@ -246,6 +246,9 @@ func TestFileSystemUploadService_ResolvePath_PathTraversal(t *testing.T) {
 		"..\\..\\windows\\system32",
 		"/etc/passwd",
 		"C:\\Windows\\System32\\calc.exe",
+		"C:relative_on_drive",
+		"D:file.pdf",
+		"secret\x00.pdf",
 		"surat-kunjungan/../../secret.txt",
 		"surat-kunjungan/../../../secret.txt",
 		".",
@@ -305,6 +308,8 @@ func TestFileSystemUploadService_SaveImage_DirectoryTraversal(t *testing.T) {
 		"..",
 		"/absolute",
 		"sub/../../outside",
+		"C:sub",
+		"sub\x00dir",
 	}
 
 	for _, dir := range traversalDirs {
@@ -316,4 +321,47 @@ func TestFileSystemUploadService_SaveImage_DirectoryTraversal(t *testing.T) {
 		})
 	}
 }
+
+func TestFileSystemUploadService_ResolvePath_SymlinkTraversal(t *testing.T) {
+	uploadDir := t.TempDir()
+	svc := NewFileSystemUploadService(uploadDir)
+
+	outsideDir := t.TempDir()
+	outsideFile := filepath.Join(outsideDir, "secret.txt")
+	if err := os.WriteFile(outsideFile, []byte("sensitive"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	symlinkPath := filepath.Join(uploadDir, "symlink_escape.txt")
+	if err := os.Symlink(outsideFile, symlinkPath); err != nil {
+		// On Windows, non-admin might fail symlink creation; skip if unsupported
+		t.Skipf("symlink creation unsupported: %v", err)
+	}
+
+	_, err := svc.ResolvePath("symlink_escape.txt")
+	if err == nil || !errors.Is(err, ErrInvalidPath) {
+		t.Fatalf("expected ErrInvalidPath for symlink escaping base dir, got: %v", err)
+	}
+}
+
+func TestFileSystemUploadService_SavePDF_NormalizesOriginalName(t *testing.T) {
+	uploadDir := t.TempDir()
+	svc := NewFileSystemUploadService(uploadDir)
+
+	pdfContent := []byte("%PDF-1.4 test")
+	input := model.FileInput{
+		Reader:   bytes.NewReader(pdfContent),
+		Filename: "../../evil/path/my_letter.pdf",
+		Size:     int64(len(pdfContent)),
+	}
+
+	attachment, err := svc.SavePDF("surat_kunjungan", input)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if attachment.OriginalName != "my_letter.pdf" {
+		t.Fatalf("OriginalName = %q, want 'my_letter.pdf'", attachment.OriginalName)
+	}
+}
+
 

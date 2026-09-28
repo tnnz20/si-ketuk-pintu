@@ -117,7 +117,7 @@ func (s *fileSystemUploadService) SavePDF(
 
 	return &entity.Attachment{
 		AttachmentType: attachmentType,
-		OriginalName:   file.Filename,
+		OriginalName:   filepath.Base(file.Filename),
 		StorageKey:     storageKey,
 		ContentType:    "application/pdf",
 		SizeBytes:      int64(len(content)),
@@ -127,7 +127,7 @@ func (s *fileSystemUploadService) SavePDF(
 
 func (s *fileSystemUploadService) SaveImage(directory string, file model.FileInput) (*entity.Attachment, error) {
 	cleanDir := filepath.Clean(filepath.FromSlash(directory))
-	if cleanDir == "" || cleanDir == "." || filepath.IsAbs(cleanDir) || strings.HasPrefix(cleanDir, string(filepath.Separator)) {
+	if cleanDir == "" || cleanDir == "." || filepath.IsAbs(cleanDir) || strings.HasPrefix(cleanDir, string(filepath.Separator)) || filepath.VolumeName(cleanDir) != "" || strings.IndexByte(directory, 0) != -1 {
 		return nil, ErrInvalidPath
 	}
 
@@ -189,7 +189,7 @@ func (s *fileSystemUploadService) SaveImage(directory string, file model.FileInp
 }
 
 func (s *fileSystemUploadService) ResolvePath(storageKey string) (string, error) {
-	if storageKey == "" || storageKey == "." {
+	if storageKey == "" || storageKey == "." || strings.IndexByte(storageKey, 0) != -1 {
 		return "", ErrInvalidPath
 	}
 
@@ -199,7 +199,7 @@ func (s *fileSystemUploadService) ResolvePath(storageKey string) (string, error)
 	}
 
 	cleanKey := filepath.Clean(filepath.FromSlash(storageKey))
-	if filepath.IsAbs(cleanKey) || strings.HasPrefix(cleanKey, string(filepath.Separator)) {
+	if filepath.IsAbs(cleanKey) || strings.HasPrefix(cleanKey, string(filepath.Separator)) || filepath.VolumeName(cleanKey) != "" {
 		return "", ErrInvalidPath
 	}
 
@@ -207,6 +207,16 @@ func (s *fileSystemUploadService) ResolvePath(storageKey string) (string, error)
 	rel, err := filepath.Rel(cleanBase, fullPath)
 	if err != nil || strings.HasPrefix(rel, "..") || rel == "." {
 		return "", ErrInvalidPath
+	}
+
+	// Symlink defense: verify canonical target does not escape canonical base directory
+	if realBase, err := filepath.EvalSymlinks(cleanBase); err == nil {
+		if realPath, err := filepath.EvalSymlinks(fullPath); err == nil {
+			realRel, err := filepath.Rel(realBase, realPath)
+			if err != nil || strings.HasPrefix(realRel, "..") || realRel == "." {
+				return "", ErrInvalidPath
+			}
+		}
 	}
 
 	return fullPath, nil
