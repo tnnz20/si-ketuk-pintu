@@ -26,7 +26,7 @@ const (
 
 const (
 	// maxImagesTotalSize caps the aggregate size of all `images` attachments per request.
-	maxImagesTotalSize = 10 << 20 // 10 MB
+	maxImagesTotalSize = service.MaxDocumentationTotalSize
 	documentationDir   = "dokumentasi"
 	daftarAbsenDir     = "daftar-absen"
 )

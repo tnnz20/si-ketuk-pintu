@@ -27,8 +27,12 @@ var (
 )
 
 const (
-	// MaxPDFSize is the maximum allowed size for individual PDF and image uploads (5 MB).
-	MaxPDFSize = 5 * 1024 * 1024
+	// MaxSingleFileSize is the maximum allowed size for individual file uploads (5 MB).
+	MaxSingleFileSize = 5 * 1024 * 1024
+	// MaxDocumentationTotalSize caps the aggregate size of all documentation image attachments per request (10 MB).
+	MaxDocumentationTotalSize = 10 * 1024 * 1024
+	// MaxPDFSize is retained for backward compatibility with existing callers.
+	MaxPDFSize = MaxSingleFileSize
 )
 
 // UploadService manages file storage, MIME validation, and deletion.
