@@ -1,49 +1,65 @@
 name: Deploy Backend
 
 on:
-  workflow_dispatch:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Customize tag to deploy (e.g. v1.0.0 or latest)"
+        required: false
+        default: "latest"
+        type: string
 
 jobs:
   build-and-push:
+    name: Build and Push Backend Image
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build image with Buildah (Podman)
-        id: build-image
-        uses: redhat-actions/buildah-build@v3
-        with:
-          image: backend
-          tags: |
-            latest
-            ${{ github.sha }}
-            ${{ github.ref_name }}
-          containerfiles: apps/backend/Dockerfile
-          context: apps/backend
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
 
-      - name: Push to GitHub Container Registry
-        uses: redhat-actions/push-to-registry@v3
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
         with:
-          image: ${{ steps.build-image.outputs.image }}
-          tags: |
-            latest
-            ${{ github.ref_name }}
-          registry: ghcr.io/${{ github.repository }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Determine image tags
+        id: meta
+        run: |
+          TAG="${{ inputs.tag || github.ref_name }}"
+          REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE="ghcr.io/${REPO}/backend"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v7
+        with:
+          context: apps/backend
+          file: apps/backend/Dockerfile
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
+            ${{ steps.meta.outputs.image }}:latest
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,scope=backend,mode=max
+
   deploy:
+    name: Deploy Backend Service
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy image
+      - name: Deploy image via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -54,20 +70,21 @@ jobs:
           script: |
             set -e
             cd ${{ secrets.DEPLOY_PATH }}
-            
-            # Export the version tag and full image path for the session
-            export VERSION_TAG=${{ github.ref_name }}
-            export BACKEND_IMAGE=ghcr.io/${{ github.repository }}/backend:$VERSION_TAG
 
-            # Pull the new Image
+            # Export version tag and normalized image path for compose session
+            export VERSION_TAG=${{ inputs.tag || github.ref_name }}
+            REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+            export BACKEND_IMAGE=ghcr.io/${REPO}/backend:$VERSION_TAG
+
+            # Pull the new image
             podman compose -p si-ketuk-pintu pull backend
 
-            # Stop and remove ONLY the backend service using compose
+            # Stop and remove ONLY the backend service
             podman compose -p si-ketuk-pintu stop backend
             podman compose -p si-ketuk-pintu rm -f backend
 
-            # Start the updated backend container isolated from postgres
+            # Start updated backend container isolated from postgres
             podman compose -p si-ketuk-pintu up -d --no-deps backend
 
-            # Clean up old images
+            # Clean up dangling images
             podman image prune -f

@@ -1,53 +1,91 @@
 name: Deploy Frontend
 
 on:
-  workflow_dispatch:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Customize tag to deploy (e.g. v1.0.0 or latest)"
+        required: false
+        default: "latest"
+        type: string
+      api_url:
+        description: "Customize VITE_API_URL (defaults to vars.VITE_API_URL or http://localhost:8080)"
+        required: false
+        default: ""
+        type: string
+      app_env:
+        description: "Customize VITE_APP_ENV (defaults to vars.VITE_APP_ENV or production)"
+        required: false
+        default: "production"
+        type: string
+      turnstile_site_key:
+        description: "Customize VITE_TURNSTILE_SITE_KEY (defaults to secrets.TURNSTILE_SITE_KEY)"
+        required: false
+        default: ""
+        type: string
 
 jobs:
   build-and-push:
+    name: Build and Push Frontend Image
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build image with Buildah (Podman)
-        id: build-image
-        uses: redhat-actions/buildah-build@v3
-        with:
-          image: frontend
-          tags: |
-            latest
-            ${{ github.sha }}
-            ${{ github.ref_name }}
-          containerfiles: apps/frontend/Dockerfile
-          context: apps/frontend
-          build-args: |
-            VITE_API_URL=${{ vars.VITE_API_URL }}
-            VITE_APP_ENV=production
-            VITE_TURNSTILE_SITE_KEY=${{ secrets.TURNSTILE_SITE_KEY }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
 
-      - name: Push to GitHub Container Registry
-        uses: redhat-actions/push-to-registry@v3
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v4
         with:
-          image: ${{ steps.build-image.outputs.image }}
-          tags: |
-            latest
-            ${{ github.ref_name }}
-          registry: ghcr.io/${{ github.repository }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Determine image tags and build args
+        id: meta
+        run: |
+          TAG="${{ inputs.tag || github.ref_name }}"
+          REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE="ghcr.io/${REPO}/frontend"
+          API_URL="${{ inputs.api_url || vars.VITE_API_URL || 'http://localhost:8080' }}"
+          APP_ENV="${{ inputs.app_env || vars.VITE_APP_ENV || 'production' }}"
+          TURNSTILE_KEY="${{ inputs.turnstile_site_key || secrets.TURNSTILE_SITE_KEY || '' }}"
+
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+          echo "vite_api_url=${API_URL}" >> "$GITHUB_OUTPUT"
+          echo "vite_app_env=${APP_ENV}" >> "$GITHUB_OUTPUT"
+          echo "vite_turnstile_site_key=${TURNSTILE_KEY}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v7
+        with:
+          context: apps/frontend
+          file: apps/frontend/Dockerfile
+          push: true
+          build-args: |
+            VITE_API_URL=${{ steps.meta.outputs.vite_api_url }}
+            VITE_APP_ENV=${{ steps.meta.outputs.vite_app_env }}
+            VITE_TURNSTILE_SITE_KEY=${{ steps.meta.outputs.vite_turnstile_site_key }}
+          tags: |
+            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
+            ${{ steps.meta.outputs.image }}:latest
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,scope=frontend,mode=max
+
   deploy:
+    name: Deploy Frontend Service
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy image
+      - name: Deploy image via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -58,19 +96,20 @@ jobs:
           script: |
             set -e
             cd ${{ secrets.DEPLOY_PATH }}
-            
-            # Export the version tag and full image path for the session
-            export VERSION_TAG=${{ github.ref_name }}
-            export FRONTEND_IMAGE=ghcr.io/${{ github.repository }}/frontend:$VERSION_TAG
 
-            # Pull the new Image
+            # Export version tag and normalized image path for compose session
+            export VERSION_TAG=${{ inputs.tag || github.ref_name }}
+            REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+            export FRONTEND_IMAGE=ghcr.io/${REPO}/frontend:$VERSION_TAG
+
+            # Pull the new image
             podman compose -p si-ketuk-pintu pull frontend
 
             # Forcefully stop and remove the old container
             podman compose -p si-ketuk-pintu stop frontend
             podman compose -p si-ketuk-pintu rm -f frontend
 
-            # Start the new container (--no-deps ensures it NEVER touches postgres)
+            # Start the new container isolated from backend and postgres
             podman compose -p si-ketuk-pintu up -d --no-deps frontend
 
             # Clean up dangling images
