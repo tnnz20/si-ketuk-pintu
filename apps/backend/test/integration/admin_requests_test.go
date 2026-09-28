@@ -15,12 +15,13 @@ import (
 
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/model"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository/persistence"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
 )
 
 func seedAdmin(t *testing.T) {
 	t.Helper()
-	seedUsecase := usecase.NewSeedAdministratorUsecase(repository.NewAdministratorRepository(appDB))
+	seedUsecase := usecase.NewSeedAdministratorUsecase(persistence.NewAdministratorRepository(appDB))
 	input := usecase.SeedAdministratorInput{
 		Username: "admin_test",
 		Email:    "admin_test@example.com",

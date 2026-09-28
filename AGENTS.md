@@ -7,11 +7,11 @@ This repository contains a Go API (Go 1.27+) and a React single-page application
 ### Backend (`apps/backend/`)
 
 - `cmd/` contains executable entry points: `web`, `migrate`, and seed tools.
-- `internal/config/` wires the application; `internal/delivery/http/` defines routes, middleware, and controllers.
-- `internal/usecase/` implements business rules; `internal/repository/` owns GORM persistence; `entity/` and `model/` define database and API shapes.
+- `internal/config/` wires the application; `internal/delivery/http/` defines routes, middleware, and handlers (`handler/`).
+- `internal/usecase/` implements business rules; `internal/service/` houses domain services like file upload and validation; `internal/repository/` defines repository interface contracts with GORM implementations in `internal/repository/persistence/`; `entity/` and `model/` define database and API shapes.
 - `db/migrations/` contains ordered SQL migrations; `test/integration/` tests the live database and HTTP behavior.
 
-Keep dependencies flowing from controllers to use cases to repositories. Do not import `internal` packages across unrelated layers.
+Keep dependencies flowing from handlers to use cases to services and repositories. Do not import `internal` packages across unrelated layers.
 
 ### Frontend (`apps/frontend/`)
 

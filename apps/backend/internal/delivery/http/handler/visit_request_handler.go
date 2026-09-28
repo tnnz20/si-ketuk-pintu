@@ -1,4 +1,4 @@
-package controllers
+package handler
 
 import (
 	"encoding/json"
@@ -17,6 +17,7 @@ import (
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/entity"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/model"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/service"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
 )
 
@@ -39,41 +40,41 @@ func isWITATimeOfDay(value int64) bool {
 	return timeOfDay >= 0 && timeOfDay < 24*60*60*1000 && timeOfDay%60000 == 0
 }
 
-// VisitRequestController handles public visitor-facing visit request
+// VisitRequestHandler handles public visitor-facing visit request
 // endpoints.
-type VisitRequestController struct {
+type VisitRequestHandler struct {
 	visitRequestUsecase *usecase.VisitRequestUsecase
 	qrUsecase           *usecase.QRUsecase
 	logger              *logrus.Logger
-	uploadDir           string
+	uploadService       service.UploadService
 	verifier            TurnstileVerifier
 }
 
-// NewVisitRequestController creates a VisitRequestController. When verifier
-// is non-nil, submitters must pass Turnstile verification; files are served
-// from uploadDir.
-func NewVisitRequestController(
+// NewVisitRequestHandler creates a VisitRequestHandler. When verifier
+// is non-nil, submitters must pass Turnstile verification; files are resolved
+// via uploadService.
+func NewVisitRequestHandler(
 	visitRequestUsecase *usecase.VisitRequestUsecase,
 	qrUsecase *usecase.QRUsecase,
 	logger *logrus.Logger,
-	uploadDir string,
+	uploadService service.UploadService,
 	verifier TurnstileVerifier,
-) *VisitRequestController {
-	return &VisitRequestController{
+) *VisitRequestHandler {
+	return &VisitRequestHandler{
 		visitRequestUsecase: visitRequestUsecase,
 		qrUsecase:           qrUsecase,
 		logger:              logger,
-		uploadDir:           uploadDir,
+		uploadService:       uploadService,
 		verifier:            verifier,
 	}
 }
 
 // Create accepts a multipart form visit request with guests and two PDF
 // letters, validating dates, files, and Turnstile before persisting it.
-func (c *VisitRequestController) Create(ginContext *gin.Context) {
-	if c.verifier != nil {
-		if err := c.verifier.Verify(ginContext.Request.Context(), ginContext.PostForm("turnstile_token"), ginContext.ClientIP()); err != nil {
-			c.logger.WithError(err).Warn("turnstile verification failed for visit request")
+func (h *VisitRequestHandler) Create(ginContext *gin.Context) {
+	if h.verifier != nil {
+		if err := h.verifier.Verify(ginContext.Request.Context(), ginContext.PostForm("turnstile_token"), ginContext.ClientIP()); err != nil {
+			h.logger.WithError(err).Warn("turnstile verification failed for visit request")
 			ginContext.JSON(http.StatusForbidden, model.ErrorResponse{Error: "turnstile verification failed"})
 			return
 		}
@@ -81,53 +82,53 @@ func (c *VisitRequestController) Create(ginContext *gin.Context) {
 
 	var request model.CreateVisitRequestRequest
 	if err := ginContext.ShouldBind(&request); err != nil {
-		c.logger.WithError(err).Warn("failed to bind request body")
+		h.logger.WithError(err).Warn("failed to bind request body")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
 	if err := model.ValidateTujuanDestination(request.TujuanInstansi, request.TujuanBagian); err != nil {
-		c.logger.Warn("invalid tujuan destination")
+		h.logger.Warn("invalid tujuan destination")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
 	if !isWITAMidnight(request.TanggalKunjungan) {
-		c.logger.Warn("invalid tanggal_kunjungan epoch value")
+		h.logger.Warn("invalid tanggal_kunjungan epoch value")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "tanggal_kunjungan must be Unix epoch milliseconds of the visit date midnight in Asia/Makassar (UTC+8)"})
 		return
 	}
 
 	if !isWITATimeOfDay(request.JamKunjungan) {
-		c.logger.Warn("invalid jam_kunjungan epoch value")
+		h.logger.Warn("invalid jam_kunjungan epoch value")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "jam_kunjungan must be Unix epoch milliseconds of the visit time on 1970-01-01 in Asia/Makassar (UTC+8)"})
 		return
 	}
 
 	visitDateTime := request.TanggalKunjungan + (request.JamKunjungan + witaOffsetMillis)
 	if visitDateTime < time.Now().UnixMilli() {
-		c.logger.Warn("visit date and time is in the past")
+		h.logger.Warn("visit date and time is in the past")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "visit date and time must be in the future"})
 		return
 	}
 
 	guestsJSON := ginContext.PostForm("guests")
 	if guestsJSON == "" {
-		c.logger.Warn("guests field is empty")
+		h.logger.Warn("guests field is empty")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "guests field is required"})
 		return
 	}
 
 	var guests []model.GuestInput
 	if err := json.Unmarshal([]byte(guestsJSON), &guests); err != nil {
-		c.logger.WithError(err).Warn("failed to unmarshal guests JSON")
+		h.logger.WithError(err).Warn("failed to unmarshal guests JSON")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "guests must be a valid JSON array"})
 		return
 	}
 
 	suratKunjunganFile, suratKunjunganHeader, err := ginContext.Request.FormFile("surat_kunjungan")
 	if err != nil {
-		c.logger.WithError(err).Warn("missing surat_kunjungan file")
+		h.logger.WithError(err).Warn("missing surat_kunjungan file")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "surat_kunjungan file is required"})
 		return
 	}
@@ -135,7 +136,7 @@ func (c *VisitRequestController) Create(ginContext *gin.Context) {
 
 	suratTugasFile, suratTugasHeader, err := ginContext.Request.FormFile("surat_tugas")
 	if err != nil {
-		c.logger.WithError(err).Warn("missing surat_tugas file")
+		h.logger.WithError(err).Warn("missing surat_tugas file")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "surat_tugas file is required"})
 		return
 	}
@@ -166,14 +167,14 @@ func (c *VisitRequestController) Create(ginContext *gin.Context) {
 		},
 	}
 
-	visitRequest, err := c.visitRequestUsecase.Create(ginContext.Request.Context(), input)
+	visitRequest, err := h.visitRequestUsecase.Create(ginContext.Request.Context(), input)
 	if err != nil {
 		if errors.Is(err, usecase.ErrInvalidPDF) || strings.Contains(err.Error(), "guest count") || strings.Contains(err.Error(), "exceeds 5 MB limit") {
-			c.logger.WithError(err).Warn("unprocessable entity when creating visit request")
+			h.logger.WithError(err).Warn("unprocessable entity when creating visit request")
 			ginContext.JSON(http.StatusUnprocessableEntity, model.ErrorResponse{Error: err.Error()})
 			return
 		}
-		c.logger.WithError(err).Error("failed to create visit request")
+		h.logger.WithError(err).Error("failed to create visit request")
 		_ = ginContext.Error(err)
 		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
 		return
@@ -187,16 +188,16 @@ func (c *VisitRequestController) Create(ginContext *gin.Context) {
 
 // FindByToken returns the public view of a visit request by its token,
 // hiding archive attachments unless the request is approved.
-func (c *VisitRequestController) FindByToken(ginContext *gin.Context) {
+func (h *VisitRequestHandler) FindByToken(ginContext *gin.Context) {
 	token := ginContext.Param("token")
-	visitRequest, err := c.visitRequestUsecase.FindByToken(ginContext.Request.Context(), token)
+	visitRequest, err := h.visitRequestUsecase.FindByToken(ginContext.Request.Context(), token)
 	if err != nil {
 		if errors.Is(err, repository.ErrVisitRequestNotFound) {
-			c.logger.WithField("token", token).Warn("visit request not found by token")
+			h.logger.WithField("token", token).Warn("visit request not found by token")
 			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})
 			return
 		}
-		c.logger.WithError(err).Error("failed to find visit request by token")
+		h.logger.WithError(err).Error("failed to find visit request by token")
 		_ = ginContext.Error(err)
 		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
 		return
@@ -211,11 +212,11 @@ func (c *VisitRequestController) FindByToken(ginContext *gin.Context) {
 // DownloadAttachment streams a request's uploaded attachment inline,
 // restricting archive attachments to approved requests and verifying the
 // path stays inside the upload directory.
-func (c *VisitRequestController) DownloadAttachment(ginContext *gin.Context) {
+func (h *VisitRequestHandler) DownloadAttachment(ginContext *gin.Context) {
 	token := ginContext.Param("token")
 	attachmentType := ginContext.Param("type")
 	if attachmentType != "surat_kunjungan" && attachmentType != "surat_tugas" && attachmentType != "images" && attachmentType != "daftar_absen" {
-		c.logger.WithField("attachmentType", attachmentType).Warn("invalid attachment type")
+		h.logger.WithField("attachmentType", attachmentType).Warn("invalid attachment type")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid attachment type"})
 		return
 	}
@@ -235,14 +236,14 @@ func (c *VisitRequestController) DownloadAttachment(ginContext *gin.Context) {
 		return
 	}
 
-	visitRequest, err := c.visitRequestUsecase.FindByToken(ginContext.Request.Context(), token)
+	visitRequest, err := h.visitRequestUsecase.FindByToken(ginContext.Request.Context(), token)
 	if err != nil {
 		if errors.Is(err, repository.ErrVisitRequestNotFound) {
-			c.logger.WithField("token", token).Warn("visit request not found for attachment download")
+			h.logger.WithField("token", token).Warn("visit request not found for attachment download")
 			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})
 			return
 		}
-		c.logger.WithError(err).Error("failed to find visit request for attachment download")
+		h.logger.WithError(err).Error("failed to find visit request for attachment download")
 		_ = ginContext.Error(err)
 		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
 		return
@@ -255,23 +256,8 @@ func (c *VisitRequestController) DownloadAttachment(ginContext *gin.Context) {
 
 	for _, attachment := range visitRequest.Attachments {
 		if attachment.AttachmentType == attachmentType && (attachmentID == 0 || attachment.ID == attachmentID) {
-			uploadRoot, err := filepath.Abs(c.uploadDir)
+			resolvedPath, err := h.uploadService.ResolvePath(attachment.StorageKey)
 			if err != nil {
-				ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
-				return
-			}
-			filePath, err := filepath.Abs(filepath.Join(uploadRoot, attachment.StorageKey))
-			if err != nil || (filePath != uploadRoot && !strings.HasPrefix(filePath, uploadRoot+string(filepath.Separator))) {
-				ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "file not found"})
-				return
-			}
-			resolvedRoot, err := filepath.EvalSymlinks(uploadRoot)
-			if err != nil {
-				ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
-				return
-			}
-			resolvedPath, err := filepath.EvalSymlinks(filePath)
-			if err != nil || (resolvedPath != resolvedRoot && !strings.HasPrefix(resolvedPath, resolvedRoot+string(filepath.Separator))) {
 				ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "file not found"})
 				return
 			}
@@ -301,30 +287,30 @@ func (c *VisitRequestController) DownloadAttachment(ginContext *gin.Context) {
 		}
 	}
 
-	c.logger.WithField("attachmentType", attachmentType).Warn("attachment not found in database record")
+	h.logger.WithField("attachmentType", attachmentType).Warn("attachment not found in database record")
 	ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "attachment not found"})
 }
 
 // DownloadQR returns the request token as a PNG QR code for download.
-func (c *VisitRequestController) DownloadQR(ginContext *gin.Context) {
+func (h *VisitRequestHandler) DownloadQR(ginContext *gin.Context) {
 	token := ginContext.Param("token")
 
-	_, err := c.visitRequestUsecase.FindByToken(ginContext.Request.Context(), token)
+	_, err := h.visitRequestUsecase.FindByToken(ginContext.Request.Context(), token)
 	if err != nil {
 		if errors.Is(err, repository.ErrVisitRequestNotFound) {
-			c.logger.WithField("token", token).Warn("visit request not found for QR download")
+			h.logger.WithField("token", token).Warn("visit request not found for QR download")
 			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})
 			return
 		}
-		c.logger.WithError(err).Error("failed to find visit request for QR download")
+		h.logger.WithError(err).Error("failed to find visit request for QR download")
 		_ = ginContext.Error(err)
 		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
 		return
 	}
 
-	png, err := c.qrUsecase.GenerateQR(token)
+	png, err := h.qrUsecase.GenerateQR(token)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to generate QR code")
+		h.logger.WithError(err).Error("failed to generate QR code")
 		_ = ginContext.Error(err)
 		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
 		return

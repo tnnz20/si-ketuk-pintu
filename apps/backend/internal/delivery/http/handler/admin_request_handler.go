@@ -1,4 +1,4 @@
-package controllers
+package handler
 
 import (
 	"encoding/json"
@@ -17,42 +17,43 @@ import (
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/middleware"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/model"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/service"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
 )
 
-// AdminRequestController handles admin-facing visit request and archive
+// AdminRequestHandler handles admin-facing visit request and archive
 // endpoints.
-type AdminRequestController struct {
+type AdminRequestHandler struct {
 	visitRequestUsecase *usecase.VisitRequestUsecase
 	logger              *logrus.Logger
-	uploadDir           string
+	uploadService       service.UploadService
 }
 
-// NewAdminRequestController creates an AdminRequestController serving files
-// from uploadDir.
-func NewAdminRequestController(
+// NewAdminRequestHandler creates an AdminRequestHandler resolving files
+// via uploadService.
+func NewAdminRequestHandler(
 	visitRequestUsecase *usecase.VisitRequestUsecase,
 	logger *logrus.Logger,
-	uploadDir string,
-) *AdminRequestController {
-	return &AdminRequestController{
+	uploadService service.UploadService,
+) *AdminRequestHandler {
+	return &AdminRequestHandler{
 		visitRequestUsecase: visitRequestUsecase,
 		logger:              logger,
-		uploadDir:           uploadDir,
+		uploadService:       uploadService,
 	}
 }
 
 // List returns a paginated, filterable list of all visit requests.
-func (c *AdminRequestController) List(ginContext *gin.Context) {
-	c.listRequests(ginContext, ginContext.Query("status"))
+func (h *AdminRequestHandler) List(ginContext *gin.Context) {
+	h.listRequests(ginContext, ginContext.Query("status"))
 }
 
 // ListArchives returns a paginated list of approved visit requests.
-func (c *AdminRequestController) ListArchives(ginContext *gin.Context) {
-	c.listRequests(ginContext, "approved")
+func (h *AdminRequestHandler) ListArchives(ginContext *gin.Context) {
+	h.listRequests(ginContext, "approved")
 }
 
-func (c *AdminRequestController) listRequests(ginContext *gin.Context, status string) {
+func (h *AdminRequestHandler) listRequests(ginContext *gin.Context, status string) {
 	page, err := strconv.Atoi(ginContext.DefaultQuery("page", "1"))
 	if err != nil || page < 1 {
 		page = 1
@@ -72,14 +73,14 @@ func (c *AdminRequestController) listRequests(ginContext *gin.Context, status st
 		Size:   size,
 	}
 
-	visitRequests, total, err := c.visitRequestUsecase.List(ginContext.Request.Context(), filter)
+	visitRequests, total, err := h.visitRequestUsecase.List(ginContext.Request.Context(), filter)
 	if err != nil {
 		if errors.Is(err, usecase.ErrInvalidDateFilter) {
-			c.logger.WithError(err).Warn("invalid date filter in admin controller")
+			h.logger.WithError(err).Warn("invalid date filter in admin controller")
 			ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "date must be in YYYY-MM-DD format"})
 			return
 		}
-		c.logger.WithError(err).Error("failed to list visit requests in admin controller")
+		h.logger.WithError(err).Error("failed to list visit requests in admin controller")
 		_ = ginContext.Error(err)
 		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
 		return
@@ -113,10 +114,10 @@ func (c *AdminRequestController) listRequests(ginContext *gin.Context, status st
 }
 
 // Stats returns today's request count, pending count, and total count.
-func (c *AdminRequestController) Stats(ginContext *gin.Context) {
-	today, pending, total, err := c.visitRequestUsecase.Stats(ginContext.Request.Context())
+func (h *AdminRequestHandler) Stats(ginContext *gin.Context) {
+	today, pending, total, err := h.visitRequestUsecase.Stats(ginContext.Request.Context())
 	if err != nil {
-		c.logger.WithError(err).Error("failed to get admin stats")
+		h.logger.WithError(err).Error("failed to get admin stats")
 		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
 		return
 	}
@@ -129,7 +130,7 @@ func (c *AdminRequestController) Stats(ginContext *gin.Context) {
 }
 
 // Graph returns aggregated visit request counts per day, month, or year.
-func (c *AdminRequestController) Graph(ginContext *gin.Context) {
+func (h *AdminRequestHandler) Graph(ginContext *gin.Context) {
 	period := ginContext.Query("period")
 	if period != "daily" && period != "monthly" && period != "yearly" {
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "period must be daily, monthly, or yearly"})
@@ -143,9 +144,9 @@ func (c *AdminRequestController) Graph(ginContext *gin.Context) {
 		return
 	}
 
-	points, err := c.visitRequestUsecase.Graph(ginContext.Request.Context(), period, year, month)
+	points, err := h.visitRequestUsecase.Graph(ginContext.Request.Context(), period, year, month)
 	if err != nil {
-		c.logger.WithError(err).Error("failed to get graph data")
+		h.logger.WithError(err).Error("failed to get graph data")
 		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
 		return
 	}
@@ -162,23 +163,23 @@ func (c *AdminRequestController) Graph(ginContext *gin.Context) {
 }
 
 // FindByID returns a single visit request with its audit events.
-func (c *AdminRequestController) FindByID(ginContext *gin.Context) {
+func (h *AdminRequestHandler) FindByID(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
-		c.logger.WithError(err).Warn("invalid request ID format")
+		h.logger.WithError(err).Warn("invalid request ID format")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
 		return
 	}
 
-	visitRequest, err := c.visitRequestUsecase.FindByID(ginContext.Request.Context(), id)
+	visitRequest, err := h.visitRequestUsecase.FindByID(ginContext.Request.Context(), id)
 	if err != nil {
 		if errors.Is(err, repository.ErrVisitRequestNotFound) {
-			c.logger.WithField("id", id).Warn("visit request not found by ID")
+			h.logger.WithField("id", id).Warn("visit request not found by ID")
 			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})
 			return
 		}
 
-		c.logger.WithError(err).Error("failed to find visit request by ID")
+		h.logger.WithError(err).Error("failed to find visit request by ID")
 		_ = ginContext.Error(err)
 		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
 		return
@@ -211,31 +212,31 @@ func (c *AdminRequestController) FindByID(ginContext *gin.Context) {
 }
 
 // UpdateStatus approves or rejects a pending visit request.
-func (c *AdminRequestController) UpdateStatus(ginContext *gin.Context) {
+func (h *AdminRequestHandler) UpdateStatus(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
-		c.logger.WithError(err).Warn("invalid request ID format")
+		h.logger.WithError(err).Warn("invalid request ID format")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
 		return
 	}
 
 	var request model.UpdateStatusRequest
 	if err := ginContext.ShouldBindJSON(&request); err != nil {
-		c.logger.WithError(err).Warn("failed to bind update status request")
+		h.logger.WithError(err).Warn("failed to bind update status request")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
 		return
 	}
 
 	administratorID, _ := ginContext.Get(middleware.AdministratorIDKey)
 
-	err = c.visitRequestUsecase.UpdateStatus(ginContext.Request.Context(), usecase.UpdateStatusInput{
+	err = h.visitRequestUsecase.UpdateStatus(ginContext.Request.Context(), usecase.UpdateStatusInput{
 		VisitRequestID:  id,
 		NewStatus:       request.Status,
 		AdministratorID: administratorID.(int64),
 	})
 	if err != nil {
 		if errors.Is(err, repository.ErrVisitRequestNotFound) {
-			c.logger.WithField("id", id).Warn("visit request not found for status update")
+			h.logger.WithField("id", id).Warn("visit request not found for status update")
 			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})
 			return
 		}
@@ -244,7 +245,7 @@ func (c *AdminRequestController) UpdateStatus(ginContext *gin.Context) {
 			return
 		}
 
-		c.logger.WithError(err).Error("failed to update visit request status")
+		h.logger.WithError(err).Error("failed to update visit request status")
 		_ = ginContext.Error(err)
 		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
 		return
@@ -254,20 +255,20 @@ func (c *AdminRequestController) UpdateStatus(ginContext *gin.Context) {
 }
 
 // Delete removes a visit request and all its related records.
-func (c *AdminRequestController) Delete(ginContext *gin.Context) {
+func (h *AdminRequestHandler) Delete(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
-		c.logger.WithError(err).Warn("invalid request ID format")
+		h.logger.WithError(err).Warn("invalid request ID format")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
 		return
 	}
 
-	if err := c.visitRequestUsecase.Delete(ginContext.Request.Context(), id); err != nil {
+	if err := h.visitRequestUsecase.Delete(ginContext.Request.Context(), id); err != nil {
 		if errors.Is(err, repository.ErrVisitRequestNotFound) {
 			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})
 			return
 		}
-		c.logger.WithError(err).Error("failed to delete visit request")
+		h.logger.WithError(err).Error("failed to delete visit request")
 		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
 		return
 	}
@@ -276,7 +277,7 @@ func (c *AdminRequestController) Delete(ginContext *gin.Context) {
 }
 
 // Reschedule updates a pending request's visit date and time.
-func (c *AdminRequestController) Reschedule(ginContext *gin.Context) {
+func (h *AdminRequestHandler) Reschedule(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
@@ -303,7 +304,7 @@ func (c *AdminRequestController) Reschedule(ginContext *gin.Context) {
 	}
 
 	administratorID, _ := ginContext.Get(middleware.AdministratorIDKey)
-	if err := c.visitRequestUsecase.Reschedule(ginContext.Request.Context(), usecase.RescheduleInput{
+	if err := h.visitRequestUsecase.Reschedule(ginContext.Request.Context(), usecase.RescheduleInput{
 		VisitRequestID:  id,
 		NewDate:         input.TanggalKunjungan,
 		NewTime:         input.JamKunjungan,
@@ -320,7 +321,7 @@ func (c *AdminRequestController) Reschedule(ginContext *gin.Context) {
 }
 
 // UploadRescheduleLetter stores a replacement reschedule letter PDF.
-func (c *AdminRequestController) UploadRescheduleLetter(ginContext *gin.Context) {
+func (h *AdminRequestHandler) UploadRescheduleLetter(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
@@ -332,7 +333,7 @@ func (c *AdminRequestController) UploadRescheduleLetter(ginContext *gin.Context)
 		return
 	}
 	defer file.Close()
-	attachment, err := c.visitRequestUsecase.SaveRescheduleLetter(ginContext.Request.Context(), id, usecase.FileInput{Reader: file, Filename: header.Filename, Size: header.Size})
+	attachment, err := h.visitRequestUsecase.SaveRescheduleLetter(ginContext.Request.Context(), id, usecase.FileInput{Reader: file, Filename: header.Filename, Size: header.Size})
 	if err != nil {
 		if errors.Is(err, repository.ErrVisitRequestNotFound) {
 			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})
@@ -341,17 +342,17 @@ func (c *AdminRequestController) UploadRescheduleLetter(ginContext *gin.Context)
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
 		return
 	}
-	ginContext.JSON(http.StatusCreated, gin.H{"attachment": attachment})
+	ginContext.JSON(http.StatusCreated, gin.H{"attachment": toAttachmentResponse(*attachment)})
 }
 
 // DeleteRescheduleLetter removes the pending request's reschedule letter.
-func (c *AdminRequestController) DeleteRescheduleLetter(ginContext *gin.Context) {
+func (h *AdminRequestHandler) DeleteRescheduleLetter(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
 		return
 	}
-	if err := c.visitRequestUsecase.DeleteRescheduleLetter(ginContext.Request.Context(), id); err != nil {
+	if err := h.visitRequestUsecase.DeleteRescheduleLetter(ginContext.Request.Context(), id); err != nil {
 		if errors.Is(err, repository.ErrAttachmentNotFound) || errors.Is(err, usecase.ErrRescheduleLetterNotFound) {
 			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "reschedule letter not found"})
 			return
@@ -364,26 +365,26 @@ func (c *AdminRequestController) DeleteRescheduleLetter(ginContext *gin.Context)
 
 // UploadApprovalLetter stores an approval letter PDF for an approved
 // request.
-func (c *AdminRequestController) UploadApprovalLetter(ginContext *gin.Context) {
+func (h *AdminRequestHandler) UploadApprovalLetter(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
-		c.logger.WithError(err).Debug("failed to parse approval letter request ID")
+		h.logger.WithError(err).Debug("failed to parse approval letter request ID")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
 		return
 	}
 	file, header, err := ginContext.Request.FormFile("file")
 	if err != nil {
-		c.logger.WithError(err).WithField("request_id", id).Debug("failed to read approval letter file")
+		h.logger.WithError(err).WithField("request_id", id).Debug("failed to read approval letter file")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "file is required"})
 		return
 	}
 	defer file.Close()
 
-	attachment, err := c.visitRequestUsecase.SaveApprovalLetter(ginContext.Request.Context(), id, usecase.FileInput{
+	attachment, err := h.visitRequestUsecase.SaveApprovalLetter(ginContext.Request.Context(), id, usecase.FileInput{
 		Reader: file, Filename: header.Filename, Size: header.Size,
 	})
 	if err != nil {
-		c.logger.WithError(err).WithFields(logrus.Fields{
+		h.logger.WithError(err).WithFields(logrus.Fields{
 			"request_id": id,
 			"filename":   header.Filename,
 			"size":       header.Size,
@@ -395,18 +396,18 @@ func (c *AdminRequestController) UploadApprovalLetter(ginContext *gin.Context) {
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
 		return
 	}
-	ginContext.JSON(http.StatusCreated, gin.H{"attachment": attachment})
+	ginContext.JSON(http.StatusCreated, gin.H{"attachment": toAttachmentResponse(*attachment)})
 }
 
 // DeleteApprovalLetter removes the approved request's approval letter.
-func (c *AdminRequestController) DeleteApprovalLetter(ginContext *gin.Context) {
+func (h *AdminRequestHandler) DeleteApprovalLetter(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
 		return
 	}
-	if err := c.visitRequestUsecase.DeleteApprovalLetter(ginContext.Request.Context(), id); err != nil {
-		c.logger.WithError(err).WithField("request_id", id).Debug("failed to delete approval letter")
+	if err := h.visitRequestUsecase.DeleteApprovalLetter(ginContext.Request.Context(), id); err != nil {
+		h.logger.WithError(err).WithField("request_id", id).Debug("failed to delete approval letter")
 		if errors.Is(err, usecase.ErrApprovalLetterNotFound) || errors.Is(err, repository.ErrAttachmentNotFound) || errors.Is(err, repository.ErrVisitRequestNotFound) {
 			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "approval letter not found"})
 			return
@@ -419,55 +420,71 @@ func (c *AdminRequestController) DeleteApprovalLetter(ginContext *gin.Context) {
 
 // DownloadAttachment streams a request letter PDF (initial or
 // reschedule/approval, depending on status) as an attachment.
-func (c *AdminRequestController) DownloadAttachment(ginContext *gin.Context) {
+func (h *AdminRequestHandler) DownloadAttachment(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
-		c.logger.WithError(err).Warn("invalid request ID format")
+		h.logger.WithError(err).Warn("invalid request ID format")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
 		return
 	}
 
 	attachmentType := ginContext.Param("type")
 	if attachmentType != "surat_kunjungan" && attachmentType != "surat_tugas" && attachmentType != "surat_persetujuan" && attachmentType != "surat_reschedule" {
-		c.logger.WithField("attachmentType", attachmentType).Warn("invalid attachment type")
+		h.logger.WithField("attachmentType", attachmentType).Warn("invalid attachment type")
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "attachment type must be surat_kunjungan or surat_tugas"})
 		return
 	}
 
-	visitRequest, err := c.visitRequestUsecase.FindByID(ginContext.Request.Context(), id)
+	visitRequest, err := h.visitRequestUsecase.FindByID(ginContext.Request.Context(), id)
 	if err != nil {
 		if errors.Is(err, repository.ErrVisitRequestNotFound) {
-			c.logger.WithField("id", id).Warn("visit request not found for attachment download")
+			h.logger.WithField("id", id).Warn("visit request not found for attachment download")
 			ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "request not found"})
 			return
 		}
-		c.logger.WithError(err).Error("failed to find visit request for attachment download")
+		h.logger.WithError(err).Error("failed to find visit request for attachment download")
 		_ = ginContext.Error(err)
 		ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
 		return
 	}
 
-	if (attachmentType == "surat_persetujuan" && visitRequest.Status != "approved") || (attachmentType == "surat_reschedule" && visitRequest.Status != "pending") {
+	if attachmentType == "surat_persetujuan" && visitRequest.Status != "approved" {
 		ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "approval letter not found"})
+		return
+	}
+	if attachmentType == "surat_reschedule" && visitRequest.Status != "pending" {
+		ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "reschedule letter not found"})
 		return
 	}
 
 	for _, attachment := range visitRequest.Attachments {
 		if attachment.AttachmentType == attachmentType {
-			filePath := filepath.Join(c.uploadDir, attachment.StorageKey)
+			filePath, err := h.uploadService.ResolvePath(attachment.StorageKey)
+			if err != nil {
+				h.logger.WithError(err).Warn("invalid attachment storage path")
+				ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "file not found"})
+				return
+			}
 			if _, err := os.Stat(filePath); err != nil {
-				c.logger.WithError(err).Warn("attachment file not found on disk")
+				h.logger.WithError(err).Warn("attachment file not found on disk")
 				ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "file not found"})
 				return
 			}
 
-			ginContext.Header("Content-Disposition", "attachment; filename="+attachment.OriginalName)
+			safeName := strings.Map(func(r rune) rune {
+				if r == '"' || r < 0x20 || r == 0x7F {
+					return '_'
+				}
+				return r
+			}, filepath.Base(attachment.OriginalName))
+
+			ginContext.Header("Content-Disposition", `attachment; filename="`+safeName+`"`)
 			ginContext.File(filePath)
 			return
 		}
 	}
 
-	c.logger.WithField("attachmentType", attachmentType).Warn("attachment not found in database record")
+	h.logger.WithField("attachmentType", attachmentType).Warn("attachment not found in database record")
 	ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "attachment not found"})
 }
 
@@ -493,7 +510,7 @@ func respondArchiveError(ginContext *gin.Context, err error) {
 }
 
 // UploadDocumentations stores documentation images for an approved request.
-func (c *AdminRequestController) UploadDocumentations(ginContext *gin.Context) {
+func (h *AdminRequestHandler) UploadDocumentations(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
@@ -523,7 +540,7 @@ func (c *AdminRequestController) UploadDocumentations(ginContext *gin.Context) {
 		inputs = append(inputs, usecase.FileInput{Reader: file, Filename: header.Filename, Size: header.Size})
 	}
 
-	attachments, err := c.visitRequestUsecase.SaveDocumentationImages(ginContext.Request.Context(), id, inputs)
+	attachments, err := h.visitRequestUsecase.SaveDocumentationImages(ginContext.Request.Context(), id, inputs)
 	if err != nil {
 		respondArchiveError(ginContext, err)
 		return
@@ -537,7 +554,7 @@ func (c *AdminRequestController) UploadDocumentations(ginContext *gin.Context) {
 }
 
 // DeleteDocumentation removes a documentation image.
-func (c *AdminRequestController) DeleteDocumentation(ginContext *gin.Context) {
+func (h *AdminRequestHandler) DeleteDocumentation(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
@@ -549,7 +566,7 @@ func (c *AdminRequestController) DeleteDocumentation(ginContext *gin.Context) {
 		return
 	}
 
-	if err := c.visitRequestUsecase.DeleteDocumentationImage(ginContext.Request.Context(), id, attachmentID); err != nil {
+	if err := h.visitRequestUsecase.DeleteDocumentationImage(ginContext.Request.Context(), id, attachmentID); err != nil {
 		respondArchiveError(ginContext, err)
 		return
 	}
@@ -557,7 +574,7 @@ func (c *AdminRequestController) DeleteDocumentation(ginContext *gin.Context) {
 }
 
 // UploadDaftarAbsen stores the attendance list PDF for an approved request.
-func (c *AdminRequestController) UploadDaftarAbsen(ginContext *gin.Context) {
+func (h *AdminRequestHandler) UploadDaftarAbsen(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
@@ -570,7 +587,7 @@ func (c *AdminRequestController) UploadDaftarAbsen(ginContext *gin.Context) {
 	}
 	defer file.Close()
 
-	attachment, err := c.visitRequestUsecase.SaveDaftarAbsen(ginContext.Request.Context(), id, usecase.FileInput{
+	attachment, err := h.visitRequestUsecase.SaveDaftarAbsen(ginContext.Request.Context(), id, usecase.FileInput{
 		Reader: file, Filename: header.Filename, Size: header.Size,
 	})
 	if err != nil {
@@ -581,14 +598,14 @@ func (c *AdminRequestController) UploadDaftarAbsen(ginContext *gin.Context) {
 }
 
 // DeleteDaftarAbsen removes the attendance list.
-func (c *AdminRequestController) DeleteDaftarAbsen(ginContext *gin.Context) {
+func (h *AdminRequestHandler) DeleteDaftarAbsen(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
 		return
 	}
 
-	if err := c.visitRequestUsecase.DeleteDaftarAbsen(ginContext.Request.Context(), id); err != nil {
+	if err := h.visitRequestUsecase.DeleteDaftarAbsen(ginContext.Request.Context(), id); err != nil {
 		respondArchiveError(ginContext, err)
 		return
 	}
@@ -597,7 +614,7 @@ func (c *AdminRequestController) DeleteDaftarAbsen(ginContext *gin.Context) {
 
 // DownloadArchiveAttachment streams an approved request's documentation
 // image or attendance list.
-func (c *AdminRequestController) DownloadArchiveAttachment(ginContext *gin.Context) {
+func (h *AdminRequestHandler) DownloadArchiveAttachment(ginContext *gin.Context) {
 	id, err := uuid.Parse(ginContext.Param("id"))
 	if err != nil {
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "invalid request id"})
@@ -615,16 +632,21 @@ func (c *AdminRequestController) DownloadArchiveAttachment(ginContext *gin.Conte
 		return
 	}
 
-	attachment, err := c.visitRequestUsecase.GetArchiveAttachment(ginContext.Request.Context(), id, attachmentID, attachmentType)
+	attachment, err := h.visitRequestUsecase.GetArchiveAttachment(ginContext.Request.Context(), id, attachmentID, attachmentType)
 	if err != nil {
 		respondArchiveError(ginContext, err)
 		return
 	}
 
-	filePath := filepath.Join(c.uploadDir, filepath.FromSlash(attachment.StorageKey))
+	filePath, err := h.uploadService.ResolvePath(attachment.StorageKey)
+	if err != nil {
+		h.logger.WithError(err).Warn("invalid archive attachment storage path")
+		ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "file not found"})
+		return
+	}
 	file, err := os.Open(filePath)
 	if err != nil {
-		c.logger.WithError(err).Warn("archive attachment file not found on disk")
+		h.logger.WithError(err).Warn("archive attachment file not found on disk")
 		ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "file not found"})
 		return
 	}

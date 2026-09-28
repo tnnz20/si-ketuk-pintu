@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/sirupsen/logrus"
-	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/controllers"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/handler"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/middleware"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
 )
@@ -24,10 +24,10 @@ func TestRouterRegistersAllRoutes(t *testing.T) {
 		CORSOrigins:            []string{"*"},
 		RateLimiter:            middleware.NewRateLimiter(10.0, 10),
 		AuthUsecase:            usecase.NewAuthUsecase(nil, "secret", 24, logger),
-		HealthController:       &controllers.HealthController{},
-		VisitRequestController: &controllers.VisitRequestController{},
-		AdminAuthController:    &controllers.AdminAuthController{},
-		AdminRequestController: &controllers.AdminRequestController{},
+		HealthHandler:          &handler.HealthHandler{},
+		VisitRequestHandler:    &handler.VisitRequestHandler{},
+		AdminAuthHandler:       &handler.AdminAuthHandler{},
+		AdminRequestHandler:    &handler.AdminRequestHandler{},
 	}
 
 	router := NewRouter(deps)
@@ -80,10 +80,10 @@ func TestRouterRateLimitsLoginAndCreateRequest(t *testing.T) {
 		CORSOrigins:            []string{"*"},
 		RateLimiter:            middleware.NewRateLimiter(10.0, 1),
 		AuthUsecase:            usecase.NewAuthUsecase(nil, "secret", 24, logger),
-		HealthController:       &controllers.HealthController{},
-		VisitRequestController: &controllers.VisitRequestController{},
-		AdminAuthController:    &controllers.AdminAuthController{},
-		AdminRequestController: &controllers.AdminRequestController{},
+		HealthHandler:          &handler.HealthHandler{},
+		VisitRequestHandler:    &handler.VisitRequestHandler{},
+		AdminAuthHandler:       &handler.AdminAuthHandler{},
+		AdminRequestHandler:    &handler.AdminRequestHandler{},
 	}
 	router := NewRouter(deps)
 
@@ -116,10 +116,10 @@ func TestRouterGraphRouteRequiresAuth(t *testing.T) {
 		CORSOrigins:            []string{"*"},
 		RateLimiter:            middleware.NewRateLimiter(10.0, 10),
 		AuthUsecase:            usecase.NewAuthUsecase(nil, "secret", 24, logger),
-		HealthController:       &controllers.HealthController{},
-		VisitRequestController: &controllers.VisitRequestController{},
-		AdminAuthController:    &controllers.AdminAuthController{},
-		AdminRequestController: &controllers.AdminRequestController{},
+		HealthHandler:          &handler.HealthHandler{},
+		VisitRequestHandler:    &handler.VisitRequestHandler{},
+		AdminAuthHandler:       &handler.AdminAuthHandler{},
+		AdminRequestHandler:    &handler.AdminRequestHandler{},
 	}
 	router := NewRouter(deps)
 
@@ -163,10 +163,10 @@ func TestRouterContainsRequiredMiddleware(t *testing.T) {
 		CORSOrigins:            []string{"http://localhost:3000"},
 		RateLimiter:            middleware.NewRateLimiter(10.0, 10),
 		AuthUsecase:            usecase.NewAuthUsecase(nil, "secret", 24, logger),
-		HealthController:       &controllers.HealthController{},
-		VisitRequestController: &controllers.VisitRequestController{},
-		AdminAuthController:    &controllers.AdminAuthController{},
-		AdminRequestController: &controllers.AdminRequestController{},
+		HealthHandler:          &handler.HealthHandler{},
+		VisitRequestHandler:    &handler.VisitRequestHandler{},
+		AdminAuthHandler:       &handler.AdminAuthHandler{},
+		AdminRequestHandler:    &handler.AdminRequestHandler{},
 	}
 
 	router := NewRouter(deps)

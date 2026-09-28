@@ -6,10 +6,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/controllers"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/handler"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/middleware"
 	httproute "github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/route"
-	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository/persistence"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/service"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/turnstile"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
 	"gorm.io/gorm"
@@ -51,10 +52,13 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 	}
 
 	// Repositories
-	healthRepository := repository.NewDatabaseHealthRepository(database)
-	administratorRepository := repository.NewAdministratorRepository(database)
-	visitRequestRepository := repository.NewVisitRequestRepository(database)
-	auditEventRepository := repository.NewAuditEventRepository(database)
+	healthRepository := persistence.NewHealthRepository(database)
+	administratorRepository := persistence.NewAdministratorRepository(database)
+	visitRequestRepository := persistence.NewVisitRequestRepository(database)
+	auditEventRepository := persistence.NewAuditEventRepository(database)
+
+	// Services
+	uploadService := service.NewFileSystemUploadService(applicationConfig.UploadDir)
 
 	// Usecases
 	healthUsecase := usecase.NewHealthUsecase(healthRepository)
@@ -68,29 +72,29 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 		visitRequestRepository,
 		auditEventRepository,
 		logger,
-		applicationConfig.UploadDir,
+		uploadService,
 	)
 	qrUsecase := usecase.NewQRUsecase()
 
-	var turnstileVerifier controllers.TurnstileVerifier
+	var turnstileVerifier handler.TurnstileVerifier
 	if applicationConfig.TurnstileEnabled {
 		turnstileVerifier = turnstile.NewVerifier(applicationConfig.TurnstileSecretKey)
 	}
 
-	// Controllers
-	healthController := controllers.NewHealthController(healthUsecase)
-	visitRequestController := controllers.NewVisitRequestController(
+	// Handlers
+	healthHandler := handler.NewHealthHandler(healthUsecase)
+	visitRequestHandler := handler.NewVisitRequestHandler(
 		visitRequestUsecase,
 		qrUsecase,
 		logger,
-		applicationConfig.UploadDir,
+		uploadService,
 		turnstileVerifier,
 	)
-	adminAuthController := controllers.NewAdminAuthController(authUsecase, logger, turnstileVerifier)
-	adminRequestController := controllers.NewAdminRequestController(
+	adminAuthHandler := handler.NewAdminAuthHandler(authUsecase, logger, turnstileVerifier)
+	adminRequestHandler := handler.NewAdminRequestHandler(
 		visitRequestUsecase,
 		logger,
-		applicationConfig.UploadDir,
+		uploadService,
 	)
 
 	// Middleware
@@ -102,10 +106,10 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 		CORSOrigins:            applicationConfig.CORSOrigins,
 		RateLimiter:            rateLimiter,
 		AuthUsecase:            authUsecase,
-		HealthController:       healthController,
-		VisitRequestController: visitRequestController,
-		AdminAuthController:    adminAuthController,
-		AdminRequestController: adminRequestController,
+		HealthHandler:          healthHandler,
+		VisitRequestHandler:    visitRequestHandler,
+		AdminAuthHandler:       adminAuthHandler,
+		AdminRequestHandler:    adminRequestHandler,
 	})
 
 	return &Bootstrap{

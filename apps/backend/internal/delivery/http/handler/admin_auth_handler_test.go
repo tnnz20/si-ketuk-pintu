@@ -1,4 +1,4 @@
-package controllers
+package handler
 
 import (
 	"bytes"
@@ -32,14 +32,14 @@ func TestLoginVerifiesTurnstileToken(t *testing.T) {
 	logger := logrus.New()
 	logger.SetOutput(io.Discard)
 	verifier := &fakeTurnstile{result: errors.New("turnstile verification failed")}
-	controller := NewAdminAuthController(nil, logger, verifier)
+	handler := NewAdminAuthHandler(nil, logger, verifier)
 
 	recorder := httptest.NewRecorder()
 	ginContext, _ := gin.CreateTestContext(recorder)
 	ginContext.Request = httptest.NewRequest(http.MethodPost, "/api/admin/auth/login", bytes.NewBufferString(`{"identifier":"admin","password":"secret","turnstile_token":"tok-123"}`))
 	ginContext.Request.Header.Set("Content-Type", "application/json")
 
-	controller.Login(ginContext)
+	handler.Login(ginContext)
 
 	if recorder.Code != http.StatusForbidden {
 		t.Fatalf("login with invalid turnstile token: got %d, want %d", recorder.Code, http.StatusForbidden)
@@ -60,14 +60,14 @@ func TestLoginProceedsWhenTurnstileDisabled(t *testing.T) {
 	logger := logrus.New()
 	logger.SetOutput(io.Discard)
 	verifier := &fakeTurnstile{}
-	controller := NewAdminAuthController(nil, logger, nil)
+	handler := NewAdminAuthHandler(nil, logger, nil)
 
 	recorder := httptest.NewRecorder()
 	ginContext, _ := gin.CreateTestContext(recorder)
 	ginContext.Request = httptest.NewRequest(http.MethodPost, "/api/admin/auth/login", nil)
 	ginContext.Request.Header.Set("Content-Type", "application/json")
 
-	controller.Login(ginContext)
+	handler.Login(ginContext)
 
 	if recorder.Code != http.StatusBadRequest {
 		t.Fatalf("login without body with turnstile disabled: got %d, want %d", recorder.Code, http.StatusBadRequest)

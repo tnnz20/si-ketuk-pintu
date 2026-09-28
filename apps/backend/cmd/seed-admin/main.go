@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/config"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository/persistence"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/ssh"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
 )
@@ -56,8 +57,8 @@ func runSeed(ctx context.Context, databaseURL string, logger *logrus.Logger) err
 	}
 	defer sqlDatabase.Close()
 
-	repository := repository.NewAdministratorRepository(database)
-	seedUsecase := usecase.NewSeedAdministratorUsecase(repository)
+	adminRepo := persistence.NewAdministratorRepository(database)
+	seedUsecase := usecase.NewSeedAdministratorUsecase(adminRepo)
 	if err := seedUsecase.Seed(ctx, usecase.SeedAdministratorInput{
 		Username: os.Getenv("ADMIN_USERNAME"),
 		Email:    os.Getenv("ADMIN_EMAIL"),
