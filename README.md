@@ -99,10 +99,7 @@ Backend:
   be-run, be-build, tidy, be-test, be-test-unit, be-test-migrations
   migrate-up, migrate-down, migrate-version, migrate-force
   migrate-create, seed-admin, seed-visit-requests
-
-SSH tunneling:
-  migrate-up-ssh, migrate-down-ssh, migrate-version-ssh
-  migrate-force-ssh, seed-admin-ssh, seed-visit-requests-ssh
+  (Pass ssh=true for remote SSH tunneling, e.g. make seed-admin ssh=true)
 
 Frontend:
   fe-dev, fe-install, fe-build, fe-typecheck, fe-lint

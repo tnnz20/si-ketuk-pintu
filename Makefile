@@ -7,7 +7,7 @@ MIGRATE_VERSION := v4.19.1
 MIGRATE_CLI := go run -tags postgres github.com/golang-migrate/migrate/v4/cmd/migrate@$(MIGRATE_VERSION)
 
 .DEFAULT_GOAL := help
-.PHONY: help check-env check-engine compose-up compose-down compose-stop compose-down-v compose-logs be-run be-build tidy be-test be-test-unit be-test-migrations fe-dev fe-install fe-build fe-typecheck fe-lint fe-format-check fe-prettier fe-preview migrate-up migrate-down migrate-version migrate-force migrate-create migrate-up-ssh migrate-down-ssh migrate-version-ssh migrate-force-ssh seed-admin seed-visit-requests seed-admin-ssh seed-visit-requests-ssh
+.PHONY: help check-env check-engine compose-up compose-down compose-stop compose-down-v compose-logs be-run be-build tidy be-test be-test-unit be-test-migrations fe-dev fe-install fe-build fe-typecheck fe-lint fe-format-check fe-prettier fe-preview migrate-up migrate-down migrate-version migrate-force migrate-create seed-admin seed-visit-requests
 
 help:
 	@echo "Backend:"
@@ -17,21 +17,13 @@ help:
 	@echo "  be-test              Run all tests"
 	@echo "  be-test-unit         Run unit tests"
 	@echo "  be-test-migrations   Run integration tests"
-	@echo "  migrate-up           Apply migrations"
-	@echo "  migrate-down         Rollback migrations"
-	@echo "  migrate-version      Show migration version"
-	@echo "  migrate-force version=X Clear dirty migration state"
+	@echo "  migrate-up           Apply migrations (pass ssh=true for SSH tunnel)"
+	@echo "  migrate-down         Rollback migrations (pass ssh=true for SSH tunnel)"
+	@echo "  migrate-version      Show migration version (pass ssh=true for SSH tunnel)"
+	@echo "  migrate-force version=X Clear dirty migration state (pass ssh=true for SSH tunnel)"
 	@echo "  migrate-create name=X Create new migration"
-	@echo "  seed-admin           Seed first admin user"
-	@echo "  seed-visit-requests  Seed five sample visitor requests"
-	@echo ""
-	@echo "SSH tunneling:"
-	@echo "  migrate-up-ssh       Apply migrations through SSH tunnel"
-	@echo "  migrate-down-ssh     Rollback migrations through SSH tunnel"
-	@echo "  migrate-version-ssh  Show migration version through SSH tunnel"
-	@echo "  migrate-force-ssh version=X Clear dirty state through SSH tunnel"
-	@echo "  seed-admin-ssh       Seed first admin through SSH tunnel"
-	@echo "  seed-visit-requests-ssh  Seed sample requests through SSH tunnel"
+	@echo "  seed-admin           Seed first admin user (pass ssh=true for SSH tunnel)"
+	@echo "  seed-visit-requests  Seed five sample visitor requests (pass ssh=true for SSH tunnel)"
 	@echo ""
 	@echo "Frontend:"
 	@echo "  fe-dev               Start frontend dev server"
@@ -119,28 +111,15 @@ be-test-migrations: check-env compose-up
 migrate-up: check-env
 	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/migrate $(if $(filter true,$(ssh)),--ssh) up
 
-migrate-up-ssh: check-env
-	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/migrate --ssh up
-
 migrate-down: check-env
 	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/migrate $(if $(filter true,$(ssh)),--ssh) down
-
-migrate-down-ssh: check-env
-	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/migrate --ssh down
 
 migrate-version: check-env
 	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/migrate $(if $(filter true,$(ssh)),--ssh) version
 
-migrate-version-ssh: check-env
-	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/migrate --ssh version
-
 migrate-force: check-env
 	@test -n "$(version)" || (echo "Usage: make migrate-force version=2 [ssh=true]"; exit 1)
 	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/migrate $(if $(filter true,$(ssh)),--ssh) force $(version)
-
-migrate-force-ssh: check-env
-	@test -n "$(version)" || (echo "Usage: make migrate-force-ssh version=2"; exit 1)
-	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/migrate --ssh force $(version)
 
 migrate-create:
 	@test -n "$(name)" || (echo "Usage: make migrate-create name=describe_change"; exit 1)
@@ -149,11 +128,5 @@ migrate-create:
 seed-admin: check-env
 	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/seed-admin $(if $(filter true,$(ssh)),--ssh)
 
-seed-admin-ssh: check-env
-	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/seed-admin --ssh
-
 seed-visit-requests: check-env
 	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/seed-visit-requests $(if $(filter true,$(ssh)),--ssh)
-
-seed-visit-requests-ssh: check-env
-	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/seed-visit-requests --ssh
