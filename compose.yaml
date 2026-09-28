@@ -1,49 +1,53 @@
 services:
   postgres:
-    image: postgres:alpine
+    image: postgres:16-alpine
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in .env.production}
-      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in .env.production}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env.production}
+      POSTGRES_DB: ${POSTGRES_DB:-si_ketuk_pintu}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
     ports:
-      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_EXTERNAL_PORT:-5434}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - si-ketuk-pintu-net
     healthcheck:
-      test:
-        ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-      start_period: 5s
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 25s
 
-  backend:
-    image: ${BACKEND_IMAGE:-ghcr.io/tnnz20/si-ketuk-pintu/backend:latest}
-    build:
-      context: ./apps/backend
-    env_file:
-      - .env.production
-    ports:
-      - "${APP_PORT:-8080}:8080"
-    volumes:
-      - uploads_data:/app/uploads
-    depends_on:
-      postgres:
-        condition: service_healthy
+#  backend:
+#    image: ${BACKEND_IMAGE:-ghcr.io/tnnz20/si-ketuk-pintu/backend:latest}
+#    restart: unless-stopped
+#    env_file:
+#      - .env
+#    ports:
+#      - "127.0.0.1:${BACKEND_EXTERNAL_PORT:-8081}:8080"
+#    volumes:
+#      - uploads_data:/app/uploads
+#    networks:
+#      - si-ketuk-pintu-net
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
 
-  frontend:
-    image: ${FRONTEND_IMAGE:-ghcr.io/tnnz20/si-ketuk-pintu/frontend:latest}
-    build:
-      context: ./apps/frontend
-      args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
-        VITE_TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-}
-        VITE_APP_ENV: ${APP_ENV:-}
-    ports:
-      - "${FRONTEND_PORT:-5173}:80"
-    depends_on:
-      - backend
+#  frontend:
+#    image: ${FRONTEND_IMAGE:-ghcr.io/tnnz20/si-ketuk-pintu/frontend:latest}
+#    restart: unless-stopped
+#    ports:
+#      - "127.0.0.1:${FRONTEND_PORT:-5173}:80"
+#    networks:
+#      - si-ketuk-pintu-net
+#    depends_on:
+#      - backend
+
+networks:
+  si-ketuk-pintu-net:
+    driver: bridge
 
 volumes:
   postgres_data:
-  uploads_data:
+#  uploads_data:
