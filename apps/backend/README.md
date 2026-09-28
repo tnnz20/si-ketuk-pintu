@@ -130,8 +130,10 @@ Do not commit `.env` or production secrets.
 ├── entity/              Database entities
 ├── internal/
 │   ├── config/          Application configuration
-│   ├── delivery/http/   Routes, controllers, and middleware
-│   ├── repository/      GORM persistence
+│   ├── delivery/http/   Routes, handlers, and middleware
+│   ├── repository/      Repository interface contracts
+│   │   └── persistence/ GORM database implementations
+│   ├── service/         Upload and domain services
 │   └── usecase/         Business rules
 ├── model/               API models
 └── test/integration/    Integration tests
