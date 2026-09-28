@@ -166,6 +166,7 @@ export function DatePicker({
           selected={selectedDate}
           onSelect={handleSelect}
           disabled={disabledMatchers}
+          startMonth={disablePastDates ? startOfToday() : undefined}
           autoFocus
           showOutsideDays
           showYearSwitcher

@@ -109,7 +109,7 @@ function Calendar({
     props.dayClassName,
   );
   const _dayButtonClassName = cn(
-    'size-8 rounded-xl p-0 text-xs font-semibold text-civic-dark transition-all hover:bg-civic-neutralFill/70 aria-selected:opacity-100',
+    'size-8 rounded-xl p-0 text-xs font-semibold text-civic-dark transition-all hover:bg-civic-neutralFill/70 aria-selected:opacity-100 disabled:!text-civic-muted/30 disabled:opacity-30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:hover:bg-transparent',
     props.dayButtonClassName,
   );
   const _rangeStartClassName = cn(
@@ -130,11 +130,11 @@ function Calendar({
     props.todayClassName,
   );
   const _outsideClassName = cn(
-    'day-outside text-civic-muted/40 aria-selected:bg-civic-neutralFill/50 aria-selected:text-civic-muted',
+    'day-outside [&>button]:!text-civic-muted/30 [&>button]:opacity-30 [&>button]:hover:bg-transparent',
     props.outsideClassName,
   );
   const _disabledClassName = cn(
-    'text-civic-muted/30 line-through cursor-not-allowed pointer-events-none',
+    '[&>button]:!text-civic-muted/30 [&>button]:opacity-30 [&>button]:cursor-not-allowed [&>button]:pointer-events-none [&>button]:hover:bg-transparent cursor-not-allowed pointer-events-none',
     props.disabledClassName,
   );
   const _hiddenClassName = cn('invisible flex-1', props.hiddenClassName);
