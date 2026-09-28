@@ -78,31 +78,31 @@ npm run preview
 
 ### Public
 
-| Route | Purpose |
-| --- | --- |
-| `/` | Landing page |
-| `/form` | Submit visitor request |
-| `/status/:token` | Check request status |
-| `/success` | Submission success page |
+| Route            | Purpose                 |
+| ---------------- | ----------------------- |
+| `/`              | Landing page            |
+| `/form`          | Submit visitor request  |
+| `/status/:token` | Check request status    |
+| `/success`       | Submission success page |
 
 ### Authentication
 
-| Route | Purpose |
-| --- | --- |
+| Route    | Purpose             |
+| -------- | ------------------- |
 | `/login` | Administrator login |
 
 ### Admin
 
 All admin routes require authentication.
 
-| Route | Purpose |
-| --- | --- |
-| `/dashboard` | Admin dashboard |
-| `/dashboard/requests` | Request list |
-| `/dashboard/requests/:id` | Request details |
-| `/dashboard/archives` | Archived requests |
-| `/dashboard/archives/:id` | Archive details |
-| `/dashboard/scanner` | QR scanner |
+| Route                     | Purpose           |
+| ------------------------- | ----------------- |
+| `/dashboard`              | Admin dashboard   |
+| `/dashboard/requests`     | Request list      |
+| `/dashboard/requests/:id` | Request details   |
+| `/dashboard/archives`     | Archived requests |
+| `/dashboard/archives/:id` | Archive details   |
+| `/dashboard/scanner`      | QR scanner        |
 
 ## Structure
 

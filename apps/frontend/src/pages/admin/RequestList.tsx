@@ -1,73 +1,34 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import RequestFilters from '@/components/requests/RequestFilters';
 import RequestPagination from '@/components/requests/RequestPagination';
 import RequestTableContent from '@/components/requests/RequestTableContent';
-import { deleteRequest, getRequests, getStats } from '@/lib/api/requests';
-import type { PaginatedRequestsResponse, StatsResponse } from '@/types/api';
-
-type RequestRow = PaginatedRequestsResponse['data'][number];
+import { useRequests, type RequestRow } from '@/hooks/use-requests';
 
 export default function RequestList() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const {
+    requests,
+    stats,
+    page,
+    pageSize,
+    totalPages,
+    totalCount,
+    search,
+    status,
+    date,
+    loading,
+    setPage,
+    setPageSize,
+    setSearch,
+    setStatus,
+    setDate,
+    remove,
+  } = useRequests();
 
-  const [requests, setRequests] = useState<PaginatedRequestsResponse['data']>([]);
-  const [stats, setStats] = useState<StatsResponse>();
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-
-  const initialSearch = searchParams.get('search') ?? '';
-  const initialStatus = searchParams.get('status') ?? '';
-
-  const [search, setSearch] = useState(initialSearch);
-  const [status, setStatus] = useState(initialStatus);
-  const [date, setDate] = useState('');
-  const [loading, setLoading] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState<RequestRow>();
-
-  // Fetch Stats for accurate counts on filter pills
-  useEffect(() => {
-    getStats()
-      .then(setStats)
-      .catch(() => {});
-  }, []);
-
-  const load = useCallback(() => {
-    setLoading(true);
-    getRequests(page, pageSize, { search, status, date })
-      .then((result) => {
-        setRequests(result.data);
-        setTotalPages(result.total_pages);
-        setTotalCount(result.total);
-      })
-      .catch(() => toast.error('Gagal memuat daftar permohonan.'))
-      .finally(() => setLoading(false));
-  }, [page, pageSize, search, status, date]);
-
-  useEffect(() => {
-    void Promise.resolve().then(load);
-  }, [load]);
-
-  async function runDelete() {
-    if (!confirmDelete) return;
-    try {
-      await deleteRequest(confirmDelete.id);
-      toast.success('Permohonan berhasil dihapus.');
-      setConfirmDelete(undefined);
-      if (requests.length === 1 && page > 1) {
-        setPage(page - 1);
-      } else {
-        load();
-      }
-    } catch {
-      toast.error('Aksi gagal diproses.');
-    }
-  }
 
   async function copyToken(row: RequestRow) {
     try {
@@ -78,29 +39,15 @@ export default function RequestList() {
     }
   }
 
-  const handleStatusChange = (val: string) => {
-    setStatus(val);
-    setPage(1);
-    const newParams = new URLSearchParams(searchParams);
-    if (val) newParams.set('status', val);
-    else newParams.delete('status');
-    setSearchParams(newParams);
-  };
-
-  const handleSearchChange = (val: string) => {
-    setSearch(val);
-    setPage(1);
-    const newParams = new URLSearchParams(searchParams);
-    if (val) newParams.set('search', val);
-    else newParams.delete('search');
-    setSearchParams(newParams);
-  };
+  async function runDelete() {
+    if (!confirmDelete) return;
+    const ok = await remove(confirmDelete);
+    if (ok) setConfirmDelete(undefined);
+  }
 
   return (
     <div className="animate-fade-in space-y-5">
-      {/* Table Container Card */}
       <div className="soft-shadow space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-5 sm:p-6">
-        {/* Card Header & Title */}
         <div className="flex flex-col justify-between gap-3 border-b border-civic-border pb-4 sm:flex-row sm:items-center">
           <div>
             <h3 className="text-base font-extrabold text-civic-dark sm:text-lg">
@@ -116,7 +63,6 @@ export default function RequestList() {
           </div>
         </div>
 
-        {/* Filters */}
         <RequestFilters
           search={search}
           status={status}
@@ -129,37 +75,28 @@ export default function RequestList() {
                 }
               : undefined
           }
-          onSearchChange={handleSearchChange}
-          onStatusChange={handleStatusChange}
-          onDateChange={(val: string) => {
-            setDate(val);
-            setPage(1);
-          }}
+          onSearchChange={setSearch}
+          onStatusChange={setStatus}
+          onDateChange={setDate}
         />
 
-        {/* Table Content */}
         <RequestTableContent
           requests={requests}
           loading={loading}
-          onViewDetail={(id: string) => navigate(`/dashboard/requests/${id}`)}
+          onViewDetail={(id) => navigate(`/dashboard/requests/${id}`)}
           onCopyToken={copyToken}
-          onDelete={(row: RequestRow) => setConfirmDelete(row)}
+          onDelete={(row) => setConfirmDelete(row)}
         />
 
-        {/* Pagination */}
         <RequestPagination
           page={page}
           pageSize={pageSize}
           totalPages={totalPages}
           onPageChange={setPage}
-          onPageSizeChange={(value: number) => {
-            setPageSize(value);
-            setPage(1);
-          }}
+          onPageSizeChange={setPageSize}
         />
       </div>
 
-      {/* Delete Confirmation */}
       {confirmDelete && (
         <ConfirmDialog
           title="Hapus permohonan ini?"
