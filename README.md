@@ -9,7 +9,8 @@ Government visitor request platform for submitting, reviewing, tracking, and arc
 - React 19 with TypeScript
 - Vite 8
 - React Router 7
-- Tailwind CSS 4
+- Tailwind CSS 4 with `@base-ui/react` (Shadcn UI primitives)
+- `class-variance-authority` and `react-day-picker`
 
 ### Backend
 
@@ -33,13 +34,14 @@ Government visitor request platform for submitting, reviewing, tracking, and arc
 │   └── frontend
 │       ├── public/              Static assets
 │       └── src
-│           ├── components/      Reusable UI components
+│           ├── components/      Reusable UI components (ui/ and domain components)
 │           ├── constants/       Shared constants
-│           ├── hooks/           React hooks
+│           ├── hooks/           Custom domain and session hooks
+│           ├── layouts/         Route-level layout shells (main, auth, dashboard)
 │           ├── lib/             API, PDF, and utility code
-│           ├── pages/            Route-level screens
+│           ├── pages/           Route-level screens
 │           ├── schemas/         Zod schemas
-│           └── types/            Shared TypeScript types
+│           └── types/           Shared TypeScript types
 ├── compose.yaml                 PostgreSQL and production services
 ├── Makefile                     Development commands
  ├── apps/backend/api/            Backend API contract

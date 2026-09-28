@@ -11,8 +11,11 @@ Dependencies installed in `package.json`:
 - Vite 8
 - React Router DOM 7
 - Tailwind CSS 4 with `@tailwindcss/vite`
+- `@base-ui/react` (Shadcn UI headless primitives)
+- `class-variance-authority` (CVA)
+- `react-day-picker` v9 and `date-fns`
 - Zod 4
-- GSAP and Motion
+- Motion
 - Sonner
 - Luxon
 - jsPDF and jsPDF AutoTable
@@ -108,11 +111,14 @@ All admin routes require authentication.
 
 ```text
 src/
-├── components/  Reusable UI components
-├── constants/   Shared constants
-├── hooks/       React hooks
-├── lib/         API, PDF, and utility code
-├── pages/       Route-level screens
-├── schemas/     Zod validation schemas
-└── types/       Shared TypeScript types
+├── components/
+│   ├── ui/         Headless accessible primitives (Shadcn / Base UI)
+│   └── ...         Domain UI components
+├── constants/      Shared constants
+├── hooks/          React hooks (useSession, useRequests, useArchives, useDashboard)
+├── layouts/        Layout shells (main-layout, auth-layout, dashboard-layout)
+├── lib/            API, PDF, date-time, and utility code
+├── pages/          Route-level screens
+├── schemas/        Zod validation schemas
+└── types/          Shared TypeScript types
 ```
