@@ -7,7 +7,7 @@ MIGRATE_VERSION := v4.19.1
 MIGRATE_CLI := go run -tags postgres github.com/golang-migrate/migrate/v4/cmd/migrate@$(MIGRATE_VERSION)
 
 .DEFAULT_GOAL := help
-.PHONY: help check-env check-engine compose-up compose-down compose-stop compose-down-v compose-logs be-run be-build tidy be-test be-test-unit be-test-migrations fe-dev fe-install fe-build fe-lint fe-format-check fe-prettier fe-preview migrate-up migrate-down migrate-version migrate-force migrate-create migrate-up-ssh migrate-down-ssh migrate-version-ssh migrate-force-ssh seed-admin seed-visit-requests seed-admin-ssh seed-visit-requests-ssh
+.PHONY: help check-env check-engine compose-up compose-down compose-stop compose-down-v compose-logs be-run be-build tidy be-test be-test-unit be-test-migrations fe-dev fe-install fe-build fe-typecheck fe-lint fe-format-check fe-prettier fe-preview migrate-up migrate-down migrate-version migrate-force migrate-create migrate-up-ssh migrate-down-ssh migrate-version-ssh migrate-force-ssh seed-admin seed-visit-requests seed-admin-ssh seed-visit-requests-ssh
 
 help:
 	@echo "Backend:"
@@ -37,6 +37,7 @@ help:
 	@echo "  fe-dev               Start frontend dev server"
 	@echo "  fe-install           Install frontend dependencies"
 	@echo "  fe-build             Build frontend"
+	@echo "  fe-typecheck         Run TypeScript compiler check"
 	@echo "  fe-lint              Run ESLint"
 	@echo "  fe-format-check      Check code format"
 	@echo "  fe-prettier          Format frontend files"
@@ -88,6 +89,9 @@ fe-install:
 
 fe-build:
 	npm --prefix $(FRONTEND_DIR) run build
+
+fe-typecheck:
+	npm --prefix $(FRONTEND_DIR) run typecheck
 
 fe-lint:
 	npm --prefix $(FRONTEND_DIR) run lint

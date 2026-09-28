@@ -105,7 +105,7 @@ SSH tunneling:
   migrate-force-ssh, seed-admin-ssh, seed-visit-requests-ssh
 
 Frontend:
-  fe-dev, fe-install, fe-build, fe-lint
+  fe-dev, fe-install, fe-build, fe-typecheck, fe-lint
   fe-format-check, fe-prettier, fe-preview
 
 Database:
@@ -118,6 +118,7 @@ Use `make migrate-create name=describe_change` to create migrations. Use `make c
 
 ```bash
 make be-test
+make fe-typecheck
 make fe-lint
 make fe-format-check
 make fe-build

@@ -71,6 +71,7 @@ From this directory:
 ```bash
 npm run dev
 npm run build
+npm run typecheck
 npm run lint
 npm run format:check
 npm run prettier
