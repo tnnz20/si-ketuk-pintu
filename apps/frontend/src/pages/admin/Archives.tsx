@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import RequestPagination from '@/components/requests/RequestPagination';
 import ArchiveTableContent from '@/components/archives/ArchiveTableContent';
+import { DatePicker } from '@/components/ui/date-picker';
 import { useArchives } from '@/hooks/use-archives';
 
 export default function Archives() {
@@ -53,12 +54,12 @@ export default function Archives() {
             />
           </div>
 
-          <input
-            type="date"
+          <DatePicker
             value={date}
-            onChange={(e) => setDate(e.target.value)}
+            onChange={setDate}
+            placeholder="Filter tanggal kunjungan..."
             aria-label="Filter tanggal kunjungan"
-            className="soft-shadow w-full cursor-pointer rounded-xl border border-civic-border bg-civic-surface px-3 py-2 text-xs text-civic-dark transition-all focus:border-civic-dark focus:outline-none md:w-auto"
+            className="w-full md:w-56"
           />
         </div>
 

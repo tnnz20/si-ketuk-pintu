@@ -1,4 +1,5 @@
 import { Search, X } from 'lucide-react';
+import { DatePicker } from '@/components/ui/date-picker';
 
 interface RequestFiltersProps {
   search: string;
@@ -92,11 +93,12 @@ export default function RequestFilters({
 
         {/* Date Filter */}
         <div className="relative w-full sm:w-auto">
-          <input
-            type="date"
+          <DatePicker
             value={date}
-            onChange={(e) => onDateChange(e.target.value)}
-            className="soft-shadow w-full cursor-pointer rounded-xl border border-civic-border bg-civic-surface px-3 py-2 text-xs text-civic-dark transition-all focus:border-civic-dark focus:outline-none"
+            onChange={onDateChange}
+            placeholder="Filter tanggal..."
+            aria-label="Filter tanggal kunjungan"
+            className="w-full sm:w-52"
           />
         </div>
       </div>

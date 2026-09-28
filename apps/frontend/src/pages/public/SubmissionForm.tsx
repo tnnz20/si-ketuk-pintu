@@ -1,4 +1,4 @@
-﻿import { motion, useReducedMotion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import {
   ArrowLeft,
   Building2,
@@ -37,6 +37,7 @@ import { StepIndicators } from '@/components/submission/StepIndicators';
 import { TimePicker } from '@/components/submission/TimePicker';
 import { VisitStep } from '@/components/submission/VisitStep';
 import { guestSchema, tujuanPairCheck, visitRequestBaseSchema } from '@/schemas/visitRequest';
+import { DatePicker } from '@/components/ui/date-picker';
 import { dateInputToEpoch, timeInputToEpoch } from '@/lib/dateTime';
 
 interface Guest {
@@ -553,12 +554,13 @@ export default function SubmissionForm() {
                             <Calendar className="h-4 w-4 text-emerald-600" />
                             Tanggal Kunjungan
                           </label>
-                          <input
+                          <DatePicker
                             id="tanggal_kunjungan"
-                            type="date"
                             value={formData.tanggal_kunjungan}
-                            onChange={(e) => updateField('tanggal_kunjungan', e.target.value)}
-                            className="font-body-md w-full rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+                            onChange={(val) => updateField('tanggal_kunjungan', val)}
+                            disablePastDates
+                            placeholder="Pilih tanggal kunjungan..."
+                            className="font-body-md h-12 w-full rounded-xl border-outline-variant bg-surface px-4 py-3 text-body-md focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                           />
                           {fieldErrors.tanggal_kunjungan && (
                             <p className="font-label text-label-sm text-error">

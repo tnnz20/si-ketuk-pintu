@@ -1,9 +1,10 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { z } from 'zod';
 import type { FormEvent } from 'react';
 import Dialog from '@/components/shared/Dialog';
 import { Select } from '@/components/shared/Select';
 import { TimePicker } from '@/components/submission/TimePicker';
+import { DatePicker } from '@/components/ui/date-picker';
 
 const schema = z.object({
   nomor: z.string().trim().min(1, 'Nomor wajib diisi.'),
@@ -72,12 +73,13 @@ export default function RescheduleDialog({ open, loading, onSubmit, onCancel }: 
 
         <label className="block text-xs font-bold text-civic-dark">
           Tanggal Kunjungan Baru
-          <input
-            type="date"
+          <DatePicker
             value={form.tanggal_kunjungan}
-            onChange={(e) => update('tanggal_kunjungan', e.target.value)}
-            disabled={loading}
-            className="bg-civic-cardFill mt-1.5 w-full rounded-2xl border border-civic-border px-3.5 py-2.5 text-xs text-civic-dark transition-all focus:border-civic-dark focus:outline-none"
+            onChange={(val) => update('tanggal_kunjungan', val)}
+            disablePastDates
+            disabledTrigger={loading}
+            placeholder="Pilih tanggal kunjungan baru..."
+            className="bg-civic-cardFill mt-1.5 h-10 w-full rounded-2xl border-civic-border"
           />
           {errors.tanggal_kunjungan && (
             <span className="mt-1 block text-label-sm font-semibold text-rose-600">
