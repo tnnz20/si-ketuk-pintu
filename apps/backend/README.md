@@ -125,17 +125,20 @@ Do not commit `.env` or production secrets.
 
 ```text
 .
+├── api/                 API contract documentation
 ├── cmd/                 Web, migration, and seed executables
 ├── db/migrations/       Sequential SQL migrations
-├── entity/              Database entities
 ├── internal/
 │   ├── config/          Application configuration
 │   ├── delivery/http/   Routes, handlers, and middleware
+│   ├── entity/          Database entities
+│   ├── model/           API request & response models
 │   ├── repository/      Repository interface contracts
 │   │   └── persistence/ GORM database implementations
 │   ├── service/         Upload and domain services
+│   ├── ssh/             SSH tunnel helper
+│   ├── turnstile/       Cloudflare Turnstile verification
 │   └── usecase/         Business rules
-├── model/               API models
 └── test/integration/    Integration tests
 ```
 
