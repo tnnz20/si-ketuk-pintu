@@ -41,7 +41,7 @@ help:
 	@echo "  fe-lint              Run ESLint"
 	@echo "  fe-format-check      Check code format"
 	@echo "  fe-prettier          Format frontend files"
-	@echo "  fe-preview            Preview production build"
+	@echo "  fe-preview           Preview production build"
 	@echo ""
 	@echo "Docker:"
 	@echo "  Set ENGINE=podman|docker before command (default: podman)"
@@ -119,15 +119,28 @@ be-test-migrations: check-env compose-up
 migrate-up: check-env
 	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/migrate $(if $(filter true,$(ssh)),--ssh) up
 
+migrate-up-ssh: check-env
+	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/migrate --ssh up
+
 migrate-down: check-env
 	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/migrate $(if $(filter true,$(ssh)),--ssh) down
+
+migrate-down-ssh: check-env
+	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/migrate --ssh down
 
 migrate-version: check-env
 	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/migrate $(if $(filter true,$(ssh)),--ssh) version
 
+migrate-version-ssh: check-env
+	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/migrate --ssh version
+
 migrate-force: check-env
 	@test -n "$(version)" || (echo "Usage: make migrate-force version=2 [ssh=true]"; exit 1)
 	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/migrate $(if $(filter true,$(ssh)),--ssh) force $(version)
+
+migrate-force-ssh: check-env
+	@test -n "$(version)" || (echo "Usage: make migrate-force-ssh version=2"; exit 1)
+	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/migrate --ssh force $(version)
 
 migrate-create:
 	@test -n "$(name)" || (echo "Usage: make migrate-create name=describe_change"; exit 1)
@@ -136,5 +149,11 @@ migrate-create:
 seed-admin: check-env
 	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/seed-admin $(if $(filter true,$(ssh)),--ssh)
 
+seed-admin-ssh: check-env
+	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/seed-admin --ssh
+
 seed-visit-requests: check-env
 	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/seed-visit-requests $(if $(filter true,$(ssh)),--ssh)
+
+seed-visit-requests-ssh: check-env
+	@set -a; . $(ENV_FILE); set +a; cd $(BACKEND_DIR) && go run ./cmd/seed-visit-requests --ssh
