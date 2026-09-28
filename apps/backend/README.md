@@ -4,7 +4,7 @@ Go API for visitor request submission, status tracking, administrator workflows,
 
 ## Tech stack
 
-- Go 1.25
+- Go 1.27
 - Gin and gin-contrib/cors
 - GORM with PostgreSQL driver
 - pgx PostgreSQL driver
@@ -18,7 +18,7 @@ Go API for visitor request submission, status tracking, administrator workflows,
 
 ## Requirements
 
-- Go 1.25+
+- Go 1.27+
 - PostgreSQL, or Docker/Podman with Compose
 - GNU Make for root commands
 

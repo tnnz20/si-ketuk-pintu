@@ -13,7 +13,7 @@ Government visitor request platform for submitting, reviewing, tracking, and arc
 
 ### Backend
 
-- Go 1.25
+- Go 1.27
 - Gin HTTP framework
 - GORM with PostgreSQL
 - golang-migrate database migrations
@@ -48,7 +48,7 @@ Government visitor request platform for submitting, reviewing, tracking, and arc
 
 ## Requirements
 
-- Go 1.25+
+- Go 1.27+
 - Node.js and npm
 - GNU Make
 - PostgreSQL client tools
