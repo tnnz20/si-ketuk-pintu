@@ -220,3 +220,100 @@ func TestFileSystemUploadService_DeleteFile(t *testing.T) {
 		t.Fatalf("DeleteFile on missing file should return nil, got: %v", err)
 	}
 }
+
+func TestFileSystemUploadService_ResolvePath_Success(t *testing.T) {
+	uploadDir := t.TempDir()
+	svc := NewFileSystemUploadService(uploadDir)
+
+	resolved, err := svc.ResolvePath("surat-kunjungan/test.pdf")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	expected := filepath.Join(uploadDir, "surat-kunjungan", "test.pdf")
+	if resolved != expected {
+		t.Errorf("ResolvePath = %q, want %q", resolved, expected)
+	}
+}
+
+func TestFileSystemUploadService_ResolvePath_PathTraversal(t *testing.T) {
+	uploadDir := t.TempDir()
+	svc := NewFileSystemUploadService(uploadDir)
+
+	traversalKeys := []string{
+		"../secret.txt",
+		"../../etc/passwd",
+		"..\\..\\windows\\system32",
+		"/etc/passwd",
+		"C:\\Windows\\System32\\calc.exe",
+		"surat-kunjungan/../../secret.txt",
+		"surat-kunjungan/../../../secret.txt",
+		".",
+		"",
+	}
+
+	for _, key := range traversalKeys {
+		t.Run(key, func(t *testing.T) {
+			_, err := svc.ResolvePath(key)
+			if err == nil || !errors.Is(err, ErrInvalidPath) {
+				t.Fatalf("expected ErrInvalidPath for %q, got: %v", key, err)
+			}
+		})
+	}
+}
+
+func TestFileSystemUploadService_DeleteFile_PathTraversal(t *testing.T) {
+	uploadDir := t.TempDir()
+	svc := NewFileSystemUploadService(uploadDir)
+
+	// Create an outside file that should NOT be deleted
+	outsideDir := t.TempDir()
+	outsideFile := filepath.Join(outsideDir, "important.txt")
+	if err := os.WriteFile(outsideFile, []byte("preserve me"), 0o640); err != nil {
+		t.Fatal(err)
+	}
+
+	relToOutside, err := filepath.Rel(uploadDir, outsideFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = svc.DeleteFile(relToOutside)
+	if err == nil || !errors.Is(err, ErrInvalidPath) {
+		t.Fatalf("expected ErrInvalidPath, got: %v", err)
+	}
+
+	// Verify outside file still exists
+	if _, err := os.Stat(outsideFile); err != nil {
+		t.Fatalf("outside file was deleted! %v", err)
+	}
+}
+
+func TestFileSystemUploadService_SaveImage_DirectoryTraversal(t *testing.T) {
+	uploadDir := t.TempDir()
+	svc := NewFileSystemUploadService(uploadDir)
+
+	pngBytes := []byte{0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n', 0, 0, 0, 0}
+	inputPNG := model.FileInput{
+		Reader:   bytes.NewReader(pngBytes),
+		Filename: "photo.png",
+		Size:     int64(len(pngBytes)),
+	}
+
+	traversalDirs := []string{
+		"../outside",
+		"..",
+		"/absolute",
+		"sub/../../outside",
+	}
+
+	for _, dir := range traversalDirs {
+		t.Run(dir, func(t *testing.T) {
+			_, err := svc.SaveImage(dir, inputPNG)
+			if err == nil || !errors.Is(err, ErrInvalidPath) {
+				t.Fatalf("expected ErrInvalidPath for dir %q, got: %v", dir, err)
+			}
+		})
+	}
+}
+

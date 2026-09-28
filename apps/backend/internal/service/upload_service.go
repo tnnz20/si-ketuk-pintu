@@ -22,6 +22,8 @@ var (
 	ErrInvalidPDF = errors.New("file must be a valid PDF")
 	// ErrInvalidImageFile is returned when an uploaded image is not a valid PNG or JPEG.
 	ErrInvalidImageFile = errors.New("files must be valid PNG or JPG images")
+	// ErrInvalidPath is returned when a storage path or directory attempts traversal.
+	ErrInvalidPath = errors.New("invalid storage path")
 )
 
 const (
@@ -34,6 +36,7 @@ type UploadService interface {
 	SavePDF(attachmentType string, file model.FileInput) (*entity.Attachment, error)
 	SaveImage(directory string, file model.FileInput) (*entity.Attachment, error)
 	DeleteFile(storageKey string) error
+	ResolvePath(storageKey string) (string, error)
 }
 
 type fileSystemUploadService struct {
@@ -119,6 +122,22 @@ func (s *fileSystemUploadService) SavePDF(
 }
 
 func (s *fileSystemUploadService) SaveImage(directory string, file model.FileInput) (*entity.Attachment, error) {
+	cleanDir := filepath.Clean(filepath.FromSlash(directory))
+	if cleanDir == "" || cleanDir == "." || filepath.IsAbs(cleanDir) || strings.HasPrefix(cleanDir, string(filepath.Separator)) {
+		return nil, ErrInvalidPath
+	}
+
+	cleanBase, err := filepath.Abs(s.baseDir)
+	if err != nil {
+		return nil, fmt.Errorf("resolve base dir: %w", err)
+	}
+
+	storageDir := filepath.Clean(filepath.Join(cleanBase, cleanDir))
+	rel, err := filepath.Rel(cleanBase, storageDir)
+	if err != nil || strings.HasPrefix(rel, "..") || rel == "." {
+		return nil, ErrInvalidPath
+	}
+
 	ext := strings.ToLower(filepath.Ext(file.Filename))
 	if ext != ".png" && ext != ".jpg" && ext != ".jpeg" {
 		return nil, fmt.Errorf("%s: %w (unsupported extension)", file.Filename, ErrInvalidImageFile)
@@ -139,7 +158,6 @@ func (s *fileSystemUploadService) SaveImage(directory string, file model.FileInp
 
 	checksum := sha256.Sum256(content)
 
-	storageDir := filepath.Join(s.baseDir, directory)
 	if err := os.MkdirAll(storageDir, 0o750); err != nil {
 		return nil, fmt.Errorf("create attachment directory %s: %w", storageDir, err)
 	}
@@ -152,7 +170,7 @@ func (s *fileSystemUploadService) SaveImage(directory string, file model.FileInp
 		filename = uuid.NewString() + ".jpg"
 	}
 	fullPath := filepath.Join(storageDir, filename)
-	storageKey := filepath.ToSlash(filepath.Join(directory, filename))
+	storageKey := filepath.ToSlash(filepath.Join(cleanDir, filename))
 	if err := os.WriteFile(fullPath, content, 0o640); err != nil {
 		return nil, fmt.Errorf("write %s: %w", file.Filename, err)
 	}
@@ -166,8 +184,35 @@ func (s *fileSystemUploadService) SaveImage(directory string, file model.FileInp
 	}, nil
 }
 
+func (s *fileSystemUploadService) ResolvePath(storageKey string) (string, error) {
+	if storageKey == "" || storageKey == "." {
+		return "", ErrInvalidPath
+	}
+
+	cleanBase, err := filepath.Abs(s.baseDir)
+	if err != nil {
+		return "", fmt.Errorf("resolve base dir: %w", err)
+	}
+
+	cleanKey := filepath.Clean(filepath.FromSlash(storageKey))
+	if filepath.IsAbs(cleanKey) || strings.HasPrefix(cleanKey, string(filepath.Separator)) {
+		return "", ErrInvalidPath
+	}
+
+	fullPath := filepath.Clean(filepath.Join(cleanBase, cleanKey))
+	rel, err := filepath.Rel(cleanBase, fullPath)
+	if err != nil || strings.HasPrefix(rel, "..") || rel == "." {
+		return "", ErrInvalidPath
+	}
+
+	return fullPath, nil
+}
+
 func (s *fileSystemUploadService) DeleteFile(storageKey string) error {
-	fullPath := filepath.Join(s.baseDir, filepath.FromSlash(storageKey))
+	fullPath, err := s.ResolvePath(storageKey)
+	if err != nil {
+		return err
+	}
 	if err := os.Remove(fullPath); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
