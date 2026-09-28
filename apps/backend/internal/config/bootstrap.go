@@ -10,6 +10,7 @@ import (
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/middleware"
 	httproute "github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/route"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/service"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/turnstile"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
 	"gorm.io/gorm"
@@ -56,6 +57,9 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 	visitRequestRepository := repository.NewVisitRequestRepository(database)
 	auditEventRepository := repository.NewAuditEventRepository(database)
 
+	// Services
+	uploadService := service.NewFileSystemUploadService(applicationConfig.UploadDir)
+
 	// Usecases
 	healthUsecase := usecase.NewHealthUsecase(healthRepository)
 	authUsecase := usecase.NewAuthUsecase(
@@ -68,7 +72,7 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 		visitRequestRepository,
 		auditEventRepository,
 		logger,
-		applicationConfig.UploadDir,
+		uploadService,
 	)
 	qrUsecase := usecase.NewQRUsecase()
 

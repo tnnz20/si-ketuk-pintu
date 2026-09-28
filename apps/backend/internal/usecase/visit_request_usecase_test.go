@@ -17,6 +17,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/entity"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/model"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/service"
 )
 
 type statusStoreStub struct {
@@ -99,7 +100,7 @@ func (s *auditStub) Create(_ context.Context, event *entity.AuditEvent) error {
 func TestUpdateStatusCreatesAuditEvent(t *testing.T) {
 	store := &statusStoreStub{request: &entity.VisitRequest{Status: "pending"}}
 	audit := &auditStub{}
-	usecase := NewVisitRequestUsecase(store, audit, logrus.New(), t.TempDir())
+	usecase := NewVisitRequestUsecase(store, audit, logrus.New(), service.NewFileSystemUploadService(t.TempDir()))
 	id := uuid.New()
 	if err := usecase.UpdateStatus(context.Background(), UpdateStatusInput{VisitRequestID: id, NewStatus: "approved", AdministratorID: 7}); err != nil {
 		t.Fatal(err)
@@ -123,7 +124,7 @@ func TestUpdateStatusReturnsAuditError(t *testing.T) {
 	store := &statusStoreStub{request: &entity.VisitRequest{Status: "pending"}}
 	auditErr := errors.New("audit failed")
 	audit := &auditStub{err: auditErr}
-	usecase := NewVisitRequestUsecase(store, audit, logrus.New(), t.TempDir())
+	usecase := NewVisitRequestUsecase(store, audit, logrus.New(), service.NewFileSystemUploadService(t.TempDir()))
 	err := usecase.UpdateStatus(context.Background(), UpdateStatusInput{VisitRequestID: uuid.New(), NewStatus: "rejected", AdministratorID: 7})
 	if !errors.Is(err, auditErr) {
 		t.Fatalf("err = %v, want errors.Is auditErr", err)
@@ -136,7 +137,7 @@ func TestUpdateStatusReturnsAuditError(t *testing.T) {
 func TestVisitRequestUsecase_Graph(t *testing.T) {
 	want := []model.GraphPoint{{Period: time.Date(2026, time.August, 18, 0, 0, 0, 0, time.UTC), Count: 1}}
 	store := &statusStoreStub{graphPoints: want}
-	usecase := NewVisitRequestUsecase(store, nil, logrus.New(), t.TempDir())
+	usecase := NewVisitRequestUsecase(store, nil, logrus.New(), service.NewFileSystemUploadService(t.TempDir()))
 
 	got, err := usecase.Graph(context.Background(), "daily", 2026, 8)
 	if err != nil {
@@ -149,7 +150,7 @@ func TestVisitRequestUsecase_Graph(t *testing.T) {
 
 func TestSavePDFStoresByAttachmentType(t *testing.T) {
 	uploadDir := t.TempDir()
-	usecase := NewVisitRequestUsecase(nil, nil, logrus.New(), uploadDir)
+	svc := service.NewFileSystemUploadService(uploadDir)
 
 	for _, test := range []struct {
 		attachmentType string
@@ -159,7 +160,7 @@ func TestSavePDFStoresByAttachmentType(t *testing.T) {
 		{attachmentType: "surat_tugas", directory: "surat-tugas"},
 		{attachmentType: "surat_persetujuan", directory: "surat-persetujuan"},
 	} {
-		attachment, err := usecase.savePDF(uuid.New(), test.attachmentType, FileInput{
+		attachment, err := svc.SavePDF(test.attachmentType, FileInput{
 			Reader:   bytes.NewReader([]byte("%PDF-1.4\n%1234567890")),
 			Filename: "document.pdf",
 		})
@@ -187,8 +188,8 @@ func TestSavePDFRejectsDirectoryPathThatIsFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	usecase := NewVisitRequestUsecase(nil, nil, logrus.New(), uploadDir)
-	_, err := usecase.savePDF(uuid.New(), "surat_kunjungan", FileInput{
+	svc := service.NewFileSystemUploadService(uploadDir)
+	_, err := svc.SavePDF("surat_kunjungan", FileInput{
 		Reader:   bytes.NewReader([]byte("%PDF-1.4\n%1234567890")),
 		Filename: "document.pdf",
 	})
@@ -199,8 +200,8 @@ func TestSavePDFRejectsDirectoryPathThatIsFile(t *testing.T) {
 
 func TestSavePDFRejectsUnknownAttachmentType(t *testing.T) {
 	uploadDir := t.TempDir()
-	usecase := NewVisitRequestUsecase(nil, nil, logrus.New(), uploadDir)
-	_, err := usecase.savePDF(uuid.New(), "unknown", FileInput{
+	svc := service.NewFileSystemUploadService(uploadDir)
+	_, err := svc.SavePDF("unknown", FileInput{
 		Reader:   bytes.NewReader([]byte("%PDF-1.4\n%1234567890")),
 		Filename: "document.pdf",
 	})
@@ -217,7 +218,7 @@ var jpegBytes = []byte{0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 'J', 'F', 'I', 'F'}
 
 func TestSaveDocumentationImagesAcceptsValidImages(t *testing.T) {
 	store := &statusStoreStub{request: &entity.VisitRequest{Status: "approved"}}
-	usecase := NewVisitRequestUsecase(store, nil, logrus.New(), t.TempDir())
+	usecase := NewVisitRequestUsecase(store, nil, logrus.New(), service.NewFileSystemUploadService(t.TempDir()))
 
 	created, err := usecase.SaveDocumentationImages(context.Background(), uuid.New(), []FileInput{
 		{Reader: bytes.NewReader(pngBytes), Filename: "foto satu.png", Size: int64(len(pngBytes))},
@@ -285,7 +286,7 @@ func TestSaveDocumentationImagesValidation(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			usecase := NewVisitRequestUsecase(test.store, nil, logrus.New(), t.TempDir())
+			usecase := NewVisitRequestUsecase(test.store, nil, logrus.New(), service.NewFileSystemUploadService(t.TempDir()))
 			_, err := usecase.SaveDocumentationImages(context.Background(), uuid.New(), test.files)
 			if err == nil {
 				t.Fatal("expected error")
@@ -302,7 +303,7 @@ func TestSaveDocumentationImagesCleansUpOnDBFailure(t *testing.T) {
 		request:   &entity.VisitRequest{Status: "approved"},
 		createErr: errors.New("db down"),
 	}
-	usecase := NewVisitRequestUsecase(store, nil, logrus.New(), t.TempDir())
+	usecase := NewVisitRequestUsecase(store, nil, logrus.New(), service.NewFileSystemUploadService(t.TempDir()))
 
 	_, err := usecase.SaveDocumentationImages(context.Background(), uuid.New(), []FileInput{
 		{Reader: bytes.NewReader(pngBytes), Filename: "a.png"},
@@ -337,7 +338,7 @@ func TestCreateLogsFailedAuditCreation(t *testing.T) {
 	store := &statusStoreStub{}
 	audit := &auditStub{err: errors.New("audit down")}
 	logger, buffer := newTestLogger()
-	usecase := NewVisitRequestUsecase(store, audit, logger, t.TempDir())
+	usecase := NewVisitRequestUsecase(store, audit, logger, service.NewFileSystemUploadService(t.TempDir()))
 
 	visitRequest, err := usecase.Create(context.Background(), validCreateInput())
 	if err != nil {
@@ -357,7 +358,7 @@ func TestCreateLogsFailedAuditCreation(t *testing.T) {
 func TestCreateWrapsStoreError(t *testing.T) {
 	storeErr := errors.New("db down")
 	store := &statusStoreStub{createVisitErr: storeErr}
-	usecase := NewVisitRequestUsecase(store, &auditStub{}, logrus.New(), t.TempDir())
+	usecase := NewVisitRequestUsecase(store, &auditStub{}, logrus.New(), service.NewFileSystemUploadService(t.TempDir()))
 
 	_, err := usecase.Create(context.Background(), validCreateInput())
 	if !errors.Is(err, storeErr) {
@@ -375,7 +376,7 @@ func TestSaveDocumentationImagesLogsCleanupFailure(t *testing.T) {
 		deleteErr:      errors.New("delete failed"),
 	}
 	logger, buffer := newTestLogger()
-	usecase := NewVisitRequestUsecase(store, nil, logger, t.TempDir())
+	usecase := NewVisitRequestUsecase(store, nil, logger, service.NewFileSystemUploadService(t.TempDir()))
 
 	_, err := usecase.SaveDocumentationImages(context.Background(), uuid.New(), []FileInput{
 		{Reader: bytes.NewReader(pngBytes), Filename: "a.png"},
@@ -390,7 +391,7 @@ func TestSaveDocumentationImagesLogsCleanupFailure(t *testing.T) {
 }
 
 func TestListWrapsInvalidDateFilter(t *testing.T) {
-	usecase := NewVisitRequestUsecase(&statusStoreStub{}, nil, logrus.New(), t.TempDir())
+	usecase := NewVisitRequestUsecase(&statusStoreStub{}, nil, logrus.New(), service.NewFileSystemUploadService(t.TempDir()))
 
 	_, _, err := usecase.List(context.Background(), model.ListFilter{Date: "not-a-date"})
 	if !errors.Is(err, ErrInvalidDateFilter) {
@@ -441,7 +442,7 @@ func TestSaveDaftarAbsenValidation(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			usecase := NewVisitRequestUsecase(test.store, nil, logrus.New(), t.TempDir())
+			usecase := NewVisitRequestUsecase(test.store, nil, logrus.New(), service.NewFileSystemUploadService(t.TempDir()))
 			attachment, err := usecase.SaveDaftarAbsen(context.Background(), uuid.New(), test.file)
 			if test.wantErr != nil {
 				if !errors.Is(err, test.wantErr) {

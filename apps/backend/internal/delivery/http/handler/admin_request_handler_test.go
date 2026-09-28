@@ -81,7 +81,7 @@ func TestListMalformedPaginationDefaultsToPage1Size20(t *testing.T) {
 			store := &listStoreFake{}
 			logger := logrus.New()
 			logger.Out = testDiscard{}
-			uc := usecase.NewVisitRequestUsecase(store, nil, logger, "")
+			uc := usecase.NewVisitRequestUsecase(store, nil, logger, nil)
 			c := NewAdminRequestHandler(uc, logger, "")
 			router := gin.New()
 			router.GET("/requests", c.List)
