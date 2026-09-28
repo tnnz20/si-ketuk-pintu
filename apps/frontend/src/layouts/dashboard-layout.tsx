@@ -15,6 +15,7 @@ import {
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { logout } from '@/lib/api/auth';
+import { useSession } from '@/hooks/use-session';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,6 +51,7 @@ function ScrollToTop() {
 }
 
 export default function DashboardLayout() {
+  const { user, markAnonymous } = useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,6 +61,7 @@ export default function DashboardLayout() {
   const handleLogout = () => {
     setConfirmLogout(false);
     logout();
+    markAnonymous();
     toast.success('Berhasil keluar dari sesi admin.');
     navigate('/login');
   };
@@ -121,10 +124,12 @@ export default function DashboardLayout() {
           <div className="flex items-center justify-between border-t border-civic-border pt-2">
             <div className="flex items-center gap-2.5">
               <div className="bg-civic-neutralFill flex h-8 w-8 items-center justify-center rounded-full border border-civic-border text-xs font-bold text-civic-dark">
-                AD
+                {user?.name ? user.name.slice(0, 2).toUpperCase() : 'AD'}
               </div>
               <div className="truncate">
-                <p className="truncate text-xs font-bold text-civic-dark">Administrator</p>
+                <p className="truncate text-xs font-bold text-civic-dark">
+                  {user?.name ?? 'Administrator'}
+                </p>
                 <p className="truncate text-2xs text-civic-muted">Petugas Instansi</p>
               </div>
             </div>

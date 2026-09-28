@@ -1,4 +1,4 @@
-﻿import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -14,6 +14,7 @@ import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { login } from '@/lib/api/auth';
+import { useSession } from '@/hooks/use-session';
 import Seo from '@/components/shared/Seo';
 import { loginSchema } from '@/schemas/login';
 import { getTurnstileToken, turnstileEnabled } from '@/lib/turnstile';
@@ -37,6 +38,7 @@ const features = [
 ];
 
 export default function Login() {
+  const { markAuthenticated } = useSession();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -83,7 +85,8 @@ export default function Login() {
           return;
         }
       }
-      await login(identifier, password, turnstileToken);
+      const token = await login(identifier, password, turnstileToken);
+      markAuthenticated({ id: '1', name: identifier, role: 'admin' }, token);
       navigate('/dashboard');
     } catch {
       setError('Email, username, atau password salah.');

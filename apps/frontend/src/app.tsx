@@ -2,7 +2,9 @@ import { lazy, Suspense } from 'react';
 import { LoaderCircle } from 'lucide-react';
 import { Toaster } from 'sonner';
 import { BrowserRouter, Route, Routes } from 'react-router';
-import AuthGuard from '@/components/layout/AuthGuard';
+import { RedirectIfAuthenticated, RequireAuth } from '@/components/shared/auth-guard';
+import { SessionProvider } from '@/components/shared/session-provider';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import AuthLayout from '@/layouts/auth-layout';
 import DashboardLayout from '@/layouts/dashboard-layout';
 import MainLayout from '@/layouts/main-layout';
@@ -23,48 +25,63 @@ const SubmissionSuccess = lazy(() => import('./pages/public/SubmissionSuccess'))
 function PageFallback() {
   return (
     <div
-      className="flex min-h-screen flex-col items-center justify-center gap-3"
+      className="flex min-h-screen flex-col items-center justify-center gap-3 bg-civic-bg"
       role="status"
       aria-live="polite"
     >
       <LoaderCircle
-        className="page-fallback-loader h-12 w-12 animate-spin text-primary"
+        className="page-fallback-loader h-12 w-12 animate-spin text-civic-dark"
         aria-hidden="true"
       />
-      <span className="text-sm text-on-surface">Sedang Memuat...</span>
+      <span className="text-sm font-semibold text-civic-dark">Sedang Memuat...</span>
     </div>
   );
 }
 
 function App() {
   return (
-    <BrowserRouter>
-      <Suspense fallback={<PageFallback />}>
-        <Routes>
-          <Route element={<MainLayout />}>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/form" element={<SubmissionForm />} />
-            <Route path="/status/:token" element={<RequestStatus />} />
-            <Route path="/success" element={<SubmissionSuccess />} />
-          </Route>
-          <Route element={<AuthLayout />}>
-            <Route path="/login" element={<Login />} />
-          </Route>
-          <Route element={<AuthGuard />}>
-            <Route element={<DashboardLayout />}>
-              <Route path="/dashboard" element={<AdminDashboard />} />
-              <Route path="/dashboard/requests" element={<RequestList />} />
-              <Route path="/dashboard/requests/:id" element={<RequestDetail />} />
-              <Route path="/dashboard/archives" element={<Archives />} />
-              <Route path="/dashboard/archives/:id" element={<ArchiveDetail />} />
-              <Route path="/dashboard/scanner" element={<QRScanner />} />
-            </Route>
-          </Route>
-          <Route path="*" element={<RequestNotFound />} />
-        </Routes>
-      </Suspense>
-      <Toaster position="top-right" richColors />
-    </BrowserRouter>
+    <SessionProvider>
+      <TooltipProvider delay={100}>
+        <BrowserRouter>
+          <Suspense fallback={<PageFallback />}>
+            <Routes>
+              <Route element={<MainLayout />}>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/form" element={<SubmissionForm />} />
+                <Route path="/status/:token" element={<RequestStatus />} />
+                <Route path="/success" element={<SubmissionSuccess />} />
+              </Route>
+              <Route element={<AuthLayout />}>
+                <Route
+                  path="/login"
+                  element={
+                    <RedirectIfAuthenticated>
+                      <Login />
+                    </RedirectIfAuthenticated>
+                  }
+                />
+              </Route>
+              <Route
+                element={
+                  <RequireAuth>
+                    <DashboardLayout />
+                  </RequireAuth>
+                }
+              >
+                <Route path="/dashboard" element={<AdminDashboard />} />
+                <Route path="/dashboard/requests" element={<RequestList />} />
+                <Route path="/dashboard/requests/:id" element={<RequestDetail />} />
+                <Route path="/dashboard/archives" element={<Archives />} />
+                <Route path="/dashboard/archives/:id" element={<ArchiveDetail />} />
+                <Route path="/dashboard/scanner" element={<QRScanner />} />
+              </Route>
+              <Route path="*" element={<RequestNotFound />} />
+            </Routes>
+          </Suspense>
+          <Toaster position="top-right" richColors />
+        </BrowserRouter>
+      </TooltipProvider>
+    </SessionProvider>
   );
 }
 
