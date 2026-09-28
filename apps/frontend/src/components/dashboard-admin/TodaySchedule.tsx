@@ -1,5 +1,6 @@
-﻿import { Calendar as CalendarIcon, ChevronRight, Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronRight, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import type { PaginatedRequestsResponse } from '@/types/api';
 import { formatDate, todayEpoch } from '@/lib/dateTime';
 
@@ -17,19 +18,19 @@ export default function TodaySchedule({ requests }: TodayScheduleProps) {
   const displaySchedule = todaySchedule.length > 0 ? todaySchedule : requests.slice(0, 3);
 
   return (
-    <div className="soft-shadow flex flex-col justify-between space-y-3.5 rounded-3xl border border-civic-border bg-civic-surface p-5 lg:col-span-4">
+    <Card className="flex flex-col justify-between space-y-3.5 p-5 lg:col-span-4">
       <div>
-        <div className="mb-3 flex items-center justify-between border-b border-civic-border pb-3">
-          <h3 className="flex items-center gap-2 text-base font-extrabold text-civic-dark">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-civic-border p-0 pb-3">
+          <CardTitle className="flex items-center gap-2 text-base font-extrabold text-civic-dark">
             <CalendarIcon className="h-4 w-4 text-civic-muted" />
             <span>Jadwal Terdekat</span>
-          </h3>
+          </CardTitle>
           <span className="rounded-full bg-civic-neutral-fill px-2.5 py-0.5 text-2xs font-extrabold text-civic-dark">
             {displaySchedule.length} Agenda
           </span>
-        </div>
+        </CardHeader>
 
-        <div className="space-y-2.5">
+        <CardContent className="space-y-2.5 p-0 pt-3">
           {displaySchedule.length === 0 ? (
             <div className="bg-civic-cardFill rounded-2xl border border-civic-border p-6 text-center text-xs text-civic-muted">
               Belum ada agenda kunjungan hari ini.
@@ -58,16 +59,18 @@ export default function TodaySchedule({ requests }: TodayScheduleProps) {
               </div>
             ))
           )}
-        </div>
+        </CardContent>
       </div>
 
-      <button
-        type="button"
-        onClick={() => navigate('/dashboard/requests')}
-        className="bg-civic-cardFill mt-3 w-full cursor-pointer rounded-2xl border border-civic-border py-2.5 text-center text-xs font-extrabold text-civic-dark transition-colors hover:bg-civic-neutral-fill"
-      >
-        Lihat Semua Jadwal
-      </button>
-    </div>
+      <CardFooter className="p-0 pt-3 border-0">
+        <button
+          type="button"
+          onClick={() => navigate('/dashboard/requests')}
+          className="bg-civic-cardFill w-full cursor-pointer rounded-2xl border border-civic-border py-2.5 text-center text-xs font-extrabold text-civic-dark transition-colors hover:bg-civic-neutral-fill"
+        >
+          Lihat Semua Jadwal
+        </button>
+      </CardFooter>
+    </Card>
   );
 }

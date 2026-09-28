@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { CheckCircle2, Clock, Users } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardFooter } from '@/components/ui/card';
 import StatusBadge from '@/components/shared/StatusBadge';
 import { formatDate } from '@/lib/dateTime';
 import type { PaginatedRequestsResponse, StatsResponse } from '@/types/api';
@@ -36,9 +37,9 @@ function SummaryCard({
   footerRight,
 }: SummaryCardProps) {
   return (
-    <div
+    <Card
       onClick={onClick}
-      className="soft-shadow card-hover cursor-pointer space-y-3 rounded-3xl border border-civic-border bg-civic-surface p-4"
+      className="card-hover cursor-pointer space-y-3 p-4"
     >
       <div className="flex items-center justify-between">
         <div
@@ -52,11 +53,11 @@ function SummaryCard({
         <h4 className="truncate text-xs font-extrabold text-civic-dark">{title}</h4>
         <p className="mt-0.5 truncate text-label-sm text-civic-muted">{subtitle}</p>
       </div>
-      <div className="flex items-center justify-between border-t border-civic-border pt-2 text-label-sm">
+      <CardFooter className="flex items-center justify-between border-t border-civic-border p-0 pt-2 text-label-sm">
         {footerLeft}
         {footerRight}
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 }
 

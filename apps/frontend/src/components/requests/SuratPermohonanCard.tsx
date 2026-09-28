@@ -1,4 +1,5 @@
 import { Download } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface SuratPermohonanCardProps {
   generating: boolean;
@@ -10,12 +11,12 @@ export default function SuratPermohonanCard({
   onGeneratePdf,
 }: SuratPermohonanCardProps) {
   return (
-    <section className="soft-shadow space-y-3.5 rounded-3xl border border-civic-border bg-civic-surface p-6">
-      <div className="flex items-center justify-between border-b border-civic-border pb-3">
-        <h3 className="text-sm font-extrabold text-civic-dark">Surat Permohonan</h3>
-      </div>
+    <Card className="space-y-3.5 p-6">
+      <CardHeader className="flex flex-row items-center justify-between border-b border-civic-border p-0 pb-3">
+        <CardTitle className="text-sm font-extrabold text-civic-dark">Surat Permohonan</CardTitle>
+      </CardHeader>
 
-      <div className="space-y-2">
+      <CardContent className="space-y-2 p-0">
         <div className="bg-civic-cardFill flex items-center justify-between rounded-2xl border border-civic-border p-3">
           <div className="mr-2 min-w-0 truncate">
             <p className="text-2xs font-extrabold tracking-wider text-civic-muted uppercase">
@@ -34,7 +35,7 @@ export default function SuratPermohonanCard({
             <Download className="h-4 w-4" />
           </button>
         </div>
-      </div>
-    </section>
+      </CardContent>
+    </Card>
   );
 }

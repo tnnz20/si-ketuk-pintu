@@ -1,8 +1,10 @@
-﻿import { Html5Qrcode, type Html5QrcodeCameraScanConfig } from 'html5-qrcode';
+import { Html5Qrcode, type Html5QrcodeCameraScanConfig } from 'html5-qrcode';
 import { Camera, CameraOff, QrCode, ScanLine, Search } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { getRequestByToken } from '@/lib/api/requests';
 
 const TOKEN_REGEX = /^[A-Za-z0-9-]+$/;
@@ -148,7 +150,7 @@ export default function QRScanner() {
       </div>
 
       {/* Main Scanner Container */}
-      <div className="soft-shadow space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-5 sm:p-6">
+      <Card className="space-y-4 p-5 sm:p-6">
         <div className="bg-civic-cardFill flex items-center gap-2 rounded-2xl border border-civic-border p-3 text-xs font-medium text-civic-dark">
           <ScanLine className="h-4 w-4 shrink-0 text-civic-muted" />
           <span>Posisikan QR Code di dalam kotak fokus kamera.</span>
@@ -192,10 +194,10 @@ export default function QRScanner() {
             )}
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Manual Input Fallback */}
-      <div className="soft-shadow space-y-3.5 rounded-3xl border border-civic-border bg-civic-surface p-5 sm:p-6">
+      <Card className="space-y-3.5 p-5 sm:p-6">
         <h2 className="flex items-center gap-2 text-sm font-extrabold text-civic-dark">
           <Camera className="h-4 w-4 text-civic-muted" />
           <span>Kamera Tidak Tersedia?</span>
@@ -205,7 +207,7 @@ export default function QRScanner() {
         </p>
 
         <ManualTokenForm />
-      </div>
+      </Card>
     </div>
   );
 }
@@ -233,11 +235,11 @@ function ManualTokenForm() {
     <form className="flex gap-2.5 pt-1" onSubmit={handleSubmit}>
       <div className="relative flex-1">
         <Search className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-civic-muted" />
-        <input
+        <Input
           value={token}
           onChange={(event) => setToken(event.target.value)}
           placeholder="Contoh: SKP-20260819-KYK4D"
-          className="bg-civic-cardFill w-full rounded-2xl border border-civic-border py-2.5 pr-4 pl-10 font-mono text-xs text-civic-dark transition-all focus:border-civic-dark focus:outline-none"
+          className="bg-civic-cardFill pl-10 font-mono text-xs text-civic-dark"
         />
       </div>
       <button

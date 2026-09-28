@@ -1,5 +1,6 @@
-﻿import { Calendar } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import StatusBadge from '@/components/shared/StatusBadge';
+import { Card } from '@/components/ui/card';
 import type { VisitRequest } from '@/types/api';
 import { formatDate, formatTime } from '@/lib/dateTime';
 
@@ -9,7 +10,7 @@ interface RequestSummaryProps {
 
 export default function RequestSummary({ request }: RequestSummaryProps) {
   return (
-    <div className="soft-shadow space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-6">
+    <Card className="space-y-4 p-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
@@ -43,6 +44,6 @@ export default function RequestSummary({ request }: RequestSummaryProps) {
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

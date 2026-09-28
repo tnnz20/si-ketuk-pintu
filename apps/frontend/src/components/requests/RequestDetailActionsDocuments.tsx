@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { DateTime } from 'luxon';
 import {
   Calendar as CalendarIcon,
@@ -15,6 +15,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import StatusBadge from '@/components/shared/StatusBadge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Attachment, VisitRequest } from '@/types/api';
 import { INDO_MONTHS } from '@/constants/dashboard';
 import { WITA_ZONE } from '@/lib/dateTime';
@@ -119,14 +120,15 @@ export default function RequestDetailActionsDocuments({
   return (
     <div className="space-y-5">
       {/* ================= 1. PANEL AKSI ADMIN ================= */}
-      <div className="soft-shadow space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-6">
+      <Card className="space-y-4 p-6">
         {/* Header */}
-        <div className="flex items-center gap-2 border-b border-civic-border pb-3">
+        <CardHeader className="flex flex-row items-center gap-2 border-b border-civic-border p-0 pb-3">
           <KeyRound className="h-4 w-4 text-civic-dark" />
-          <h3 className="text-base font-extrabold text-civic-dark">Aksi Admin</h3>
-        </div>
+          <CardTitle className="text-base font-extrabold text-civic-dark">Aksi Admin</CardTitle>
+        </CardHeader>
 
-        {/* Current Status Box */}
+        <CardContent className="space-y-4 p-0">
+          {/* Current Status Box */}
         <div className="bg-civic-cardFill flex items-center justify-between rounded-2xl border border-civic-border p-3.5">
           <span className="text-xs font-bold text-civic-muted">Status Saat Ini</span>
           <StatusBadge status={request.status} />
@@ -241,23 +243,24 @@ export default function RequestDetailActionsDocuments({
             <span>Unduh Surat Permohonan</span>
           </button>
         </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* ================= 2. DOKUMEN TERLAMPIR ================= */}
-      <div className="soft-shadow space-y-3.5 rounded-3xl border border-civic-border bg-civic-surface p-6">
+      <Card className="space-y-3.5 p-6">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-civic-border pb-3">
-          <h3 className="flex items-center gap-2 text-sm font-extrabold text-civic-dark">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-civic-border p-0 pb-3">
+          <CardTitle className="flex items-center gap-2 text-sm font-extrabold text-civic-dark">
             <Paperclip className="h-4 w-4 text-civic-muted" />
             <span>Dokumen Terlampir</span>
-          </h3>
+          </CardTitle>
           <span className="text-xs font-medium text-civic-muted">
             {mainAttachments.length} File
           </span>
-        </div>
+        </CardHeader>
 
         {/* Document Items */}
-        <div className="space-y-2">
+        <CardContent className="space-y-2 p-0">
           {mainAttachments.length === 0 ? (
             <p className="py-3 text-center text-xs text-civic-muted">Tidak ada file terlampir.</p>
           ) : (
@@ -286,11 +289,11 @@ export default function RequestDetailActionsDocuments({
               </div>
             ))
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* ================= 3. MINI CALENDAR WIDGET ================= */}
-      <div className="soft-shadow space-y-3.5 rounded-3xl border border-civic-border bg-civic-surface p-5">
+      <Card className="space-y-3.5 p-5">
         {/* Calendar Month Header */}
         <div className="flex items-center justify-between px-1">
           <button
@@ -353,7 +356,7 @@ export default function RequestDetailActionsDocuments({
             </div>
           ))}
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

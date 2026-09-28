@@ -1,4 +1,5 @@
-﻿import { Users } from 'lucide-react';
+import { Users } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Guest } from '@/types/api';
 
 interface RequestGuestsProps {
@@ -7,22 +8,22 @@ interface RequestGuestsProps {
 
 export default function RequestDetailGuests({ guests }: RequestGuestsProps) {
   return (
-    <div className="soft-shadow space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-6">
+    <Card className="space-y-4 p-6">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-civic-border pb-3">
+      <CardHeader className="flex flex-row items-center justify-between border-b border-civic-border p-0 pb-3">
         <div className="flex items-center gap-2">
           <Users className="h-4 w-4 text-civic-muted" />
-          <h3 className="text-base font-extrabold text-civic-dark">
+          <CardTitle className="text-base font-extrabold text-civic-dark">
             Daftar Tamu ({guests.length})
-          </h3>
+          </CardTitle>
         </div>
         <span className="bg-civic-neutralFill rounded-full border border-civic-border px-3 py-1 text-xs font-extrabold text-civic-dark">
           Terdaftar
         </span>
-      </div>
+      </CardHeader>
 
       {/* Guest List */}
-      <div className="space-y-2.5">
+      <CardContent className="space-y-2.5 p-0">
         {guests.length === 0 ? (
           <p className="py-4 text-center text-xs text-civic-muted">
             Tidak ada data daftar tamu terlampir.
@@ -49,7 +50,7 @@ export default function RequestDetailGuests({ guests }: RequestGuestsProps) {
             </div>
           ))
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

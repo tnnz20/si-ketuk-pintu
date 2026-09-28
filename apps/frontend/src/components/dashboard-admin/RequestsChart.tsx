@@ -19,6 +19,7 @@ import {
   YEAR_RANGE,
 } from '@/constants/dashboard';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card } from '@/components/ui/card';
 import { WITA_ZONE } from '@/lib/dateTime';
 import { getRequestsGraph } from '../../lib/api/requests';
 import MonthCalendarPicker from './MonthCalendarPicker';
@@ -237,7 +238,7 @@ export default function RequestsChart() {
   };
 
   return (
-    <div className="soft-shadow relative space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-5 sm:p-6 lg:col-span-8">
+    <Card className="relative space-y-4 p-5 sm:p-6 lg:col-span-8">
       {/* Header Bar */}
       <div className="flex flex-col justify-between gap-3.5 border-b border-civic-border pb-4 md:flex-row md:items-center">
         {/* Title & Description */}
@@ -478,6 +479,6 @@ export default function RequestsChart() {
         periodUnit={periodUnit}
         activeSubLabel={currentChartData[safeActiveIndex]?.subLabel || 'Pilih Batang'}
       />
-    </div>
+    </Card>
   );
 }

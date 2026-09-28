@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import RequestFilters from '@/components/requests/RequestFilters';
 import RequestPagination from '@/components/requests/RequestPagination';
 import RequestTableContent from '@/components/requests/RequestTableContent';
@@ -47,21 +48,23 @@ export default function RequestList() {
 
   return (
     <div className="animate-fade-in space-y-5">
-      <div className="soft-shadow space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-5 sm:p-6">
-        <div className="flex flex-col justify-between gap-3 border-b border-civic-border pb-4 sm:flex-row sm:items-center">
+      <Card className="space-y-4 p-5 sm:p-6">
+        <CardHeader className="flex flex-col justify-between gap-3 border-b border-civic-border p-0 pb-4 sm:flex-row sm:items-center">
           <div>
-            <h3 className="text-base font-extrabold text-civic-dark sm:text-lg">
+            <CardTitle className="text-base font-extrabold text-civic-dark sm:text-lg">
               Manajemen Permohonan
-            </h3>
-            <p className="mt-0.5 text-xs font-medium text-civic-muted">
+            </CardTitle>
+            <CardDescription className="mt-0.5 text-xs font-medium text-civic-muted">
               Daftar permohonan masuk yang terdaftar di Si Ketuk Pintu
-            </p>
+            </CardDescription>
           </div>
 
           <div className="text-xs font-bold text-civic-muted">
             Total Data: <span className="font-extrabold text-civic-dark">{totalCount}</span>
           </div>
-        </div>
+        </CardHeader>
+
+        <CardContent className="space-y-4 p-0">
 
         <RequestFilters
           search={search}
@@ -95,7 +98,8 @@ export default function RequestList() {
           onPageChange={setPage}
           onPageSizeChange={setPageSize}
         />
-      </div>
+        </CardContent>
+      </Card>
 
       {confirmDelete && (
         <ConfirmDialog

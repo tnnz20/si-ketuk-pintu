@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import RequestPagination from '@/components/requests/RequestPagination';
 import ArchiveTableContent from '@/components/archives/ArchiveTableContent';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { DatePicker } from '@/components/ui/date-picker';
 import { useArchives } from '@/hooks/use-archives';
 
@@ -24,40 +26,41 @@ export default function Archives() {
 
   return (
     <div className="animate-fade-in space-y-5">
-      <div className="soft-shadow space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-5 sm:p-6">
+      <Card className="space-y-4 p-5 sm:p-6">
         {/* Card Header & Title */}
-        <div className="flex flex-col justify-between gap-3 border-b border-civic-border pb-4 sm:flex-row sm:items-center">
+        <CardHeader className="flex flex-col justify-between gap-3 border-b border-civic-border p-0 pb-4 sm:flex-row sm:items-center">
           <div>
-            <h3 className="text-base font-extrabold text-civic-dark sm:text-lg">
+            <CardTitle className="text-base font-extrabold text-civic-dark sm:text-lg">
               Arsip Permohonan
-            </h3>
-            <p className="mt-0.5 text-xs font-medium text-civic-muted">
+            </CardTitle>
+            <CardDescription className="mt-0.5 text-xs font-medium text-civic-muted">
               Daftar permohonan kunjungan yang telah disetujui beserta dokumennya
-            </p>
+            </CardDescription>
           </div>
 
           <div className="text-xs font-bold text-civic-muted">
             Total Data: <span className="font-extrabold text-civic-dark">{totalCount}</span>
           </div>
-        </div>
+        </CardHeader>
 
-        {/* Search & Date Filters */}
-        <div className="flex flex-col justify-between gap-3.5 pb-1 md:flex-row md:items-center">
-          <div className="relative w-full md:w-64">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Cari token atau instansi..."
-              aria-label="Cari arsip"
-              className="soft-shadow w-full rounded-xl border border-civic-border bg-civic-surface px-3 py-2 text-xs text-civic-dark transition-all focus:border-civic-dark focus:outline-none"
-            />
-          </div>
+        <CardContent className="space-y-4 p-0">
+          {/* Search & Date Filters */}
+          <div className="flex flex-col justify-between gap-3.5 pb-1 md:flex-row md:items-center">
+            <div className="relative w-full md:w-64">
+              <Input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Cari token atau instansi..."
+                aria-label="Cari arsip"
+                className="w-full rounded-xl border border-civic-border bg-civic-surface px-3 py-2 text-xs text-civic-dark transition-all focus:border-civic-dark focus:outline-none"
+              />
+            </div>
 
-          <DatePicker
-            value={date}
-            onChange={setDate}
-            placeholder="Filter tanggal kunjungan..."
+            <DatePicker
+              value={date}
+              onChange={setDate}
+              placeholder="Filter tanggal kunjungan..."
             aria-label="Filter tanggal kunjungan"
             className="w-full md:w-56"
           />
@@ -89,7 +92,8 @@ export default function Archives() {
             setPage(1);
           }}
         />
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

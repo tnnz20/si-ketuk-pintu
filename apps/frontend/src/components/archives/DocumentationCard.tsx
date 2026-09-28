@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/empty';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import Dialog from '@/components/shared/Dialog';
+import { Card } from '@/components/ui/card';
 import DocumentationUploadDialog from '@/components/archives/DocumentationUploadDialog';
 import type { Attachment } from '@/types/api';
 import { deleteDocumentationImage, downloadArchiveAttachment } from '@/lib/api/archives';
@@ -74,7 +75,7 @@ export default function DocumentationCard({
   }
 
   return (
-    <div className="soft-shadow space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-6">
+    <Card className="space-y-4 p-6">
       <div className="flex items-center justify-between border-b border-civic-border pb-3">
         <h3 className="flex items-center gap-2 text-sm font-extrabold text-civic-dark">
           <Images className="h-4 w-4" />
@@ -186,6 +187,6 @@ export default function DocumentationCard({
           onConfirm={handleDelete}
         />
       )}
-    </div>
+    </Card>
   );
 }
