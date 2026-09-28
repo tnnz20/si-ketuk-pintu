@@ -97,7 +97,7 @@ export default function Login() {
   };
 
   return (
-    <div className="relative min-h-dvh overflow-hidden bg-background lg:grid lg:grid-cols-[1.1fr_1fr]">
+    <div className="relative min-h-dvh w-full overflow-hidden bg-background lg:grid lg:grid-cols-[1.1fr_1fr]">
       <Seo title="Masuk Admin — Si Ketuk Pintu" noindex />
       {/* Grain texture */}
       <div className="pointer-events-none absolute inset-0 z-10 opacity-[0.03]">
