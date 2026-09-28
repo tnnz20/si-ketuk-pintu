@@ -1,8 +1,16 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { z } from 'zod';
 import type { FormEvent } from 'react';
 import Dialog from '@/components/shared/Dialog';
-import { Select } from '@/components/shared/Select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const schema = z.object({
   nomor: z.string().trim().min(1, 'Nomor surat wajib diisi.'),
@@ -41,13 +49,16 @@ export default function ApprovalLetterDialog({ open, loading, onSubmit, onCancel
       onClose={loading ? () => undefined : onCancel}
     >
       <form onSubmit={submit} className="space-y-4">
-        <label className="block text-xs font-bold text-civic-dark">
-          Nomor Surat
-          <input
+        <div className="space-y-1.5">
+          <Label htmlFor="nomor-surat" className="text-xs font-bold text-civic-dark">
+            Nomor Surat
+          </Label>
+          <Input
+            id="nomor-surat"
             value={nomor}
             onChange={(event) => setNomor(event.target.value)}
             placeholder="Misal: 005/123/DISP-SETDA/2026"
-            className="bg-civic-cardFill mt-1.5 w-full rounded-2xl border border-civic-border px-3.5 py-2.5 text-xs text-civic-dark transition-all focus:border-civic-dark focus:outline-none"
+            className="bg-civic-cardFill"
             disabled={loading}
           />
           {errors.nomor && (
@@ -55,27 +66,30 @@ export default function ApprovalLetterDialog({ open, loading, onSubmit, onCancel
               {errors.nomor}
             </span>
           )}
-        </label>
+        </div>
 
-        <label className="block text-xs font-bold text-civic-dark">
-          Sifat Surat
+        <div className="space-y-1.5">
+          <Label className="text-xs font-bold text-civic-dark">Sifat Surat</Label>
           <Select
-            value={sifat}
-            onChange={(event) => setSifat(event.target.value)}
-            className="bg-civic-cardFill mt-1.5 w-full rounded-2xl border border-civic-border px-3.5 py-2.5 text-xs text-civic-dark transition-all focus:border-civic-dark focus:outline-none"
+            value={sifat || null}
+            onValueChange={(val) => setSifat(val ?? '')}
             disabled={loading}
           >
-            <option value="">Pilih sifat surat</option>
-            <option value="Biasa">Biasa</option>
-            <option value="Penting">Penting</option>
-            <option value="Sangat Penting">Sangat Penting</option>
+            <SelectTrigger className="bg-civic-cardFill">
+              <SelectValue placeholder="Pilih sifat surat" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Biasa">Biasa</SelectItem>
+              <SelectItem value="Penting">Penting</SelectItem>
+              <SelectItem value="Sangat Penting">Sangat Penting</SelectItem>
+            </SelectContent>
           </Select>
           {errors.sifat && (
             <span className="mt-1 block text-label-sm font-semibold text-rose-600">
               {errors.sifat}
             </span>
           )}
-        </label>
+        </div>
 
         <div className="mt-6 flex justify-end gap-2.5 border-t border-civic-border pt-3">
           <button

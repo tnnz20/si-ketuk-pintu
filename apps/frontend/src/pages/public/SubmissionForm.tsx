@@ -32,7 +32,15 @@ import { FileUploadCard } from '@/components/submission/FileUploadCard';
 import { FormNavigation } from '@/components/submission/FormNavigation';
 import { GuestsStep } from '@/components/submission/GuestsStep';
 import { InstitutionStep } from '@/components/submission/InstitutionStep';
-import { Select } from '@/components/shared/Select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { StepIndicators } from '@/components/submission/StepIndicators';
 import { TimePicker } from '@/components/submission/TimePicker';
 import { VisitStep } from '@/components/submission/VisitStep';
@@ -445,13 +453,13 @@ export default function SubmissionForm() {
                             <Mail className="h-4 w-4 text-emerald-600" />
                             Email Aktif
                           </label>
-                          <input
+                          <Input
                             id="email"
                             type="email"
                             value={formData.email}
                             onChange={(e) => updateField('email', e.target.value)}
                             placeholder="email@instansi.go.id"
-                            className="font-body-md w-full rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all placeholder:text-on-surface-variant/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+                            className="font-body-md h-12 rounded-xl border-outline-variant bg-surface px-4 py-3 text-body-md"
                           />
                           {fieldErrors.email && (
                             <p className="font-label text-label-sm text-error">
@@ -468,13 +476,13 @@ export default function SubmissionForm() {
                             <Landmark className="h-4 w-4 text-emerald-600" />
                             Nama Instansi
                           </label>
-                          <input
+                          <Input
                             id="nama_instansi"
                             type="text"
                             value={formData.nama_instansi}
                             onChange={(e) => updateField('nama_instansi', e.target.value)}
                             placeholder="Nama lengkap instansi"
-                            className="font-body-md w-full rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all placeholder:text-on-surface-variant/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+                            className="font-body-md h-12 rounded-xl border-outline-variant bg-surface px-4 py-3 text-body-md"
                           />
                           {fieldErrors.nama_instansi && (
                             <p className="font-label text-label-sm text-error">
@@ -491,13 +499,13 @@ export default function SubmissionForm() {
                             <MapPin className="h-4 w-4 text-emerald-600" />
                             Alamat Instansi
                           </label>
-                          <textarea
+                          <Textarea
                             id="alamat_instansi"
                             value={formData.alamat_instansi}
                             onChange={(e) => updateField('alamat_instansi', e.target.value)}
                             placeholder="Alamat lengkap instansi"
                             rows={3}
-                            className="font-body-md w-full resize-none rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all placeholder:text-on-surface-variant/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+                            className="font-body-md resize-none rounded-xl border-outline-variant bg-surface px-4 py-3 text-body-md"
                           />
                           {fieldErrors.alamat_instansi && (
                             <p className="font-label text-label-sm text-error">
@@ -597,17 +605,19 @@ export default function SubmissionForm() {
                             Tujuan Instansi
                           </label>
                           <Select
-                            id="tujuan_instansi"
-                            value={formData.tujuan_instansi}
-                            onChange={(e) => updateTujuanInstansi(e.target.value)}
-                            className="font-body-md rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+                            value={formData.tujuan_instansi || null}
+                            onValueChange={(val) => updateTujuanInstansi(val ?? '')}
                           >
-                            <option value="">Pilih tujuan instansi</option>
-                            {TUJUAN_INSTANSI_OPTIONS.map((instansi) => (
-                              <option key={instansi} value={instansi}>
-                                {instansi}
-                              </option>
-                            ))}
+                            <SelectTrigger id="tujuan_instansi" className="font-body-md h-12 w-full rounded-xl border-outline-variant bg-surface px-4 py-3 text-body-md">
+                              <SelectValue placeholder="Pilih tujuan instansi" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-56">
+                              {TUJUAN_INSTANSI_OPTIONS.map((instansi) => (
+                                <SelectItem key={instansi} value={instansi}>
+                                  {instansi}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
                           </Select>
                           {fieldErrors.tujuan_instansi && (
                             <p className="font-label text-label-sm text-error">
@@ -625,21 +635,23 @@ export default function SubmissionForm() {
                             Tujuan Bagian
                           </label>
                           <Select
-                            id="tujuan_bagian"
-                            value={formData.tujuan_bagian}
-                            onChange={(e) => updateField('tujuan_bagian', e.target.value)}
+                            value={formData.tujuan_bagian || null}
+                            onValueChange={(val) => updateField('tujuan_bagian', val ?? '')}
                             disabled={!formData.tujuan_instansi}
-                            className="font-body-md rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none disabled:cursor-not-allowed disabled:bg-surface-alt disabled:text-on-surface-variant"
                           >
-                            <option value="">Pilih tujuan bagian</option>
-                            {formData.tujuan_instansi &&
-                              TUJUAN_BAGIAN_OPTIONS[
-                                formData.tujuan_instansi as keyof typeof TUJUAN_BAGIAN_OPTIONS
-                              ].map((bagian) => (
-                                <option key={bagian} value={bagian}>
-                                  {bagian}
-                                </option>
-                              ))}
+                            <SelectTrigger id="tujuan_bagian" className="font-body-md h-12 w-full rounded-xl border-outline-variant bg-surface px-4 py-3 text-body-md disabled:cursor-not-allowed disabled:bg-surface-alt disabled:text-on-surface-variant">
+                              <SelectValue placeholder="Pilih tujuan bagian" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-56">
+                              {formData.tujuan_instansi &&
+                                TUJUAN_BAGIAN_OPTIONS[
+                                  formData.tujuan_instansi as keyof typeof TUJUAN_BAGIAN_OPTIONS
+                                ]?.map((bagian) => (
+                                  <SelectItem key={bagian} value={bagian}>
+                                    {bagian}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
                           </Select>
                           {fieldErrors.tujuan_bagian && (
                             <p className="font-label text-label-sm text-error">
@@ -656,13 +668,13 @@ export default function SubmissionForm() {
                             <FileText className="h-4 w-4 text-emerald-600" />
                             Tema / Tujuan Kunjungan
                           </label>
-                          <input
+                          <Input
                             id="tema_kunjungan"
                             type="text"
                             value={formData.tema_kunjungan}
                             onChange={(e) => updateField('tema_kunjungan', e.target.value)}
                             placeholder="Contoh: Studi banding pengelolaan data"
-                            className="font-body-md w-full rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all placeholder:text-on-surface-variant/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+                            className="font-body-md h-12 rounded-xl border-outline-variant bg-surface px-4 py-3 text-body-md"
                           />
                           {fieldErrors.tema_kunjungan && (
                             <p className="font-label text-label-sm text-error">
@@ -679,13 +691,13 @@ export default function SubmissionForm() {
                             <User className="h-4 w-4 text-emerald-600" />
                             Pimpinan Rombongan
                           </label>
-                          <input
+                          <Input
                             id="pimpinan_rombongan"
                             type="text"
                             value={formData.pimpinan_rombongan}
                             onChange={(e) => updateField('pimpinan_rombongan', e.target.value)}
                             placeholder="Nama pimpinan rombongan"
-                            className="font-body-md w-full rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all placeholder:text-on-surface-variant/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+                            className="font-body-md h-12 rounded-xl border-outline-variant bg-surface px-4 py-3 text-body-md"
                           />
                           {fieldErrors.pimpinan_rombongan && (
                             <p className="font-label text-label-sm text-error">
@@ -702,13 +714,13 @@ export default function SubmissionForm() {
                             <Phone className="h-4 w-4 text-emerald-600" />
                             Kontak (WhatsApp)
                           </label>
-                          <input
+                          <Input
                             id="kontak_dihubungi"
                             type="tel"
                             value={formData.kontak_dihubungi}
                             onChange={(e) => updateField('kontak_dihubungi', e.target.value)}
                             placeholder="08xx-xxxx-xxxx"
-                            className="font-body-md w-full rounded-xl border border-outline-variant bg-surface px-4 py-3 text-body-md transition-all placeholder:text-on-surface-variant/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+                            className="font-body-md h-12 rounded-xl border-outline-variant bg-surface px-4 py-3 text-body-md"
                           />
                           {fieldErrors.kontak_dihubungi && (
                             <p className="font-label text-label-sm text-error">
@@ -774,11 +786,11 @@ export default function SubmissionForm() {
                               <label className="font-label text-label-sm font-medium text-on-surface-variant">
                                 Nama Lengkap
                               </label>
-                              <input
+                              <Input
                                 value={guest.name}
                                 onChange={(e) => updateGuest(index, 'name', e.target.value)}
                                 placeholder="Nama lengkap tamu"
-                                className="font-body-md w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 text-body-md transition-all placeholder:text-on-surface-variant/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+                                className="font-body-md h-10 rounded-lg border-outline-variant bg-surface px-4 py-2.5 text-body-md"
                               />
                               {fieldErrors[`guests.${index}.nama`] && (
                                 <p className="font-label text-label-sm text-error">
@@ -791,11 +803,11 @@ export default function SubmissionForm() {
                               <label className="font-label text-label-sm font-medium text-on-surface-variant">
                                 Jabatan
                               </label>
-                              <input
+                              <Input
                                 value={guest.position}
                                 onChange={(e) => updateGuest(index, 'position', e.target.value)}
                                 placeholder="Jabatan dalam instansi"
-                                className="font-body-md w-full rounded-lg border border-outline-variant bg-surface px-4 py-2.5 text-body-md transition-all placeholder:text-on-surface-variant/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
+                                className="font-body-md h-10 rounded-lg border-outline-variant bg-surface px-4 py-2.5 text-body-md"
                               />
                               {fieldErrors[`guests.${index}.jabatan`] && (
                                 <p className="font-label text-label-sm text-error">

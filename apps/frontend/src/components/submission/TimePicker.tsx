@@ -1,4 +1,10 @@
-﻿import { Select } from '@/components/shared/Select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'));
@@ -13,39 +19,41 @@ export function TimePicker({
   const [hour, minute] = value.split(':');
   return (
     <div className="flex items-center gap-2">
-      <Select
-        value={hour || ''}
-        onChange={(event) => onChange(`${event.target.value}:${minute ?? '00'}`)}
-        aria-label="Jam"
-        wrapperClassName="flex-1"
-        className="font-body-md rounded-xl border border-outline-variant bg-surface py-3 pl-4 text-body-md transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
-      >
-        <option value="" disabled>
-          Jam
-        </option>
-        {HOURS.map((item) => (
-          <option key={item} value={item}>
-            {item}
-          </option>
-        ))}
-      </Select>
-      <span className="font-body-md text-on-surface-variant">:</span>
-      <Select
-        value={minute || ''}
-        onChange={(event) => onChange(`${hour ?? '00'}:${event.target.value}`)}
-        aria-label="Menit"
-        wrapperClassName="flex-1"
-        className="font-body-md rounded-xl border border-outline-variant bg-surface py-3 pl-4 text-body-md transition-all focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none"
-      >
-        <option value="" disabled>
-          Menit
-        </option>
-        {MINUTES.map((item) => (
-          <option key={item} value={item}>
-            {item}
-          </option>
-        ))}
-      </Select>
+      <div className="flex-1">
+        <Select
+          value={hour || null}
+          onValueChange={(val) => onChange(`${val ?? '00'}:${minute ?? '00'}`)}
+        >
+          <SelectTrigger aria-label="Jam" className="bg-civic-cardFill">
+            <SelectValue placeholder="Jam" />
+          </SelectTrigger>
+          <SelectContent className="max-h-56">
+            {HOURS.map((item) => (
+              <SelectItem key={item} value={item}>
+                {item}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <span className="font-bold text-civic-muted">:</span>
+      <div className="flex-1">
+        <Select
+          value={minute || null}
+          onValueChange={(val) => onChange(`${hour ?? '00'}:${val ?? '00'}`)}
+        >
+          <SelectTrigger aria-label="Menit" className="bg-civic-cardFill">
+            <SelectValue placeholder="Menit" />
+          </SelectTrigger>
+          <SelectContent className="max-h-56">
+            {MINUTES.map((item) => (
+              <SelectItem key={item} value={item}>
+                {item}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 }
