@@ -342,7 +342,7 @@ func (h *AdminRequestHandler) UploadRescheduleLetter(ginContext *gin.Context) {
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
 		return
 	}
-	ginContext.JSON(http.StatusCreated, gin.H{"attachment": attachment})
+	ginContext.JSON(http.StatusCreated, gin.H{"attachment": toAttachmentResponse(*attachment)})
 }
 
 // DeleteRescheduleLetter removes the pending request's reschedule letter.
@@ -396,7 +396,7 @@ func (h *AdminRequestHandler) UploadApprovalLetter(ginContext *gin.Context) {
 		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: err.Error()})
 		return
 	}
-	ginContext.JSON(http.StatusCreated, gin.H{"attachment": attachment})
+	ginContext.JSON(http.StatusCreated, gin.H{"attachment": toAttachmentResponse(*attachment)})
 }
 
 // DeleteApprovalLetter removes the approved request's approval letter.
@@ -471,7 +471,14 @@ func (h *AdminRequestHandler) DownloadAttachment(ginContext *gin.Context) {
 				return
 			}
 
-			ginContext.Header("Content-Disposition", "attachment; filename="+attachment.OriginalName)
+			safeName := strings.Map(func(r rune) rune {
+				if r == '"' || r < 0x20 || r == 0x7F {
+					return '_'
+				}
+				return r
+			}, filepath.Base(attachment.OriginalName))
+
+			ginContext.Header("Content-Disposition", `attachment; filename="`+safeName+`"`)
 			ginContext.File(filePath)
 			return
 		}

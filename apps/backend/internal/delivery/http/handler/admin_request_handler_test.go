@@ -1,11 +1,15 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -14,6 +18,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/entity"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/model"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/service"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
 )
 
@@ -143,6 +148,142 @@ func TestDownloadAttachment_RescheduleLetterStatusGated(t *testing.T) {
 	}
 	if body.Error != "reschedule letter not found" {
 		t.Fatalf("error = %q, want 'reschedule letter not found'", body.Error)
+	}
+}
+
+func TestDownloadAttachment_QuotedFilename(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	logger := logrus.New()
+	logger.Out = testDiscard{}
+
+	tempDir := t.TempDir()
+	subDir := filepath.Join(tempDir, "surat-persetujuan")
+	if err := os.MkdirAll(subDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	filePath := filepath.Join(subDir, "test.pdf")
+	if err := os.WriteFile(filePath, []byte("%PDF-1.4 test"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	reqID := uuid.New()
+	store := &listStoreFake{
+		request: &entity.VisitRequest{
+			ID:     reqID,
+			Status: "approved",
+			Attachments: []entity.Attachment{
+				{
+					AttachmentType: "surat_persetujuan",
+					OriginalName:   "Surat Tugas Dinas (1).pdf",
+					StorageKey:     "surat-persetujuan/test.pdf",
+				},
+			},
+		},
+	}
+	uploadSvc := service.NewFileSystemUploadService(tempDir)
+	uc := usecase.NewVisitRequestUsecase(store, nil, logger, uploadSvc)
+	c := NewAdminRequestHandler(uc, logger, uploadSvc)
+
+	router := gin.New()
+	router.GET("/requests/:id/attachments/:type", c.DownloadAttachment)
+
+	url := fmt.Sprintf("/requests/%s/attachments/surat_persetujuan", reqID)
+	req := httptest.NewRequest(http.MethodGet, url, nil)
+	resp := httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+
+	if resp.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200, body=%s", resp.Code, resp.Body.String())
+	}
+
+	disposition := resp.Header().Get("Content-Disposition")
+	expected := `attachment; filename="Surat Tugas Dinas (1).pdf"`
+	if disposition != expected {
+		t.Fatalf("Content-Disposition = %q, want %q", disposition, expected)
+	}
+}
+
+type uploadLetterStoreFake struct {
+	listStoreFake
+	createdAttachment *entity.Attachment
+}
+
+func (s *uploadLetterStoreFake) CreateAttachment(_ context.Context, a *entity.Attachment) error {
+	a.ID = 42
+	s.createdAttachment = a
+	return nil
+}
+
+func (s *uploadLetterStoreFake) FindAttachment(_ context.Context, _ uuid.UUID, _ string) (*entity.Attachment, error) {
+	return nil, nil
+}
+
+func TestUploadLetters_ReturnsAttachmentResponse(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	logger := logrus.New()
+	logger.Out = testDiscard{}
+
+	tempDir := t.TempDir()
+	uploadSvc := service.NewFileSystemUploadService(tempDir)
+
+	reqID := uuid.New()
+	store := &uploadLetterStoreFake{
+		listStoreFake: listStoreFake{
+			request: &entity.VisitRequest{
+				ID:     reqID,
+				Status: "approved",
+			},
+		},
+	}
+	uc := usecase.NewVisitRequestUsecase(store, nil, logger, uploadSvc)
+	c := NewAdminRequestHandler(uc, logger, uploadSvc)
+
+	router := gin.New()
+	router.POST("/requests/:id/approval-letter", c.UploadApprovalLetter)
+
+	// Build multipart request
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	part, err := writer.CreateFormFile("file", "persetujuan.pdf")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := part.Write([]byte("%PDF-1.4 test approval")); err != nil {
+		t.Fatal(err)
+	}
+	writer.Close()
+
+	url := fmt.Sprintf("/requests/%s/approval-letter", reqID)
+	req := httptest.NewRequest(http.MethodPost, url, &body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	resp := httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+
+	if resp.Code != http.StatusCreated {
+		t.Fatalf("status = %d, want 201, body=%s", resp.Code, resp.Body.String())
+	}
+
+	var jsonMap map[string]any
+	if err := json.Unmarshal(resp.Body.Bytes(), &jsonMap); err != nil {
+		t.Fatalf("unmarshal error: %v", err)
+	}
+	attMap, ok := jsonMap["attachment"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected attachment object in response: %v", jsonMap)
+	}
+	// Verify snake_case keys from model.AttachmentResponse
+	if _, hasSnake := attMap["attachment_type"]; !hasSnake {
+		t.Errorf("missing snake_case 'attachment_type' in response: %v", attMap)
+	}
+	if _, hasSnake := attMap["original_name"]; !hasSnake {
+		t.Errorf("missing snake_case 'original_name' in response: %v", attMap)
+	}
+	// Verify internal fields are NOT leaked
+	if _, hasStorageKey := attMap["storage_key"]; hasStorageKey {
+		t.Errorf("leaked 'storage_key' in response: %v", attMap)
+	}
+	if _, hasStorageKeyPascal := attMap["StorageKey"]; hasStorageKeyPascal {
+		t.Errorf("leaked 'StorageKey' in response: %v", attMap)
 	}
 }
 
