@@ -1,9 +1,12 @@
-﻿import { motion, useReducedMotion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import { FileText, LoaderCircle, Search, Shield, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { getRequestByToken } from '@/lib/api/requests';
 import { fadeInUp, staggerContainer } from '@/constants/animations';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function StatusSection() {
   const reduce = useReducedMotion();
@@ -117,37 +120,37 @@ export default function StatusSection() {
 
           {/* Right: Status Card */}
           <motion.div variants={reduce ? undefined : fadeInUp} custom={2} className="relative">
-            {/* Glassmorphism card */}
-            <div className="relative overflow-hidden rounded-2xl border border-white/40 bg-white/60 p-8 shadow-[0_8px_32px_rgba(13,148,136,0.08)] backdrop-blur-xl">
+            {/* Glassmorphism Card */}
+            <Card className="relative overflow-hidden rounded-2xl border border-white/40 bg-white/60 p-8 shadow-[0_8px_32px_rgba(13,148,136,0.08)] backdrop-blur-xl">
               {/* Inner highlight */}
               <div className="pointer-events-none absolute inset-0 rounded-2xl border border-white/20" />
 
               <div className="relative">
-                <div className="mb-6 flex items-center gap-3">
+                <CardHeader className="mb-6 flex flex-row items-center gap-3 border-0 p-0">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10">
                     <Search className="h-6 w-6 text-emerald-600" />
                   </div>
                   <div>
-                    <h3 className="font-headline-md text-headline-md text-on-surface">
+                    <CardTitle className="font-headline-md text-headline-md text-on-surface">
                       Cek Status
-                    </h3>
-                    <p className="font-label text-label-sm text-on-surface-variant">
+                    </CardTitle>
+                    <CardDescription className="font-label text-label-sm text-on-surface-variant">
                       Masukkan token kunjungan Anda
-                    </p>
+                    </CardDescription>
                   </div>
-                </div>
+                </CardHeader>
 
-                <div className="space-y-4">
+                <CardContent className="space-y-4 p-0">
                   <div>
-                    <label
+                    <Label
                       htmlFor="token-search"
                       className="mb-2 block font-label text-label-sm font-medium text-on-surface"
                     >
                       Token Kunjungan
-                    </label>
+                    </Label>
                     <div className="relative">
                       <FileText className="absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-on-surface-variant" />
-                      <input
+                      <Input
                         id="token-search"
                         type="text"
                         placeholder="SKP-YYYYMMDD-XXXXX"
@@ -188,7 +191,7 @@ export default function StatusSection() {
                     )}
                     <div className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent transition-transform duration-500 group-hover:translate-x-full" />
                   </button>
-                </div>
+                </CardContent>
 
                 {/* Example token hint */}
                 <div className="mt-6 rounded-xl bg-emerald-500/5 p-4">
@@ -204,7 +207,7 @@ export default function StatusSection() {
                   </button>
                 </div>
               </div>
-            </div>
+            </Card>
           </motion.div>
         </motion.div>
       </div>

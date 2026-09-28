@@ -1,7 +1,8 @@
-﻿import { motion, useReducedMotion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import { ArrowRight, ChevronDown, Clock, FileText, QrCode, ShieldCheck, Zap } from 'lucide-react';
 import { Link } from 'react-router';
 import { fadeInUp, staggerContainer, scaleIn } from '@/constants/animations';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const steps = [
   {
@@ -86,43 +87,44 @@ export default function ProcessSection() {
         >
           {steps.map((step, i) => (
             <div key={step.title} className="relative flex flex-col">
-              <motion.article
-                variants={reduce ? undefined : scaleIn}
-                className="group relative flex flex-1 flex-col rounded-2xl border border-surface-alt bg-surface-container-lowest p-8 transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/30 hover:shadow-[0_16px_40px_-16px_rgba(13,148,136,0.25)]"
-              >
-                {/* Icon + number */}
-                <div className="mb-6 flex items-start justify-between">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 ring-1 ring-emerald-500/20 transition-colors duration-300 group-hover:bg-emerald-500/15">
-                    <step.icon className="h-7 w-7 text-emerald-600" />
-                  </div>
-                  <span className="font-display text-5xl leading-none font-bold text-surface-alt transition-colors duration-300 select-none group-hover:text-emerald-500/30">
-                    0{i + 1}
-                  </span>
-                </div>
-
-                {/* Content */}
-                <h3 className="font-headline-md mb-3 text-headline-md text-on-surface">
-                  {step.title}
-                </h3>
-                <p className="font-body-md text-body-md leading-relaxed text-on-surface-variant">
-                  {step.desc}
-                </p>
-
-                {/* Detail */}
-                <div className="mt-6 flex items-center gap-2 border-t border-surface-alt pt-5 text-emerald-600">
-                  <step.detailIcon className="h-4 w-4" />
-                  <span className="font-label text-label-sm font-medium">{step.detail}</span>
-                </div>
-
-                {/* Connector arrow — desktop */}
-                {i < steps.length - 1 && (
-                  <div aria-hidden className="absolute top-11 -right-7 z-10 hidden md:block">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full border border-emerald-500/25 bg-surface-container-lowest shadow-sm">
-                      <ArrowRight className="h-4 w-4 text-emerald-600" />
+              <motion.div variants={reduce ? undefined : scaleIn} className="flex flex-1 flex-col">
+                <Card className="group relative flex flex-1 flex-col border border-surface-alt bg-surface-container-lowest p-8 transition-all duration-300 hover:-translate-y-1 hover:border-emerald-500/30 hover:shadow-[0_16px_40px_-16px_rgba(13,148,136,0.25)]">
+                  {/* Icon + number */}
+                  <CardHeader className="mb-6 flex flex-row items-start justify-between border-0 p-0">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 ring-1 ring-emerald-500/20 transition-colors duration-300 group-hover:bg-emerald-500/15">
+                      <step.icon className="h-7 w-7 text-emerald-600" />
                     </div>
-                  </div>
-                )}
-              </motion.article>
+                    <span className="font-display text-5xl leading-none font-bold text-surface-alt transition-colors duration-300 select-none group-hover:text-emerald-500/30">
+                      0{i + 1}
+                    </span>
+                  </CardHeader>
+
+                  {/* Content */}
+                  <CardContent className="flex flex-1 flex-col p-0">
+                    <CardTitle className="font-headline-md mb-3 text-headline-md text-on-surface">
+                      {step.title}
+                    </CardTitle>
+                    <p className="font-body-md text-body-md leading-relaxed text-on-surface-variant">
+                      {step.desc}
+                    </p>
+
+                    {/* Detail */}
+                    <div className="mt-auto pt-6 flex items-center gap-2 border-t border-surface-alt text-emerald-600">
+                      <step.detailIcon className="h-4 w-4" />
+                      <span className="font-label text-label-sm font-medium">{step.detail}</span>
+                    </div>
+                  </CardContent>
+
+                  {/* Connector arrow — desktop */}
+                  {i < steps.length - 1 && (
+                    <div aria-hidden className="absolute top-11 -right-7 z-10 hidden md:block">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full border border-emerald-500/25 bg-surface-container-lowest shadow-sm">
+                        <ArrowRight className="h-4 w-4 text-emerald-600" />
+                      </div>
+                    </div>
+                  )}
+                </Card>
+              </motion.div>
 
               {/* Connector arrow — mobile */}
               {i < steps.length - 1 && (

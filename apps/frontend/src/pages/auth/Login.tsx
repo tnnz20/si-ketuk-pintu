@@ -18,6 +18,10 @@ import { useSession } from '@/hooks/use-session';
 import Seo from '@/components/shared/Seo';
 import { loginSchema } from '@/schemas/login';
 import { getTurnstileToken, turnstileEnabled } from '@/lib/turnstile';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 
 const features = [
   {
@@ -225,9 +229,9 @@ export default function Login() {
             Kembali ke Beranda
           </Link>
 
-          <div className="rounded-2xl border border-surface-alt bg-surface-container-lowest p-8 shadow-[0_24px_60px_-24px_rgba(26,28,22,0.18)] md:p-10">
+          <Card className="border border-surface-alt bg-surface-container-lowest p-8 shadow-[0_24px_60px_-24px_rgba(26,28,22,0.18)] md:p-10">
             {/* Header */}
-            <div className="mb-8 flex flex-col items-center gap-4 text-center">
+            <CardHeader className="mb-8 flex flex-col items-center gap-4 p-0 text-center border-0">
               <motion.div
                 initial={reduce ? undefined : { scale: 0.8, opacity: 0 }}
                 animate={reduce ? undefined : { scale: 1, opacity: 1 }}
@@ -242,127 +246,129 @@ export default function Login() {
                 />
               </motion.div>
               <div>
-                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1">
+                <Badge variant="outline" className="mb-3 inline-flex items-center gap-2 rounded-full border-emerald-500/20 bg-emerald-500/5 px-3 py-1 font-label text-label-sm text-emerald-700">
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
                     <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
                   </span>
-                  <span className="font-label text-label-sm text-emerald-700">Portal Admin</span>
-                </div>
-                <h1 className="font-headline-md text-headline-md text-on-surface">
+                  Portal Admin
+                </Badge>
+                <CardTitle className="font-headline-md text-headline-md text-on-surface">
                   Selamat Datang Kembali
-                </h1>
-                <p className="font-body-md mt-2 text-body-md text-on-surface-variant">
+                </CardTitle>
+                <CardDescription className="font-body-md mt-2 text-body-md text-on-surface-variant">
                   Masuk untuk mengelola permohonan kunjungan.
-                </p>
+                </CardDescription>
               </div>
-            </div>
+            </CardHeader>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              <AnimatePresence>
-                {error && (
-                  <motion.div
-                    key="error"
-                    role="alert"
-                    initial={reduce ? undefined : { opacity: 0, y: -8, scale: 0.98 }}
-                    animate={reduce ? undefined : { opacity: 1, y: 0, scale: 1 }}
-                    exit={reduce ? undefined : { opacity: 0, y: -8, scale: 0.98 }}
-                    transition={{ duration: 0.25, ease: 'easeOut' }}
-                    className="rounded-lg border border-error/20 bg-error-container px-4 py-3 font-body text-sm text-on-error-container"
-                  >
-                    {error}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+            <CardContent className="p-0">
+              <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                <AnimatePresence>
+                  {error && (
+                    <motion.div
+                      key="error"
+                      role="alert"
+                      initial={reduce ? undefined : { opacity: 0, y: -8, scale: 0.98 }}
+                      animate={reduce ? undefined : { opacity: 1, y: 0, scale: 1 }}
+                      exit={reduce ? undefined : { opacity: 0, y: -8, scale: 0.98 }}
+                      transition={{ duration: 0.25, ease: 'easeOut' }}
+                      className="rounded-lg border border-error/20 bg-error-container px-4 py-3 font-body text-sm text-on-error-container"
+                    >
+                      {error}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-              <div className="flex flex-col gap-2">
-                <label htmlFor="email" className="font-label-md text-label-md text-on-surface">
-                  Email atau Username
-                </label>
-                <div className="group relative">
-                  <User className="absolute top-1/2 left-3.5 h-5 w-5 -translate-y-1/2 text-outline transition-colors group-focus-within:text-emerald-600" />
-                  <input
-                    id="email"
-                    className="font-body-md w-full rounded-lg border border-surface-alt bg-surface-container-low py-2.5 pr-3 pl-11 text-body-md transition-all placeholder:text-outline/70 focus:border-emerald-600 focus:bg-surface-container-lowest focus:ring-2 focus:ring-emerald-600/20 focus:outline-none"
-                    placeholder="admin@domain.gov"
-                    value={identifier}
-                    onChange={(e) => {
-                      setIdentifier(e.target.value);
-                      clearError('identifier');
-                    }}
-                    required
-                    type="text"
-                    autoComplete="username"
-                  />
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="email" className="font-label-md text-label-md text-on-surface">
+                    Email atau Username
+                  </Label>
+                  <div className="group relative">
+                    <User className="absolute top-1/2 left-3.5 h-5 w-5 -translate-y-1/2 text-outline transition-colors group-focus-within:text-emerald-600" />
+                    <Input
+                      id="email"
+                      className="font-body-md w-full rounded-lg border border-surface-alt bg-surface-container-low py-2.5 pr-3 pl-11 text-body-md transition-all placeholder:text-outline/70 focus:border-emerald-600 focus:bg-surface-container-lowest focus:ring-2 focus:ring-emerald-600/20 focus:outline-none"
+                      placeholder="admin@domain.gov"
+                      value={identifier}
+                      onChange={(e) => {
+                        setIdentifier(e.target.value);
+                        clearError('identifier');
+                      }}
+                      required
+                      type="text"
+                      autoComplete="username"
+                    />
+                  </div>
+                  {fieldErrors.identifier && (
+                    <p className="font-label text-label-sm text-error">{fieldErrors.identifier}</p>
+                  )}
                 </div>
-                {fieldErrors.identifier && (
-                  <p className="font-label text-label-sm text-error">{fieldErrors.identifier}</p>
-                )}
-              </div>
 
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="password" className="font-label-md text-label-md text-on-surface">
-                    Password
-                  </label>
-                  <Link
-                    className="font-label-sm text-label-sm text-emerald-700 transition-colors hover:text-emerald-800 hover:underline"
-                    to="#"
-                  >
-                    Lupa Password?
-                  </Link>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password" className="font-label-md text-label-md text-on-surface">
+                      Password
+                    </Label>
+                    <Link
+                      className="font-label-sm text-label-sm text-emerald-700 transition-colors hover:text-emerald-800 hover:underline"
+                      to="#"
+                    >
+                      Lupa Password?
+                    </Link>
+                  </div>
+                  <div className="group relative">
+                    <Lock className="absolute top-1/2 left-3.5 h-5 w-5 -translate-y-1/2 text-outline transition-colors group-focus-within:text-emerald-600" />
+                    <Input
+                      id="password"
+                      className="font-body-md w-full rounded-lg border border-surface-alt bg-surface-container-low py-2.5 pr-11 pl-11 text-body-md transition-all placeholder:text-outline/70 focus:border-emerald-600 focus:bg-surface-container-lowest focus:ring-2 focus:ring-emerald-600/20 focus:outline-none"
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => {
+                        setPassword(e.target.value);
+                        clearError('password');
+                      }}
+                      required
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="current-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                      className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer rounded p-0.5 text-outline transition-colors hover:text-on-surface"
+                    >
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                  {fieldErrors.password && (
+                    <p className="font-label text-label-sm text-error">{fieldErrors.password}</p>
+                  )}
                 </div>
-                <div className="group relative">
-                  <Lock className="absolute top-1/2 left-3.5 h-5 w-5 -translate-y-1/2 text-outline transition-colors group-focus-within:text-emerald-600" />
-                  <input
-                    id="password"
-                    className="font-body-md w-full rounded-lg border border-surface-alt bg-surface-container-low py-2.5 pr-11 pl-11 text-body-md transition-all placeholder:text-outline/70 focus:border-emerald-600 focus:bg-surface-container-lowest focus:ring-2 focus:ring-emerald-600/20 focus:outline-none"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      clearError('password');
-                    }}
-                    required
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="current-password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
-                    className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer rounded p-0.5 text-outline transition-colors hover:text-on-surface"
-                  >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
-                </div>
-                {fieldErrors.password && (
-                  <p className="font-label text-label-sm text-error">{fieldErrors.password}</p>
-                )}
-              </div>
 
-              {turnstileEnabled() && <div ref={turnstileRef} className="flex justify-center" />}
+                {turnstileEnabled() && <div ref={turnstileRef} className="flex justify-center" />}
 
-              <motion.button
-                type="submit"
-                disabled={isLoading}
-                whileTap={reduce ? undefined : { scale: 0.98 }}
-                className="group font-label-md mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary py-3 text-label-md font-semibold text-on-primary shadow-[0_8px_20px_-8px_rgba(26,28,22,0.5)] transition-all hover:shadow-[0_12px_28px_-8px_rgba(26,28,22,0.55)] disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {isLoading ? (
-                  <>
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-on-primary/30 border-t-on-primary" />
-                    Memproses...
-                  </>
-                ) : (
-                  <>
-                    Masuk ke Dashboard
-                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-                  </>
-                )}
-              </motion.button>
-            </form>
-          </div>
+                <motion.button
+                  type="submit"
+                  disabled={isLoading}
+                  whileTap={reduce ? undefined : { scale: 0.98 }}
+                  className="group font-label-md mt-1 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary py-3 text-label-md font-semibold text-on-primary shadow-[0_8px_20px_-8px_rgba(26,28,22,0.5)] transition-all hover:shadow-[0_12px_28px_-8px_rgba(26,28,22,0.55)] disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {isLoading ? (
+                    <>
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-on-primary/30 border-t-on-primary" />
+                      Memproses...
+                    </>
+                  ) : (
+                    <>
+                      Masuk ke Dashboard
+                      <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                    </>
+                  )}
+                </motion.button>
+              </form>
+            </CardContent>
+          </Card>
 
           <p className="mt-6 text-center font-label text-label-sm text-on-surface-variant/70">
             &copy; 2026 Si Ketuk Pintu &mdash; Sistem Permohonan Kunjungan Tamu
