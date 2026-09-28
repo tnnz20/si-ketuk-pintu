@@ -1,4 +1,4 @@
-package controllers
+package handler
 
 import (
 	"context"
@@ -82,7 +82,7 @@ func TestListMalformedPaginationDefaultsToPage1Size20(t *testing.T) {
 			logger := logrus.New()
 			logger.Out = testDiscard{}
 			uc := usecase.NewVisitRequestUsecase(store, nil, logger, "")
-			c := NewAdminRequestController(uc, logger, "")
+			c := NewAdminRequestHandler(uc, logger, "")
 			router := gin.New()
 			router.GET("/requests", c.List)
 

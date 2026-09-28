@@ -1,4 +1,4 @@
-package controllers
+package handler
 
 import (
 	"context"
@@ -21,12 +21,12 @@ func (s healthRepositoryStub) IsReady(context.Context) error {
 
 func TestLivenessReturnsOK(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	controller := NewHealthController(usecase.NewHealthUsecase(healthRepositoryStub{}))
+	handler := NewHealthHandler(usecase.NewHealthUsecase(healthRepositoryStub{}))
 	recorder := httptest.NewRecorder()
 	context, _ := gin.CreateTestContext(recorder)
 	context.Request = httptest.NewRequest(http.MethodGet, "/api/healthz", nil)
 
-	controller.Liveness(context)
+	handler.Liveness(context)
 
 	if recorder.Code != http.StatusOK {
 		t.Fatalf("status = %d, want %d", recorder.Code, http.StatusOK)
@@ -35,14 +35,14 @@ func TestLivenessReturnsOK(t *testing.T) {
 
 func TestReadinessReturnsServiceUnavailableWhenDatabaseFails(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	controller := NewHealthController(usecase.NewHealthUsecase(healthRepositoryStub{
+	handler := NewHealthHandler(usecase.NewHealthUsecase(healthRepositoryStub{
 		err: errors.New("database unavailable"),
 	}))
 	recorder := httptest.NewRecorder()
 	context, _ := gin.CreateTestContext(recorder)
 	context.Request = httptest.NewRequest(http.MethodGet, "/api/readyz", nil)
 
-	controller.Readiness(context)
+	handler.Readiness(context)
 
 	if recorder.Code != http.StatusServiceUnavailable {
 		t.Fatalf("status = %d, want %d", recorder.Code, http.StatusServiceUnavailable)

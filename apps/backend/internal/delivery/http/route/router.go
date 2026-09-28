@@ -4,22 +4,22 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/controllers"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/handler"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/middleware"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
 )
 
-// RouterDeps holds the controllers, middleware, and config the router
+// RouterDeps holds the handlers, middleware, and config the router
 // wires into routes.
 type RouterDeps struct {
-	Logger                 *logrus.Logger
-	CORSOrigins            []string
-	RateLimiter            *middleware.RateLimiter
-	AuthUsecase            *usecase.AuthUsecase
-	HealthController       *controllers.HealthController
-	VisitRequestController *controllers.VisitRequestController
-	AdminAuthController    *controllers.AdminAuthController
-	AdminRequestController *controllers.AdminRequestController
+	Logger              *logrus.Logger
+	CORSOrigins         []string
+	RateLimiter         *middleware.RateLimiter
+	AuthUsecase         *usecase.AuthUsecase
+	HealthHandler       *handler.HealthHandler
+	VisitRequestHandler *handler.VisitRequestHandler
+	AdminAuthHandler    *handler.AdminAuthHandler
+	AdminRequestHandler *handler.AdminRequestHandler
 }
 
 // NewRouter builds the gin engine with CORS, rate limiting, logging, and
@@ -40,47 +40,47 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 	}))
 
 	api := router.Group("/api")
-	api.GET("/healthz", deps.HealthController.Liveness)
-	api.GET("/readyz", deps.HealthController.Readiness)
+	api.GET("/healthz", deps.HealthHandler.Liveness)
+	api.GET("/readyz", deps.HealthHandler.Readiness)
 
 	public := api.Group("/public")
 	{
 		requests := public.Group("/requests")
-		requests.POST("", deps.RateLimiter.Middleware(), deps.VisitRequestController.Create)
-		requests.GET("/:token", deps.RateLimiter.Middleware(), deps.VisitRequestController.FindByToken)
-		requests.GET("/:token/attachments/:type", deps.RateLimiter.Middleware(), deps.VisitRequestController.DownloadAttachment)
-		requests.GET("/:token/attachments/:type/:attachment_id", deps.RateLimiter.Middleware(), deps.VisitRequestController.DownloadAttachment)
-		requests.GET("/:token/qr", deps.RateLimiter.Middleware(), deps.VisitRequestController.DownloadQR)
+		requests.POST("", deps.RateLimiter.Middleware(), deps.VisitRequestHandler.Create)
+		requests.GET("/:token", deps.RateLimiter.Middleware(), deps.VisitRequestHandler.FindByToken)
+		requests.GET("/:token/attachments/:type", deps.RateLimiter.Middleware(), deps.VisitRequestHandler.DownloadAttachment)
+		requests.GET("/:token/attachments/:type/:attachment_id", deps.RateLimiter.Middleware(), deps.VisitRequestHandler.DownloadAttachment)
+		requests.GET("/:token/qr", deps.RateLimiter.Middleware(), deps.VisitRequestHandler.DownloadQR)
 	}
 
 	admin := api.Group("/admin")
 	{
 		auth := admin.Group("/auth")
-		auth.POST("/login", deps.RateLimiter.Middleware(), deps.AdminAuthController.Login)
+		auth.POST("/login", deps.RateLimiter.Middleware(), deps.AdminAuthHandler.Login)
 
 		protected := admin.Group("", middleware.Auth(deps.AuthUsecase))
 		{
-			protected.GET("/stats", deps.AdminRequestController.Stats)
+			protected.GET("/stats", deps.AdminRequestHandler.Stats)
 			requests := protected.Group("/requests")
-			requests.GET("", deps.AdminRequestController.List)
-			requests.GET("/graph", deps.AdminRequestController.Graph)
-			requests.GET("/:id", deps.AdminRequestController.FindByID)
-			requests.PATCH("/:id/status", deps.AdminRequestController.UpdateStatus)
-			requests.PATCH("/:id/reschedule", deps.AdminRequestController.Reschedule)
-			requests.DELETE("/:id", deps.AdminRequestController.Delete)
-			requests.GET("/:id/attachments/:type", deps.AdminRequestController.DownloadAttachment)
-			requests.POST("/:id/approval-letter", deps.AdminRequestController.UploadApprovalLetter)
-			requests.DELETE("/:id/approval-letter", deps.AdminRequestController.DeleteApprovalLetter)
-			requests.POST("/:id/reschedule-letter", deps.AdminRequestController.UploadRescheduleLetter)
-			requests.DELETE("/:id/reschedule-letter", deps.AdminRequestController.DeleteRescheduleLetter)
+			requests.GET("", deps.AdminRequestHandler.List)
+			requests.GET("/graph", deps.AdminRequestHandler.Graph)
+			requests.GET("/:id", deps.AdminRequestHandler.FindByID)
+			requests.PATCH("/:id/status", deps.AdminRequestHandler.UpdateStatus)
+			requests.PATCH("/:id/reschedule", deps.AdminRequestHandler.Reschedule)
+			requests.DELETE("/:id", deps.AdminRequestHandler.Delete)
+			requests.GET("/:id/attachments/:type", deps.AdminRequestHandler.DownloadAttachment)
+			requests.POST("/:id/approval-letter", deps.AdminRequestHandler.UploadApprovalLetter)
+			requests.DELETE("/:id/approval-letter", deps.AdminRequestHandler.DeleteApprovalLetter)
+			requests.POST("/:id/reschedule-letter", deps.AdminRequestHandler.UploadRescheduleLetter)
+			requests.DELETE("/:id/reschedule-letter", deps.AdminRequestHandler.DeleteRescheduleLetter)
 
 			archives := protected.Group("/archives")
-			archives.GET("", deps.AdminRequestController.ListArchives)
-			archives.POST("/:id/documentations", deps.AdminRequestController.UploadDocumentations)
-			archives.DELETE("/:id/documentations/:attachment_id", deps.AdminRequestController.DeleteDocumentation)
-			archives.POST("/:id/daftar-absen", deps.AdminRequestController.UploadDaftarAbsen)
-			archives.DELETE("/:id/daftar-absen", deps.AdminRequestController.DeleteDaftarAbsen)
-			archives.GET("/:id/attachments/:attachment_type/:attachment_id", deps.AdminRequestController.DownloadArchiveAttachment)
+			archives.GET("", deps.AdminRequestHandler.ListArchives)
+			archives.POST("/:id/documentations", deps.AdminRequestHandler.UploadDocumentations)
+			archives.DELETE("/:id/documentations/:attachment_id", deps.AdminRequestHandler.DeleteDocumentation)
+			archives.POST("/:id/daftar-absen", deps.AdminRequestHandler.UploadDaftarAbsen)
+			archives.DELETE("/:id/daftar-absen", deps.AdminRequestHandler.DeleteDaftarAbsen)
+			archives.GET("/:id/attachments/:attachment_type/:attachment_id", deps.AdminRequestHandler.DownloadArchiveAttachment)
 		}
 	}
 

@@ -1,4 +1,4 @@
-package controllers
+package handler
 
 import (
 	"bytes"
@@ -33,7 +33,7 @@ func TestCreateVerifiesTurnstileTokenBeforeProcessing(t *testing.T) {
 	logger := logrus.New()
 	logger.SetOutput(io.Discard)
 	verifier := &failTurnstile{}
-	controller := NewVisitRequestController(nil, nil, logger, "", verifier)
+	controller := NewVisitRequestHandler(nil, nil, logger, "", verifier)
 
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)
