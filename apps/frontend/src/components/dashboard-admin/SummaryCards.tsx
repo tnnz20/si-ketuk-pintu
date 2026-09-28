@@ -37,10 +37,7 @@ function SummaryCard({
   footerRight,
 }: SummaryCardProps) {
   return (
-    <Card
-      onClick={onClick}
-      className="card-hover cursor-pointer space-y-3 p-4"
-    >
+    <Card onClick={onClick} className="card-hover cursor-pointer space-y-3 p-4">
       <div className="flex items-center justify-between">
         <div
           className={`h-9 w-9 rounded-xl ${iconClassName} flex items-center justify-center font-bold`}

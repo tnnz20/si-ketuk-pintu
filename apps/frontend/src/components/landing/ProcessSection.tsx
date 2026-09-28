@@ -109,7 +109,7 @@ export default function ProcessSection() {
                     </p>
 
                     {/* Detail */}
-                    <div className="mt-auto pt-6 flex items-center gap-2 border-t border-surface-alt text-emerald-600">
+                    <div className="mt-auto flex items-center gap-2 border-t border-surface-alt pt-6 text-emerald-600">
                       <step.detailIcon className="h-4 w-4" />
                       <span className="font-label text-label-sm font-medium">{step.detail}</span>
                     </div>

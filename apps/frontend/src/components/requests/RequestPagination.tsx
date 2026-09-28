@@ -36,10 +36,7 @@ export default function RequestPagination({
     <div className="flex flex-col gap-3 border-t border-civic-border pt-4 text-xs sm:flex-row sm:items-center sm:justify-between">
       <div className="flex items-center gap-2 font-medium text-civic-muted">
         <span>Baris per halaman:</span>
-        <Select
-          value={String(pageSize)}
-          onValueChange={(val) => onPageSizeChange(Number(val))}
-        >
+        <Select value={String(pageSize)} onValueChange={(val) => onPageSizeChange(Number(val))}>
           <SelectTrigger size="sm" className="h-8 w-20 rounded-xl px-2.5 py-1 text-xs">
             <SelectValue />
           </SelectTrigger>

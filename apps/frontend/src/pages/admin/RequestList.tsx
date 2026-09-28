@@ -65,39 +65,38 @@ export default function RequestList() {
         </CardHeader>
 
         <CardContent className="space-y-4 p-0">
+          <RequestFilters
+            search={search}
+            status={status}
+            date={date}
+            counts={
+              stats
+                ? {
+                    total: stats.total_requests,
+                    pending: stats.pending_approval,
+                  }
+                : undefined
+            }
+            onSearchChange={setSearch}
+            onStatusChange={setStatus}
+            onDateChange={setDate}
+          />
 
-        <RequestFilters
-          search={search}
-          status={status}
-          date={date}
-          counts={
-            stats
-              ? {
-                  total: stats.total_requests,
-                  pending: stats.pending_approval,
-                }
-              : undefined
-          }
-          onSearchChange={setSearch}
-          onStatusChange={setStatus}
-          onDateChange={setDate}
-        />
+          <RequestTableContent
+            requests={requests}
+            loading={loading}
+            onViewDetail={(id) => navigate(`/dashboard/requests/${id}`)}
+            onCopyToken={copyToken}
+            onDelete={(row) => setConfirmDelete(row)}
+          />
 
-        <RequestTableContent
-          requests={requests}
-          loading={loading}
-          onViewDetail={(id) => navigate(`/dashboard/requests/${id}`)}
-          onCopyToken={copyToken}
-          onDelete={(row) => setConfirmDelete(row)}
-        />
-
-        <RequestPagination
-          page={page}
-          pageSize={pageSize}
-          totalPages={totalPages}
-          onPageChange={setPage}
-          onPageSizeChange={setPageSize}
-        />
+          <RequestPagination
+            page={page}
+            pageSize={pageSize}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
         </CardContent>
       </Card>
 

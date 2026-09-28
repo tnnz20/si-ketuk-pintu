@@ -608,7 +608,10 @@ export default function SubmissionForm() {
                             value={formData.tujuan_instansi || null}
                             onValueChange={(val) => updateTujuanInstansi(val ?? '')}
                           >
-                            <SelectTrigger id="tujuan_instansi" className="font-body-md h-12 w-full rounded-xl border-outline-variant bg-surface px-4 py-3 text-body-md">
+                            <SelectTrigger
+                              id="tujuan_instansi"
+                              className="font-body-md h-12 w-full rounded-xl border-outline-variant bg-surface px-4 py-3 text-body-md"
+                            >
                               <SelectValue placeholder="Pilih tujuan instansi" />
                             </SelectTrigger>
                             <SelectContent className="max-h-56">
@@ -639,7 +642,10 @@ export default function SubmissionForm() {
                             onValueChange={(val) => updateField('tujuan_bagian', val ?? '')}
                             disabled={!formData.tujuan_instansi}
                           >
-                            <SelectTrigger id="tujuan_bagian" className="font-body-md h-12 w-full rounded-xl border-outline-variant bg-surface px-4 py-3 text-body-md disabled:cursor-not-allowed disabled:bg-surface-alt disabled:text-on-surface-variant">
+                            <SelectTrigger
+                              id="tujuan_bagian"
+                              className="font-body-md h-12 w-full rounded-xl border-outline-variant bg-surface px-4 py-3 text-body-md disabled:cursor-not-allowed disabled:bg-surface-alt disabled:text-on-surface-variant"
+                            >
                               <SelectValue placeholder="Pilih tujuan bagian" />
                             </SelectTrigger>
                             <SelectContent className="max-h-56">

@@ -61,37 +61,37 @@ export default function Archives() {
               value={date}
               onChange={setDate}
               placeholder="Filter tanggal kunjungan..."
-            aria-label="Filter tanggal kunjungan"
-            className="w-full md:w-56"
+              aria-label="Filter tanggal kunjungan"
+              className="w-full md:w-56"
+            />
+          </div>
+
+          {/* Table Content */}
+          <ArchiveTableContent
+            archives={archives}
+            loading={loading}
+            onViewDetail={(id) => navigate(`/dashboard/archives/${id}`)}
+            onCopyToken={async (row) => {
+              try {
+                await navigator.clipboard.writeText(row.token);
+                toast.success('Token disalin ke clipboard.');
+              } catch {
+                toast.error('Gagal menyalin token.');
+              }
+            }}
           />
-        </div>
 
-        {/* Table Content */}
-        <ArchiveTableContent
-          archives={archives}
-          loading={loading}
-          onViewDetail={(id) => navigate(`/dashboard/archives/${id}`)}
-          onCopyToken={async (row) => {
-            try {
-              await navigator.clipboard.writeText(row.token);
-              toast.success('Token disalin ke clipboard.');
-            } catch {
-              toast.error('Gagal menyalin token.');
-            }
-          }}
-        />
-
-        {/* Pagination */}
-        <RequestPagination
-          page={page}
-          pageSize={pageSize}
-          totalPages={totalPages}
-          onPageChange={setPage}
-          onPageSizeChange={(value: number) => {
-            setPageSize(value);
-            setPage(1);
-          }}
-        />
+          {/* Pagination */}
+          <RequestPagination
+            page={page}
+            pageSize={pageSize}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            onPageSizeChange={(value: number) => {
+              setPageSize(value);
+              setPage(1);
+            }}
+          />
         </CardContent>
       </Card>
     </div>

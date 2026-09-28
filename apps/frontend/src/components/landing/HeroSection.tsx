@@ -162,7 +162,10 @@ export default function HeroSection() {
                     Token Kunjungan
                   </span>
                 </div>
-                <Badge variant="outline" className="rounded-full border-emerald-500/20 bg-emerald-500/10 px-3 py-1 font-label text-label-sm text-emerald-700">
+                <Badge
+                  variant="outline"
+                  className="rounded-full border-emerald-500/20 bg-emerald-500/10 px-3 py-1 font-label text-label-sm text-emerald-700"
+                >
                   Aktif
                 </Badge>
               </CardHeader>
@@ -170,7 +173,9 @@ export default function HeroSection() {
               {/* Token display */}
               <CardContent className="p-0">
                 <div className="mb-6 rounded-xl bg-surface-container p-4">
-                  <p className="mb-1 font-label text-label-sm text-on-surface-variant">Nomor Token</p>
+                  <p className="mb-1 font-label text-label-sm text-on-surface-variant">
+                    Nomor Token
+                  </p>
                   <div className="flex items-center justify-between">
                     <code className="font-mono text-lg font-semibold tracking-wider text-on-surface">
                       {sampleToken}
@@ -193,13 +198,17 @@ export default function HeroSection() {
                 {/* Details */}
                 <div className="space-y-3">
                   <div className="flex justify-between border-b border-surface-alt pb-2">
-                    <span className="font-label text-label-sm text-on-surface-variant">Instansi</span>
+                    <span className="font-label text-label-sm text-on-surface-variant">
+                      Instansi
+                    </span>
                     <span className="font-label text-label-sm font-medium text-on-surface">
                       Dinas Komunikasi
                     </span>
                   </div>
                   <div className="flex justify-between border-b border-surface-alt pb-2">
-                    <span className="font-label text-label-sm text-on-surface-variant">Tanggal</span>
+                    <span className="font-label text-label-sm text-on-surface-variant">
+                      Tanggal
+                    </span>
                     <span className="font-label text-label-sm font-medium text-on-surface">
                       15 Agustus 2026
                     </span>

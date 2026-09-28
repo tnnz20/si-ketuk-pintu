@@ -231,7 +231,7 @@ export default function Login() {
 
           <Card className="border border-surface-alt bg-surface-container-lowest p-8 shadow-[0_24px_60px_-24px_rgba(26,28,22,0.18)] md:p-10">
             {/* Header */}
-            <CardHeader className="mb-8 flex flex-col items-center gap-4 p-0 text-center border-0">
+            <CardHeader className="mb-8 flex flex-col items-center gap-4 border-0 p-0 text-center">
               <motion.div
                 initial={reduce ? undefined : { scale: 0.8, opacity: 0 }}
                 animate={reduce ? undefined : { scale: 1, opacity: 1 }}
@@ -246,7 +246,10 @@ export default function Login() {
                 />
               </motion.div>
               <div>
-                <Badge variant="outline" className="mb-3 inline-flex items-center gap-2 rounded-full border-emerald-500/20 bg-emerald-500/5 px-3 py-1 font-label text-label-sm text-emerald-700">
+                <Badge
+                  variant="outline"
+                  className="mb-3 inline-flex items-center gap-2 rounded-full border-emerald-500/20 bg-emerald-500/5 px-3 py-1 font-label text-label-sm text-emerald-700"
+                >
                   <span className="relative flex h-1.5 w-1.5">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
                     <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
@@ -307,7 +310,10 @@ export default function Login() {
 
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="font-label-md text-label-md text-on-surface">
+                    <Label
+                      htmlFor="password"
+                      className="font-label-md text-label-md text-on-surface"
+                    >
                       Password
                     </Label>
                     <Link

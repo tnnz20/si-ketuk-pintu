@@ -62,7 +62,7 @@ export default function TodaySchedule({ requests }: TodayScheduleProps) {
         </CardContent>
       </div>
 
-      <CardFooter className="p-0 pt-3 border-0">
+      <CardFooter className="border-0 p-0 pt-3">
         <button
           type="button"
           onClick={() => navigate('/dashboard/requests')}
