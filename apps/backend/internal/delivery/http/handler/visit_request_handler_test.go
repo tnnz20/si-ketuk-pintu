@@ -33,7 +33,7 @@ func TestCreateVerifiesTurnstileTokenBeforeProcessing(t *testing.T) {
 	logger := logrus.New()
 	logger.SetOutput(io.Discard)
 	verifier := &failTurnstile{}
-	controller := NewVisitRequestHandler(nil, nil, logger, "", verifier)
+	controller := NewVisitRequestHandler(nil, nil, logger, nil, verifier)
 
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)

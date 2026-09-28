@@ -17,6 +17,7 @@ import (
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/middleware"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/model"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/service"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
 )
 
@@ -25,20 +26,20 @@ import (
 type AdminRequestHandler struct {
 	visitRequestUsecase *usecase.VisitRequestUsecase
 	logger              *logrus.Logger
-	uploadDir           string
+	uploadService       service.UploadService
 }
 
-// NewAdminRequestHandler creates an AdminRequestHandler serving files
-// from uploadDir.
+// NewAdminRequestHandler creates an AdminRequestHandler resolving files
+// via uploadService.
 func NewAdminRequestHandler(
 	visitRequestUsecase *usecase.VisitRequestUsecase,
 	logger *logrus.Logger,
-	uploadDir string,
+	uploadService service.UploadService,
 ) *AdminRequestHandler {
 	return &AdminRequestHandler{
 		visitRequestUsecase: visitRequestUsecase,
 		logger:              logger,
-		uploadDir:           uploadDir,
+		uploadService:       uploadService,
 	}
 }
 
@@ -447,14 +448,23 @@ func (h *AdminRequestHandler) DownloadAttachment(ginContext *gin.Context) {
 		return
 	}
 
-	if (attachmentType == "surat_persetujuan" && visitRequest.Status != "approved") || (attachmentType == "surat_reschedule" && visitRequest.Status != "pending") {
+	if attachmentType == "surat_persetujuan" && visitRequest.Status != "approved" {
 		ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "approval letter not found"})
+		return
+	}
+	if attachmentType == "surat_reschedule" && visitRequest.Status != "pending" {
+		ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "reschedule letter not found"})
 		return
 	}
 
 	for _, attachment := range visitRequest.Attachments {
 		if attachment.AttachmentType == attachmentType {
-			filePath := filepath.Join(h.uploadDir, attachment.StorageKey)
+			filePath, err := h.uploadService.ResolvePath(attachment.StorageKey)
+			if err != nil {
+				h.logger.WithError(err).Warn("invalid attachment storage path")
+				ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "file not found"})
+				return
+			}
 			if _, err := os.Stat(filePath); err != nil {
 				h.logger.WithError(err).Warn("attachment file not found on disk")
 				ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "file not found"})
@@ -621,7 +631,12 @@ func (h *AdminRequestHandler) DownloadArchiveAttachment(ginContext *gin.Context)
 		return
 	}
 
-	filePath := filepath.Join(h.uploadDir, filepath.FromSlash(attachment.StorageKey))
+	filePath, err := h.uploadService.ResolvePath(attachment.StorageKey)
+	if err != nil {
+		h.logger.WithError(err).Warn("invalid archive attachment storage path")
+		ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "file not found"})
+		return
+	}
 	file, err := os.Open(filePath)
 	if err != nil {
 		h.logger.WithError(err).Warn("archive attachment file not found on disk")

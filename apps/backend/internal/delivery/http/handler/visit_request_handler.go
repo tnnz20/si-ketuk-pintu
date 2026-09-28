@@ -17,6 +17,7 @@ import (
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/entity"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/model"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/service"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
 )
 
@@ -45,25 +46,25 @@ type VisitRequestHandler struct {
 	visitRequestUsecase *usecase.VisitRequestUsecase
 	qrUsecase           *usecase.QRUsecase
 	logger              *logrus.Logger
-	uploadDir           string
+	uploadService       service.UploadService
 	verifier            TurnstileVerifier
 }
 
 // NewVisitRequestHandler creates a VisitRequestHandler. When verifier
-// is non-nil, submitters must pass Turnstile verification; files are served
-// from uploadDir.
+// is non-nil, submitters must pass Turnstile verification; files are resolved
+// via uploadService.
 func NewVisitRequestHandler(
 	visitRequestUsecase *usecase.VisitRequestUsecase,
 	qrUsecase *usecase.QRUsecase,
 	logger *logrus.Logger,
-	uploadDir string,
+	uploadService service.UploadService,
 	verifier TurnstileVerifier,
 ) *VisitRequestHandler {
 	return &VisitRequestHandler{
 		visitRequestUsecase: visitRequestUsecase,
 		qrUsecase:           qrUsecase,
 		logger:              logger,
-		uploadDir:           uploadDir,
+		uploadService:       uploadService,
 		verifier:            verifier,
 	}
 }
@@ -255,23 +256,8 @@ func (h *VisitRequestHandler) DownloadAttachment(ginContext *gin.Context) {
 
 	for _, attachment := range visitRequest.Attachments {
 		if attachment.AttachmentType == attachmentType && (attachmentID == 0 || attachment.ID == attachmentID) {
-			uploadRoot, err := filepath.Abs(h.uploadDir)
+			resolvedPath, err := h.uploadService.ResolvePath(attachment.StorageKey)
 			if err != nil {
-				ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
-				return
-			}
-			filePath, err := filepath.Abs(filepath.Join(uploadRoot, attachment.StorageKey))
-			if err != nil || (filePath != uploadRoot && !strings.HasPrefix(filePath, uploadRoot+string(filepath.Separator))) {
-				ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "file not found"})
-				return
-			}
-			resolvedRoot, err := filepath.EvalSymlinks(uploadRoot)
-			if err != nil {
-				ginContext.JSON(http.StatusInternalServerError, model.ErrorResponse{Error: "internal server error"})
-				return
-			}
-			resolvedPath, err := filepath.EvalSymlinks(filePath)
-			if err != nil || (resolvedPath != resolvedRoot && !strings.HasPrefix(resolvedPath, resolvedRoot+string(filepath.Separator))) {
 				ginContext.JSON(http.StatusNotFound, model.ErrorResponse{Error: "file not found"})
 				return
 			}

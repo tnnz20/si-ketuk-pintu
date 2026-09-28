@@ -87,14 +87,14 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 		visitRequestUsecase,
 		qrUsecase,
 		logger,
-		applicationConfig.UploadDir,
+		uploadService,
 		turnstileVerifier,
 	)
 	adminAuthHandler := handler.NewAdminAuthHandler(authUsecase, logger, turnstileVerifier)
 	adminRequestHandler := handler.NewAdminRequestHandler(
 		visitRequestUsecase,
 		logger,
-		applicationConfig.UploadDir,
+		uploadService,
 	)
 
 	// Middleware

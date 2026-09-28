@@ -19,6 +19,7 @@ import (
 
 type listStoreFake struct {
 	lastFilter model.ListFilter
+	request    *entity.VisitRequest
 }
 
 func (s *listStoreFake) Create(context.Context, *entity.VisitRequest) error { return nil }
@@ -39,7 +40,7 @@ func (s *listStoreFake) FindByToken(context.Context, string) (*entity.VisitReque
 	return nil, nil
 }
 func (s *listStoreFake) FindByID(context.Context, uuid.UUID) (*entity.VisitRequest, error) {
-	return nil, nil
+	return s.request, nil
 }
 func (s *listStoreFake) List(_ context.Context, filter model.ListFilter) ([]entity.VisitRequest, int64, error) {
 	s.lastFilter = filter
@@ -82,7 +83,7 @@ func TestListMalformedPaginationDefaultsToPage1Size20(t *testing.T) {
 			logger := logrus.New()
 			logger.Out = testDiscard{}
 			uc := usecase.NewVisitRequestUsecase(store, nil, logger, nil)
-			c := NewAdminRequestHandler(uc, logger, "")
+			c := NewAdminRequestHandler(uc, logger, nil)
 			router := gin.New()
 			router.GET("/requests", c.List)
 
@@ -106,6 +107,42 @@ func TestListMalformedPaginationDefaultsToPage1Size20(t *testing.T) {
 				t.Fatalf("response page=%d page_size=%d, want %d/%d", body.Page, body.PageSize, tc.wantPage, tc.wantSize)
 			}
 		})
+	}
+}
+
+func TestDownloadAttachment_RescheduleLetterStatusGated(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	logger := logrus.New()
+	logger.Out = testDiscard{}
+
+	reqID := uuid.New()
+	store := &listStoreFake{
+		request: &entity.VisitRequest{
+			ID:     reqID,
+			Status: "approved",
+		},
+	}
+	uc := usecase.NewVisitRequestUsecase(store, nil, logger, nil)
+	c := NewAdminRequestHandler(uc, logger, nil)
+
+	router := gin.New()
+	router.GET("/requests/:id/attachments/:type", c.DownloadAttachment)
+
+	url := fmt.Sprintf("/requests/%s/attachments/surat_reschedule", reqID)
+	req := httptest.NewRequest(http.MethodGet, url, nil)
+	resp := httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+
+	if resp.Code != http.StatusNotFound {
+		t.Fatalf("status = %d, want 404", resp.Code)
+	}
+
+	var body model.ErrorResponse
+	if err := json.Unmarshal(resp.Body.Bytes(), &body); err != nil {
+		t.Fatalf("unmarshal error: %v", err)
+	}
+	if body.Error != "reschedule letter not found" {
+		t.Fatalf("error = %q, want 'reschedule letter not found'", body.Error)
 	}
 }
 
