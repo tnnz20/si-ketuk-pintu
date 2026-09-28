@@ -1,7 +1,7 @@
-﻿import { CheckCircle, Copy, Download } from 'lucide-react';
+import { CheckCircle, Copy, Download } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/shared/Tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { downloadQR } from '@/lib/api/requests';
 import Seo from '@/components/shared/Seo';
 

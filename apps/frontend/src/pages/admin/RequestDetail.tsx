@@ -1,4 +1,4 @@
-﻿import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { toast } from 'sonner';
@@ -7,7 +7,7 @@ import ApprovalLetterDialog from '@/components/requests/ApprovalLetterDialog';
 import RescheduleDialog from '@/components/requests/RescheduleDialog';
 import LoadingOverlay from '@/components/shared/LoadingOverlay';
 import PdfPreviewModal from '@/components/shared/PdfPreviewModal';
-import Skeleton from '@/components/shared/Skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 import RequestActionsDocuments from '@/components/requests/RequestDetailActionsDocuments';
 import RequestAuditHistory from '@/components/requests/RequestDetailAuditHistory';
 import RequestDetails from '@/components/requests/RequestDetailDetails';

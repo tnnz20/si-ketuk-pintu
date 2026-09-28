@@ -1,7 +1,7 @@
-﻿import type { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { CheckCircle2, Clock, Users } from 'lucide-react';
 import { useNavigate } from 'react-router';
-import Skeleton from '@/components/shared/Skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 import StatusBadge from '@/components/shared/StatusBadge';
 import { formatDate } from '@/lib/dateTime';
 import type { PaginatedRequestsResponse, StatsResponse } from '@/types/api';

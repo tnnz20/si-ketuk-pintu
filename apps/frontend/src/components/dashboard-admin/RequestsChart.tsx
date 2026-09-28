@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { DateTime } from 'luxon';
 import {
   BarChart3,
@@ -18,7 +18,7 @@ import {
   INDO_MONTHS_SHORT,
   YEAR_RANGE,
 } from '@/constants/dashboard';
-import Skeleton from '@/components/shared/Skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 import { WITA_ZONE } from '@/lib/dateTime';
 import { getRequestsGraph } from '../../lib/api/requests';
 import MonthCalendarPicker from './MonthCalendarPicker';

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ImagePlus, Images, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -7,7 +7,7 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from '@/components/shared/Empty';
+} from '@/components/ui/empty';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import Dialog from '@/components/shared/Dialog';
 import DocumentationUploadDialog from '@/components/archives/DocumentationUploadDialog';

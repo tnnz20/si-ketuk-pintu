@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router';
 import { toast } from 'sonner';
 import AttendanceCard from '@/components/requests/AttendanceCard';
@@ -13,7 +13,7 @@ import SuratPermohonanCard from '@/components/requests/SuratPermohonanCard';
 import Dialog from '@/components/shared/Dialog';
 import Seo from '@/components/shared/Seo';
 import LoadingOverlay from '@/components/shared/LoadingOverlay';
-import Skeleton from '@/components/shared/Skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 import type { Attachment, VisitLetterAttachment, VisitRequest } from '@/types/api';
 import { ApiError } from '@/lib/api/client';
 import { downloadAttachmentByToken, getRequestByToken } from '@/lib/api/requests';

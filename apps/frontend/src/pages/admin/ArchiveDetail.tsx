@@ -1,4 +1,4 @@
-﻿import { ArrowLeft, SearchX } from 'lucide-react';
+import { ArrowLeft, SearchX } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import DaftarAbsenCard from '@/components/archives/DaftarAbsenCard';
@@ -8,7 +8,7 @@ import RequestAuditHistory from '@/components/requests/RequestDetailAuditHistory
 import RequestDetails from '@/components/requests/RequestDetailDetails';
 import RequestGuests from '@/components/requests/RequestDetailGuests';
 import RequestSummary from '@/components/requests/RequestDetailSummary';
-import Skeleton from '@/components/shared/Skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 import { getArchiveById } from '@/lib/api/archives';
 import type { Attachment, RequestDetailResponse } from '@/types/api';
 

@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { ClipboardList, Download, FileText, Trash2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
@@ -9,7 +9,7 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from '@/components/shared/Empty';
+} from '@/components/ui/empty';
 import type { Attachment } from '@/types/api';
 import { formatBytes } from '@/lib/formatBytes';
 import {

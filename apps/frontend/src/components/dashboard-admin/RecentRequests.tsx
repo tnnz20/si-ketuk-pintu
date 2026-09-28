@@ -1,4 +1,4 @@
-﻿import { ArrowRight, Eye, FileText, Inbox } from 'lucide-react';
+import { ArrowRight, Eye, FileText, Inbox } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import {
   Empty,
@@ -6,10 +6,10 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from '@/components/shared/Empty';
-import Skeleton from '@/components/shared/Skeleton';
+} from '@/components/ui/empty';
+import { Skeleton } from '@/components/ui/skeleton';
 import StatusBadge from '@/components/shared/StatusBadge';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/shared/Tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { PaginatedRequestsResponse } from '@/types/api';
 import { formatDate } from '@/lib/dateTime';
 

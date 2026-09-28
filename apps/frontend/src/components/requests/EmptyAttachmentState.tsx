@@ -1,11 +1,11 @@
-﻿import { ClipboardList, Images } from 'lucide-react';
+import { ClipboardList, Images } from 'lucide-react';
 import {
   Empty,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from '@/components/shared/Empty';
+} from '@/components/ui/empty';
 
 interface EmptyAttachmentStateProps {
   icon: 'images' | 'clipboard';
