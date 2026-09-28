@@ -12,6 +12,7 @@ import (
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/entity"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/model"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository/persistence"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/ssh"
 )
 
@@ -59,7 +60,7 @@ func runSeed(ctx context.Context, databaseURL string, logger *logrus.Logger) err
 	}
 	defer sqlDatabase.Close()
 
-	store := repository.NewVisitRequestRepository(database)
+	store := persistence.NewVisitRequestRepository(database)
 	requests := seedVisitRequests(time.Now())
 	created := 0
 	for _, request := range requests {
@@ -76,7 +77,7 @@ func runSeed(ctx context.Context, databaseURL string, logger *logrus.Logger) err
 	return nil
 }
 
-func seedVisitRequest(ctx context.Context, store *repository.VisitRequestRepository, request *entity.VisitRequest) (bool, error) {
+func seedVisitRequest(ctx context.Context, store repository.VisitRequestRepository, request *entity.VisitRequest) (bool, error) {
 	existing, err := store.FindByToken(ctx, request.Token)
 	if err != nil && !errors.Is(err, repository.ErrVisitRequestNotFound) {
 		return false, fmt.Errorf("check visit request %s: %w", request.Token, err)

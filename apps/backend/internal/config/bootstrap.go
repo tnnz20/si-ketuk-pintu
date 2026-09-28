@@ -9,7 +9,7 @@ import (
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/handler"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/middleware"
 	httproute "github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/delivery/http/route"
-	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository/persistence"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/service"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/turnstile"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
@@ -52,10 +52,10 @@ func NewBootstrap(ctx context.Context) (*Bootstrap, error) {
 	}
 
 	// Repositories
-	healthRepository := repository.NewDatabaseHealthRepository(database)
-	administratorRepository := repository.NewAdministratorRepository(database)
-	visitRequestRepository := repository.NewVisitRequestRepository(database)
-	auditEventRepository := repository.NewAuditEventRepository(database)
+	healthRepository := persistence.NewHealthRepository(database)
+	administratorRepository := persistence.NewAdministratorRepository(database)
+	visitRequestRepository := persistence.NewVisitRequestRepository(database)
+	auditEventRepository := persistence.NewAuditEventRepository(database)
 
 	// Services
 	uploadService := service.NewFileSystemUploadService(applicationConfig.UploadDir)

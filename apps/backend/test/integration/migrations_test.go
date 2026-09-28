@@ -14,6 +14,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/config"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository"
+	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/repository/persistence"
 	"github.com/tnnz20/si-ketuk-pintu/apps/backend/internal/usecase"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/postgres"
@@ -321,7 +322,7 @@ func assertAdministratorSeedIsCreateOnly(t *testing.T, databaseURL string) {
 	}
 
 	seedUsecase := usecase.NewSeedAdministratorUsecase(
-		repository.NewAdministratorRepository(database),
+		persistence.NewAdministratorRepository(database),
 	)
 	input := usecase.SeedAdministratorInput{
 		Username: "migration-test-admin",
