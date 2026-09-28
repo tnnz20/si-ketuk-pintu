@@ -1,18 +1,22 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { ClipboardList, Download, FileText, Trash2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
-import ConfirmDialog from '@components/shared/ConfirmDialog';
-import Dialog from '@components/shared/Dialog';
+import ConfirmDialog from '@/components/shared/ConfirmDialog';
+import Dialog from '@/components/shared/Dialog';
 import {
   Empty,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from '@components/shared/Empty';
-import type { Attachment } from '@app-types/api';
-import { formatBytes } from '@lib/formatBytes';
-import { deleteDaftarAbsen, downloadArchiveAttachment, uploadDaftarAbsen } from '@lib/api/archives';
+} from '@/components/shared/Empty';
+import type { Attachment } from '@/types/api';
+import { formatBytes } from '@/lib/formatBytes';
+import {
+  deleteDaftarAbsen,
+  downloadArchiveAttachment,
+  uploadDaftarAbsen,
+} from '@/lib/api/archives';
 
 const MAX_PDF_BYTES = 5 * 1024 * 1024; // 5 MB
 

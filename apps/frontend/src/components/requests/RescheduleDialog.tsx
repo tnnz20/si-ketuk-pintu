@@ -1,9 +1,9 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { z } from 'zod';
 import type { FormEvent } from 'react';
-import Dialog from '@components/shared/Dialog';
-import { Select } from '@components/shared/Select';
-import { TimePicker } from '@components/submission/TimePicker';
+import Dialog from '@/components/shared/Dialog';
+import { Select } from '@/components/shared/Select';
+import { TimePicker } from '@/components/submission/TimePicker';
 
 const schema = z.object({
   nomor: z.string().trim().min(1, 'Nomor wajib diisi.'),

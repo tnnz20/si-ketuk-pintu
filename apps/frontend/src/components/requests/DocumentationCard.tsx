@@ -1,6 +1,6 @@
-import { Eye, Images } from 'lucide-react';
-import type { Attachment } from '@app-types/api';
-import EmptyAttachmentState from '@components/requests/EmptyAttachmentState';
+﻿import { Eye, Images } from 'lucide-react';
+import type { Attachment } from '@/types/api';
+import EmptyAttachmentState from '@/components/requests/EmptyAttachmentState';
 
 interface DocumentationCardProps {
   images: Attachment[];

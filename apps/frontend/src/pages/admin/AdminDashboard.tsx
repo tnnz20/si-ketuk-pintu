@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import SummaryCards from '@components/dashboard-admin/SummaryCards';
-import TodaySchedule from '@components/dashboard-admin/TodaySchedule';
-import RecentRequests from '@components/dashboard-admin/RecentRequests';
-import RequestsChart from '@components/dashboard-admin/RequestsChart';
-import { getRequests, getStats } from '@lib/api/requests';
-import type { PaginatedRequestsResponse, StatsResponse } from '@app-types/api';
+import SummaryCards from '@/components/dashboard-admin/SummaryCards';
+import TodaySchedule from '@/components/dashboard-admin/TodaySchedule';
+import RecentRequests from '@/components/dashboard-admin/RecentRequests';
+import RequestsChart from '@/components/dashboard-admin/RequestsChart';
+import { getRequests, getStats } from '@/lib/api/requests';
+import type { PaginatedRequestsResponse, StatsResponse } from '@/types/api';
 
 type RequestItem = PaginatedRequestsResponse['data'][number];
 

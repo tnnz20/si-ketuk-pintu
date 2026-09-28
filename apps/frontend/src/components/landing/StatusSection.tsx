@@ -1,9 +1,9 @@
-import { motion, useReducedMotion } from 'motion/react';
+﻿import { motion, useReducedMotion } from 'motion/react';
 import { FileText, LoaderCircle, Search, Shield, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { getRequestByToken } from '@lib/api/requests';
-import { fadeInUp, staggerContainer } from '@constants/animations';
+import { getRequestByToken } from '@/lib/api/requests';
+import { fadeInUp, staggerContainer } from '@/constants/animations';
 
 export default function StatusSection() {
   const reduce = useReducedMotion();

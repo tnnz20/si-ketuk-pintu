@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from 'motion/react';
+﻿import { motion, useReducedMotion } from 'motion/react';
 import {
   ArrowLeft,
   Building2,
@@ -22,29 +22,22 @@ import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { fadeInUp, staggerContainer } from '@constants/animations';
-import {
-  TUJUAN_BAGIAN_OPTIONS,
-  TUJUAN_INSTANSI_OPTIONS,
-} from '@constants/destinations';
-import { createVisitRequest } from '@lib/api/requests';
-import { getTurnstileToken, turnstileEnabled } from '@lib/turnstile';
-import Seo from '@components/shared/Seo';
-import { DocumentsStep } from '@components/submission/DocumentsStep';
-import { FileUploadCard } from '@components/submission/FileUploadCard';
-import { FormNavigation } from '@components/submission/FormNavigation';
-import { GuestsStep } from '@components/submission/GuestsStep';
-import { InstitutionStep } from '@components/submission/InstitutionStep';
-import { Select } from '@components/shared/Select';
-import { StepIndicators } from '@components/submission/StepIndicators';
-import { TimePicker } from '@components/submission/TimePicker';
-import { VisitStep } from '@components/submission/VisitStep';
-import {
-  guestSchema,
-  tujuanPairCheck,
-  visitRequestBaseSchema,
-} from '@schemas/visitRequest';
-import { dateInputToEpoch, timeInputToEpoch } from '@lib/dateTime';
+import { fadeInUp, staggerContainer } from '@/constants/animations';
+import { TUJUAN_BAGIAN_OPTIONS, TUJUAN_INSTANSI_OPTIONS } from '@/constants/destinations';
+import { createVisitRequest } from '@/lib/api/requests';
+import { getTurnstileToken, turnstileEnabled } from '@/lib/turnstile';
+import Seo from '@/components/shared/Seo';
+import { DocumentsStep } from '@/components/submission/DocumentsStep';
+import { FileUploadCard } from '@/components/submission/FileUploadCard';
+import { FormNavigation } from '@/components/submission/FormNavigation';
+import { GuestsStep } from '@/components/submission/GuestsStep';
+import { InstitutionStep } from '@/components/submission/InstitutionStep';
+import { Select } from '@/components/shared/Select';
+import { StepIndicators } from '@/components/submission/StepIndicators';
+import { TimePicker } from '@/components/submission/TimePicker';
+import { VisitStep } from '@/components/submission/VisitStep';
+import { guestSchema, tujuanPairCheck, visitRequestBaseSchema } from '@/schemas/visitRequest';
+import { dateInputToEpoch, timeInputToEpoch } from '@/lib/dateTime';
 
 interface Guest {
   name: string;
@@ -924,7 +917,6 @@ export default function SubmissionForm() {
           </motion.div>
         </div>
       </section>
-
     </div>
   );
 }

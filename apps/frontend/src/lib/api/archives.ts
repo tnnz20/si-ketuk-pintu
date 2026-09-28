@@ -1,5 +1,5 @@
-import { api } from './client';
-import type { Attachment, PaginatedRequestsResponse, RequestDetailResponse } from '@app-types/api';
+﻿import { api } from './client';
+import type { Attachment, PaginatedRequestsResponse, RequestDetailResponse } from '@/types/api';
 
 export function getArchives(
   page = 1,

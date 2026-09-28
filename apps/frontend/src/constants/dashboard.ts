@@ -1,6 +1,6 @@
-import { DateTime } from 'luxon';
+﻿import { DateTime } from 'luxon';
 
-import { WITA_ZONE } from '@lib/dateTime';
+import { WITA_ZONE } from '@/lib/dateTime';
 
 export const INDO_DAYS = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 export const INDO_MONTHS = [

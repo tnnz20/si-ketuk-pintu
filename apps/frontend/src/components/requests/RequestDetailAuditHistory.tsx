@@ -1,6 +1,6 @@
-import { History } from 'lucide-react';
-import type { AuditEvent } from '@app-types/api';
-import { formatDateTime } from '@lib/dateTime';
+﻿import { History } from 'lucide-react';
+import type { AuditEvent } from '@/types/api';
+import { formatDateTime } from '@/lib/dateTime';
 
 interface RequestAuditHistoryProps {
   events: AuditEvent[];
@@ -52,7 +52,9 @@ export default function RequestDetailAuditHistory({ events }: RequestAuditHistor
                 </p>
                 <p className="mt-0.5 text-2xs font-medium text-civic-muted">
                   {formatDateTime(event.occurred_at)} • oleh{' '}
-                  <span className="font-bold text-civic-dark">{actorLabels[event.actor_type] || event.actor_type}</span>
+                  <span className="font-bold text-civic-dark">
+                    {actorLabels[event.actor_type] || event.actor_type}
+                  </span>
                 </p>
               </div>
             );

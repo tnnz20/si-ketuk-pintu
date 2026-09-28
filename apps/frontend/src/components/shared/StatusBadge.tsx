@@ -1,7 +1,7 @@
-import { statusColors, statusDotColors, statusLabels } from '@constants/status';
-import type { Status } from '@app-types/status';
+﻿import { statusColors, statusDotColors, statusLabels } from '@/constants/status';
+import type { Status } from '@/types/status';
 
-export { type Status } from '@app-types/status';
+export { type Status } from '@/types/status';
 
 interface StatusBadgeProps {
   status: Status;

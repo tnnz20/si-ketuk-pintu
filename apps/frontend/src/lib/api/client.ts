@@ -20,7 +20,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
 
   if (!response.ok) {
     const data = await response.json().catch(() => ({ error: response.statusText }));
-		throw new ApiError(data.error || response.statusText, response.status);
+    throw new ApiError(data.error || response.statusText, response.status);
   }
 
   if (response.headers.get('Content-Type')?.includes('application/json')) {

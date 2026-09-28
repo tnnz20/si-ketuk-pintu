@@ -1,7 +1,7 @@
-import { motion, useReducedMotion } from 'motion/react';
+﻿import { motion, useReducedMotion } from 'motion/react';
 import { ArrowRight, ChevronDown, Clock, FileText, QrCode, ShieldCheck, Zap } from 'lucide-react';
 import { Link } from 'react-router';
-import { fadeInUp, staggerContainer, scaleIn } from '@constants/animations';
+import { fadeInUp, staggerContainer, scaleIn } from '@/constants/animations';
 
 const steps = [
   {

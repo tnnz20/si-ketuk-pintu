@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { DateTime } from 'luxon';
 import {
   BarChart3,
@@ -8,8 +8,8 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import type { ChartItem, ChartPeriod } from '@app-types/dashboard';
-import type { GraphPoint } from '@app-types/api';
+import type { ChartItem, ChartPeriod } from '@/types/dashboard';
+import type { GraphPoint } from '@/types/api';
 import {
   DEFAULT_MONTH,
   DEFAULT_YEAR,
@@ -17,9 +17,9 @@ import {
   INDO_MONTHS,
   INDO_MONTHS_SHORT,
   YEAR_RANGE,
-} from '@constants/dashboard';
-import Skeleton from '@components/shared/Skeleton';
-import { WITA_ZONE } from '@lib/dateTime';
+} from '@/constants/dashboard';
+import Skeleton from '@/components/shared/Skeleton';
+import { WITA_ZONE } from '@/lib/dateTime';
 import { getRequestsGraph } from '../../lib/api/requests';
 import MonthCalendarPicker from './MonthCalendarPicker';
 import ChartBars from './ChartBars';

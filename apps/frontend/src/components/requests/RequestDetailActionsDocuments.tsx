@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { DateTime } from 'luxon';
 import {
   Calendar as CalendarIcon,
@@ -14,10 +14,10 @@ import {
   Trash2,
   XCircle,
 } from 'lucide-react';
-import StatusBadge from '@components/shared/StatusBadge';
-import type { Attachment, VisitRequest } from '@app-types/api';
-import { INDO_MONTHS } from '@constants/dashboard';
-import { WITA_ZONE } from '@lib/dateTime';
+import StatusBadge from '@/components/shared/StatusBadge';
+import type { Attachment, VisitRequest } from '@/types/api';
+import { INDO_MONTHS } from '@/constants/dashboard';
+import { WITA_ZONE } from '@/lib/dateTime';
 
 type OriginalAttachmentType = Extract<
   Attachment['attachment_type'],

@@ -1,7 +1,7 @@
-import { Calendar as CalendarIcon, ChevronRight, Clock } from 'lucide-react';
+﻿import { Calendar as CalendarIcon, ChevronRight, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router';
-import type { PaginatedRequestsResponse } from '@app-types/api';
-import { formatDate, todayEpoch } from '@lib/dateTime';
+import type { PaginatedRequestsResponse } from '@/types/api';
+import { formatDate, todayEpoch } from '@/lib/dateTime';
 
 type RequestItem = PaginatedRequestsResponse['data'][number];
 

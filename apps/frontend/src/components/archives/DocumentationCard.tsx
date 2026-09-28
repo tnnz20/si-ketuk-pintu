@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { ImagePlus, Images, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -7,12 +7,12 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from '@components/shared/Empty';
-import ConfirmDialog from '@components/shared/ConfirmDialog';
-import Dialog from '@components/shared/Dialog';
-import DocumentationUploadDialog from '@components/archives/DocumentationUploadDialog';
-import type { Attachment } from '@app-types/api';
-import { deleteDocumentationImage, downloadArchiveAttachment } from '@lib/api/archives';
+} from '@/components/shared/Empty';
+import ConfirmDialog from '@/components/shared/ConfirmDialog';
+import Dialog from '@/components/shared/Dialog';
+import DocumentationUploadDialog from '@/components/archives/DocumentationUploadDialog';
+import type { Attachment } from '@/types/api';
+import { deleteDocumentationImage, downloadArchiveAttachment } from '@/lib/api/archives';
 
 interface DocumentationCardProps {
   requestId: string;

@@ -1,4 +1,4 @@
-import type { Status } from '@app-types/status';
+﻿import type { Status } from '@/types/status';
 
 export const statusColors: Record<Status, string> = {
   pending: 'bg-civic-pendingBg text-civic-pendingText border border-civic-border/70',

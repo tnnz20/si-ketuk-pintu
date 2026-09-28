@@ -1,18 +1,18 @@
-import { ArrowLeft } from 'lucide-react';
+﻿import { ArrowLeft } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { toast } from 'sonner';
-import ConfirmDialog from '@components/shared/ConfirmDialog';
-import ApprovalLetterDialog from '@components/requests/ApprovalLetterDialog';
-import RescheduleDialog from '@components/requests/RescheduleDialog';
-import LoadingOverlay from '@components/shared/LoadingOverlay';
-import PdfPreviewModal from '@components/shared/PdfPreviewModal';
-import Skeleton from '@components/shared/Skeleton';
-import RequestActionsDocuments from '@components/requests/RequestDetailActionsDocuments';
-import RequestAuditHistory from '@components/requests/RequestDetailAuditHistory';
-import RequestDetails from '@components/requests/RequestDetailDetails';
-import RequestGuests from '@components/requests/RequestDetailGuests';
-import RequestSummary from '@components/requests/RequestDetailSummary';
+import ConfirmDialog from '@/components/shared/ConfirmDialog';
+import ApprovalLetterDialog from '@/components/requests/ApprovalLetterDialog';
+import RescheduleDialog from '@/components/requests/RescheduleDialog';
+import LoadingOverlay from '@/components/shared/LoadingOverlay';
+import PdfPreviewModal from '@/components/shared/PdfPreviewModal';
+import Skeleton from '@/components/shared/Skeleton';
+import RequestActionsDocuments from '@/components/requests/RequestDetailActionsDocuments';
+import RequestAuditHistory from '@/components/requests/RequestDetailAuditHistory';
+import RequestDetails from '@/components/requests/RequestDetailDetails';
+import RequestGuests from '@/components/requests/RequestDetailGuests';
+import RequestSummary from '@/components/requests/RequestDetailSummary';
 import {
   deleteApprovalLetter,
   deleteRescheduleLetter,
@@ -22,12 +22,12 @@ import {
   updateStatus,
   uploadApprovalLetter,
   uploadRescheduleLetter,
-} from '@lib/api/requests';
-import { generateApprovalLetterPdf } from '@lib/pdf/approvalLetterPdf';
-import { generateRescheduleLetterPdf } from '@lib/pdf/rescheduleLetterPdf';
-import { generateVisitRequestPdf } from '@lib/pdf/visitRequestPdf';
-import type { RequestDetailResponse } from '@app-types/api';
-import { dateInputToEpoch, timeInputToEpoch } from '@lib/dateTime';
+} from '@/lib/api/requests';
+import { generateApprovalLetterPdf } from '@/lib/pdf/approvalLetterPdf';
+import { generateRescheduleLetterPdf } from '@/lib/pdf/rescheduleLetterPdf';
+import { generateVisitRequestPdf } from '@/lib/pdf/visitRequestPdf';
+import type { RequestDetailResponse } from '@/types/api';
+import { dateInputToEpoch, timeInputToEpoch } from '@/lib/dateTime';
 
 export default function RequestDetail() {
   const navigate = useNavigate();

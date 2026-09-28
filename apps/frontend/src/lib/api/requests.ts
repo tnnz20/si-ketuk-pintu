@@ -1,5 +1,5 @@
-import { api } from './client';
-import type { ChartPeriod } from '@app-types/dashboard';
+﻿import { api } from './client';
+import type { ChartPeriod } from '@/types/dashboard';
 import type {
   CreateVisitRequestData,
   GraphResponse,
@@ -7,7 +7,7 @@ import type {
   RequestDetailResponse,
   StatsResponse,
   VisitRequest,
-} from '@app-types/api';
+} from '@/types/api';
 
 export async function createVisitRequest(
   request: CreateVisitRequestData & { turnstileToken: string },

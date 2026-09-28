@@ -1,7 +1,7 @@
-import jsPDF from 'jspdf';
+﻿import jsPDF from 'jspdf';
 import { DateTime } from 'luxon';
-import type { VisitRequest } from '@app-types/api';
-import { formatLongDate, formatTime, WITA_ZONE } from '@lib/dateTime';
+import type { VisitRequest } from '@/types/api';
+import { formatLongDate, formatTime, WITA_ZONE } from '@/lib/dateTime';
 
 const margin = 20;
 const pageWidth = 210;

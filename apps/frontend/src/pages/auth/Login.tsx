@@ -1,4 +1,4 @@
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+﻿import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -13,10 +13,10 @@ import {
 import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import { login } from '@lib/api/auth';
-import Seo from '@components/shared/Seo';
-import { loginSchema } from '@schemas/login';
-import { getTurnstileToken, turnstileEnabled } from '@lib/turnstile';
+import { login } from '@/lib/api/auth';
+import Seo from '@/components/shared/Seo';
+import { loginSchema } from '@/schemas/login';
+import { getTurnstileToken, turnstileEnabled } from '@/lib/turnstile';
 
 const features = [
   {

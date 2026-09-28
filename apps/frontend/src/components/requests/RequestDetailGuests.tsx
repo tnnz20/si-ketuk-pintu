@@ -1,5 +1,5 @@
-import { Users } from 'lucide-react';
-import type { Guest } from '@app-types/api';
+﻿import { Users } from 'lucide-react';
+import type { Guest } from '@/types/api';
 
 interface RequestGuestsProps {
   guests: Guest[];

@@ -1,7 +1,7 @@
-import { Calendar } from 'lucide-react';
-import StatusBadge from '@components/shared/StatusBadge';
-import type { VisitRequest } from '@app-types/api';
-import { formatDate, formatTime } from '@lib/dateTime';
+﻿import { Calendar } from 'lucide-react';
+import StatusBadge from '@/components/shared/StatusBadge';
+import type { VisitRequest } from '@/types/api';
+import { formatDate, formatTime } from '@/lib/dateTime';
 
 interface RequestSummaryProps {
   request: VisitRequest;

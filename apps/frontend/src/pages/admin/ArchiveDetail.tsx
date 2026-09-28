@@ -1,16 +1,16 @@
-import { ArrowLeft, SearchX } from 'lucide-react';
+﻿import { ArrowLeft, SearchX } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import DaftarAbsenCard from '@components/archives/DaftarAbsenCard';
-import AttachedDocumentsCard from '@components/archives/AttachedDocumentsCard';
-import DocumentationCard from '@components/archives/DocumentationCard';
-import RequestAuditHistory from '@components/requests/RequestDetailAuditHistory';
-import RequestDetails from '@components/requests/RequestDetailDetails';
-import RequestGuests from '@components/requests/RequestDetailGuests';
-import RequestSummary from '@components/requests/RequestDetailSummary';
-import Skeleton from '@components/shared/Skeleton';
-import { getArchiveById } from '@lib/api/archives';
-import type { Attachment, RequestDetailResponse } from '@app-types/api';
+import DaftarAbsenCard from '@/components/archives/DaftarAbsenCard';
+import AttachedDocumentsCard from '@/components/archives/AttachedDocumentsCard';
+import DocumentationCard from '@/components/archives/DocumentationCard';
+import RequestAuditHistory from '@/components/requests/RequestDetailAuditHistory';
+import RequestDetails from '@/components/requests/RequestDetailDetails';
+import RequestGuests from '@/components/requests/RequestDetailGuests';
+import RequestSummary from '@/components/requests/RequestDetailSummary';
+import Skeleton from '@/components/shared/Skeleton';
+import { getArchiveById } from '@/lib/api/archives';
+import type { Attachment, RequestDetailResponse } from '@/types/api';
 
 export default function ArchiveDetail() {
   const navigate = useNavigate();

@@ -1,5 +1,5 @@
-import { api } from './client';
-import type { LoginResponse } from '@app-types/api';
+﻿import { api } from './client';
+import type { LoginResponse } from '@/types/api';
 
 export async function login(
   identifier: string,

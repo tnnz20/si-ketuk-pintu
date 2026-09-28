@@ -1,7 +1,7 @@
-import { Eye, Paperclip } from 'lucide-react';
-import type { Attachment } from '@app-types/api';
-import { attachmentLabels } from '@constants/attachments';
-import type { VisitLetterAttachment } from '@app-types/api';
+﻿import { Eye, Paperclip } from 'lucide-react';
+import type { Attachment } from '@/types/api';
+import { attachmentLabels } from '@/constants/attachments';
+import type { VisitLetterAttachment } from '@/types/api';
 
 interface AttachedDocumentsCardProps {
   attachments: VisitLetterAttachment[];

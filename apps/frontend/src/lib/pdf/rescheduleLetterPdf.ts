@@ -1,8 +1,8 @@
-import jsPDF from 'jspdf';
+﻿import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { DateTime } from 'luxon';
-import type { VisitRequest } from '@app-types/api';
-import { WITA_ZONE } from '@lib/dateTime';
+import type { VisitRequest } from '@/types/api';
+import { WITA_ZONE } from '@/lib/dateTime';
 
 export interface Schedule {
   tanggal_kunjungan: number;

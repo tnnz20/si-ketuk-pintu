@@ -1,4 +1,4 @@
-import { MoreHorizontal } from 'lucide-react';
+﻿import { MoreHorizontal } from 'lucide-react';
 import { Link } from 'react-router';
 import {
   Empty,
@@ -6,11 +6,11 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from '@components/shared/Empty';
-import Skeleton from '@components/shared/Skeleton';
-import StatusBadge from '@components/shared/StatusBadge';
-import type { PaginatedRequestsResponse } from '@app-types/api';
-import { formatDate } from '@lib/dateTime';
+} from '@/components/shared/Empty';
+import Skeleton from '@/components/shared/Skeleton';
+import StatusBadge from '@/components/shared/StatusBadge';
+import type { PaginatedRequestsResponse } from '@/types/api';
+import { formatDate } from '@/lib/dateTime';
 
 interface ArchiveTableContentProps {
   archives: PaginatedRequestsResponse['data'];

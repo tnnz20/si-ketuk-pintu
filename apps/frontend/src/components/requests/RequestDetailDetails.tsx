@@ -1,5 +1,5 @@
-import { Building2, FileText, Mail, MapPin, Phone, User, Users } from 'lucide-react';
-import type { VisitRequest } from '@app-types/api';
+﻿import { Building2, FileText, Mail, MapPin, Phone, User, Users } from 'lucide-react';
+import type { VisitRequest } from '@/types/api';
 
 interface RequestDetailsProps {
   request: VisitRequest;

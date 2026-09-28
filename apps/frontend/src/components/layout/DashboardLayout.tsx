@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   Archive,
@@ -14,8 +14,8 @@ import {
 } from 'lucide-react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import { logout } from '@lib/api/auth';
-import ConfirmDialog from '@components/shared/ConfirmDialog';
+import { logout } from '@/lib/api/auth';
+import ConfirmDialog from '@/components/shared/ConfirmDialog';
 
 interface NavItem {
   icon: typeof LayoutDashboard;

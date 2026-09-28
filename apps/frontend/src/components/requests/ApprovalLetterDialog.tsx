@@ -1,8 +1,8 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { z } from 'zod';
 import type { FormEvent } from 'react';
-import Dialog from '@components/shared/Dialog';
-import { Select } from '@components/shared/Select';
+import Dialog from '@/components/shared/Dialog';
+import { Select } from '@/components/shared/Select';
 
 const schema = z.object({
   nomor: z.string().trim().min(1, 'Nomor surat wajib diisi.'),

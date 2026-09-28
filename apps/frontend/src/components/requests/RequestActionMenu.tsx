@@ -1,5 +1,5 @@
-import { Copy, Eye, Trash2 } from 'lucide-react';
-import type { PaginatedRequestsResponse } from '@app-types/api';
+﻿import { Copy, Eye, Trash2 } from 'lucide-react';
+import type { PaginatedRequestsResponse } from '@/types/api';
 
 type RequestRow = PaginatedRequestsResponse['data'][number];
 

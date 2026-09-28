@@ -1,4 +1,4 @@
-import type { VisitLetterType } from '@app-types/api';
+﻿import type { VisitLetterType } from '@/types/api';
 
 export const attachmentLabels: Record<VisitLetterType, string> = {
   surat_kunjungan: 'Surat Kunjungan',

@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+﻿import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
-import RequestActionMenu from '@components/requests/RequestActionMenu';
-import RequestPagination from '@components/requests/RequestPagination';
-import ArchiveTableContent from '@components/archives/ArchiveTableContent';
-import { getArchives } from '@lib/api/archives';
-import type { PaginatedRequestsResponse } from '@app-types/api';
+import RequestActionMenu from '@/components/requests/RequestActionMenu';
+import RequestPagination from '@/components/requests/RequestPagination';
+import ArchiveTableContent from '@/components/archives/ArchiveTableContent';
+import { getArchives } from '@/lib/api/archives';
+import type { PaginatedRequestsResponse } from '@/types/api';
 
 export default function Archives() {
   const navigate = useNavigate();
