@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react';
 import { CheckCircle2, Clock, Users } from 'lucide-react';
 import { useNavigate } from 'react-router';
-import Skeleton from '@components/shared/Skeleton';
-import StatusBadge from '@components/shared/StatusBadge';
-import { formatDate } from '@lib/dateTime';
-import type { PaginatedRequestsResponse, StatsResponse } from '@app-types/api';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardFooter } from '@/components/ui/card';
+import StatusBadge from '@/components/shared/StatusBadge';
+import { formatDate } from '@/lib/dateTime';
+import type { PaginatedRequestsResponse, StatsResponse } from '@/types/api';
 
 type RequestItem = PaginatedRequestsResponse['data'][number];
 
@@ -36,10 +37,7 @@ function SummaryCard({
   footerRight,
 }: SummaryCardProps) {
   return (
-    <div
-      onClick={onClick}
-      className="soft-shadow card-hover cursor-pointer space-y-3 rounded-3xl border border-civic-border bg-civic-surface p-4"
-    >
+    <Card onClick={onClick} className="card-hover cursor-pointer space-y-3 p-4">
       <div className="flex items-center justify-between">
         <div
           className={`h-9 w-9 rounded-xl ${iconClassName} flex items-center justify-center font-bold`}
@@ -52,11 +50,11 @@ function SummaryCard({
         <h4 className="truncate text-xs font-extrabold text-civic-dark">{title}</h4>
         <p className="mt-0.5 truncate text-label-sm text-civic-muted">{subtitle}</p>
       </div>
-      <div className="flex items-center justify-between border-t border-civic-border pt-2 text-label-sm">
+      <CardFooter className="flex items-center justify-between border-t border-civic-border p-0 pt-2 text-label-sm">
         {footerLeft}
         {footerRight}
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 }
 

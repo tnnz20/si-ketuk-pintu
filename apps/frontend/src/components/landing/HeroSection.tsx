@@ -2,8 +2,10 @@ import { motion, useReducedMotion } from 'motion/react';
 import { ArrowRight, CheckCircle2, Copy, QrCode, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router';
 import { useState } from 'react';
-import { wordReveal, fadeInUp } from '@constants/animations';
+import { wordReveal, fadeInUp } from '@/constants/animations';
 import { useMouseTilt } from '../../hooks/useMousePosition';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const headlineWords = ['Sistem', 'Permohonan', 'Kunjungan', 'Tamu'];
 
@@ -148,75 +150,86 @@ export default function HeroSection() {
             <div className="absolute -inset-4 rounded-3xl bg-emerald-500/10 blur-2xl" />
 
             {/* Card */}
-            <div className="relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-linear-to-br from-surface-container-lowest to-surface-container p-8 shadow-[0_8px_32px_rgba(13,148,136,0.12)]">
+            <Card className="relative overflow-hidden rounded-2xl border border-emerald-500/20 bg-linear-to-br from-surface-container-lowest to-surface-container p-8 shadow-[0_8px_32px_rgba(13,148,136,0.12)]">
               {/* Shine effect */}
               <div className="pointer-events-none absolute inset-0 bg-linear-to-br from-white/40 via-transparent to-transparent opacity-0 transition-opacity duration-300 hover:opacity-100" />
 
               {/* Header */}
-              <div className="mb-6 flex items-center justify-between">
+              <CardHeader className="mb-6 flex flex-row items-center justify-between border-0 p-0">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-5 w-5 text-emerald-600" />
                   <span className="font-label text-label-sm font-semibold text-emerald-700">
                     Token Kunjungan
                   </span>
                 </div>
-                <span className="rounded-full bg-emerald-500/10 px-3 py-1 font-label text-label-sm text-emerald-700">
+                <Badge
+                  variant="outline"
+                  className="rounded-full border-emerald-500/20 bg-emerald-500/10 px-3 py-1 font-label text-label-sm text-emerald-700"
+                >
                   Aktif
-                </span>
-              </div>
+                </Badge>
+              </CardHeader>
 
               {/* Token display */}
-              <div className="mb-6 rounded-xl bg-surface-container p-4">
-                <p className="mb-1 font-label text-label-sm text-on-surface-variant">Nomor Token</p>
-                <div className="flex items-center justify-between">
-                  <code className="font-mono text-lg font-semibold tracking-wider text-on-surface">
-                    {sampleToken}
-                  </code>
-                  <button
-                    type="button"
-                    onClick={copyToken}
-                    className="cursor-pointer rounded-lg p-2 text-on-surface-variant transition-colors hover:bg-emerald-500/10 hover:text-emerald-600"
-                    aria-label="Salin token"
-                  >
-                    {copied ? (
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )}
-                  </button>
+              <CardContent className="p-0">
+                <div className="mb-6 rounded-xl bg-surface-container p-4">
+                  <p className="mb-1 font-label text-label-sm text-on-surface-variant">
+                    Nomor Token
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <code className="font-mono text-lg font-semibold tracking-wider text-on-surface">
+                      {sampleToken}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={copyToken}
+                      className="cursor-pointer rounded-lg p-2 text-on-surface-variant transition-colors hover:bg-emerald-500/10 hover:text-emerald-600"
+                      aria-label="Salin token"
+                    >
+                      {copied ? (
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                      ) : (
+                        <Copy className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Details */}
-              <div className="space-y-3">
-                <div className="flex justify-between border-b border-surface-alt pb-2">
-                  <span className="font-label text-label-sm text-on-surface-variant">Instansi</span>
-                  <span className="font-label text-label-sm font-medium text-on-surface">
-                    Dinas Komunikasi
-                  </span>
+                {/* Details */}
+                <div className="space-y-3">
+                  <div className="flex justify-between border-b border-surface-alt pb-2">
+                    <span className="font-label text-label-sm text-on-surface-variant">
+                      Instansi
+                    </span>
+                    <span className="font-label text-label-sm font-medium text-on-surface">
+                      Dinas Komunikasi
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-b border-surface-alt pb-2">
+                    <span className="font-label text-label-sm text-on-surface-variant">
+                      Tanggal
+                    </span>
+                    <span className="font-label text-label-sm font-medium text-on-surface">
+                      15 Agustus 2026
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-label text-label-sm text-on-surface-variant">Waktu</span>
+                    <span className="font-label text-label-sm font-medium text-on-surface">
+                      09:00 - 11:00 WIB
+                    </span>
+                  </div>
                 </div>
-                <div className="flex justify-between border-b border-surface-alt pb-2">
-                  <span className="font-label text-label-sm text-on-surface-variant">Tanggal</span>
-                  <span className="font-label text-label-sm font-medium text-on-surface">
-                    15 Agustus 2026
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="font-label text-label-sm text-on-surface-variant">Waktu</span>
-                  <span className="font-label text-label-sm font-medium text-on-surface">
-                    09:00 - 11:00 WIB
-                  </span>
-                </div>
-              </div>
+              </CardContent>
 
               {/* Footer */}
-              <div className="mt-6 flex items-center gap-2 rounded-lg bg-emerald-500/5 p-3">
+              <CardFooter className="mt-6 flex items-center gap-2 rounded-lg border-0 bg-emerald-500/5 p-3">
                 <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
                 <p className="font-label text-label-sm text-emerald-700">
                   Tunjukkan token ini di resepsionis
                 </p>
-              </div>
-            </div>
+              </CardFooter>
+            </Card>
           </motion.div>
         </motion.div>
       </div>

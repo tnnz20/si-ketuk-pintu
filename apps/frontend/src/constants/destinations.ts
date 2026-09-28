@@ -1,4 +1,4 @@
-import type { TujuanInstansi } from '@app-types/destinations';
+﻿import type { TujuanInstansi } from '@/types/destinations';
 
 export const TUJUAN_INSTANSI_OPTIONS = ['Sekretariat DPRD', 'DPRD Kab. Tapin'] as const;
 

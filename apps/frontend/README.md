@@ -11,8 +11,11 @@ Dependencies installed in `package.json`:
 - Vite 8
 - React Router DOM 7
 - Tailwind CSS 4 with `@tailwindcss/vite`
+- `@base-ui/react` (Shadcn UI headless primitives)
+- `class-variance-authority` (CVA)
+- `react-day-picker` v9 and `date-fns`
 - Zod 4
-- GSAP and Motion
+- Motion
 - Sonner
 - Luxon
 - jsPDF and jsPDF AutoTable
@@ -78,41 +81,44 @@ npm run preview
 
 ### Public
 
-| Route | Purpose |
-| --- | --- |
-| `/` | Landing page |
-| `/form` | Submit visitor request |
-| `/status/:token` | Check request status |
-| `/success` | Submission success page |
+| Route            | Purpose                 |
+| ---------------- | ----------------------- |
+| `/`              | Landing page            |
+| `/form`          | Submit visitor request  |
+| `/status/:token` | Check request status    |
+| `/success`       | Submission success page |
 
 ### Authentication
 
-| Route | Purpose |
-| --- | --- |
+| Route    | Purpose             |
+| -------- | ------------------- |
 | `/login` | Administrator login |
 
 ### Admin
 
 All admin routes require authentication.
 
-| Route | Purpose |
-| --- | --- |
-| `/dashboard` | Admin dashboard |
-| `/dashboard/requests` | Request list |
-| `/dashboard/requests/:id` | Request details |
-| `/dashboard/archives` | Archived requests |
-| `/dashboard/archives/:id` | Archive details |
-| `/dashboard/scanner` | QR scanner |
+| Route                     | Purpose           |
+| ------------------------- | ----------------- |
+| `/dashboard`              | Admin dashboard   |
+| `/dashboard/requests`     | Request list      |
+| `/dashboard/requests/:id` | Request details   |
+| `/dashboard/archives`     | Archived requests |
+| `/dashboard/archives/:id` | Archive details   |
+| `/dashboard/scanner`      | QR scanner        |
 
 ## Structure
 
 ```text
 src/
-├── components/  Reusable UI components
-├── constants/   Shared constants
-├── hooks/       React hooks
-├── lib/         API, PDF, and utility code
-├── pages/       Route-level screens
-├── schemas/     Zod validation schemas
-└── types/       Shared TypeScript types
+├── components/
+│   ├── ui/         Headless accessible primitives (Shadcn / Base UI)
+│   └── ...         Domain UI components
+├── constants/      Shared constants
+├── hooks/          React hooks (useSession, useRequests, useArchives, useDashboard)
+├── layouts/        Layout shells (main-layout, auth-layout, dashboard-layout)
+├── lib/            API, PDF, date-time, and utility code
+├── pages/          Route-level screens
+├── schemas/        Zod validation schemas
+└── types/          Shared TypeScript types
 ```

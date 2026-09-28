@@ -1,6 +1,7 @@
 import { History } from 'lucide-react';
-import type { AuditEvent } from '@app-types/api';
-import { formatDateTime } from '@lib/dateTime';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { AuditEvent } from '@/types/api';
+import { formatDateTime } from '@/lib/dateTime';
 
 interface RequestAuditHistoryProps {
   events: AuditEvent[];
@@ -25,15 +26,17 @@ const actorLabels: Record<string, string> = {
 
 export default function RequestDetailAuditHistory({ events }: RequestAuditHistoryProps) {
   return (
-    <div className="soft-shadow space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-6">
+    <Card className="space-y-4 p-6">
       {/* Header */}
-      <h3 className="flex items-center gap-2 border-b border-civic-border pb-3 text-sm font-extrabold text-civic-dark">
-        <History className="h-4 w-4 text-civic-muted" />
-        <span>Riwayat Audit</span>
-      </h3>
+      <CardHeader className="border-b border-civic-border p-0 pb-3">
+        <CardTitle className="flex items-center gap-2 text-sm font-extrabold text-civic-dark">
+          <History className="h-4 w-4 text-civic-muted" />
+          <span>Riwayat Audit</span>
+        </CardTitle>
+      </CardHeader>
 
       {/* Timeline */}
-      <div className="relative space-y-4 pl-6 before:absolute before:top-1.5 before:bottom-1.5 before:left-2.5 before:w-0.5 before:bg-civic-border">
+      <CardContent className="relative space-y-4 p-0 pl-6 before:absolute before:top-1.5 before:bottom-1.5 before:left-2.5 before:w-0.5 before:bg-civic-border">
         {events.length === 0 ? (
           <p className="text-xs text-civic-muted">Belum ada riwayat tercatat.</p>
         ) : (
@@ -52,13 +55,15 @@ export default function RequestDetailAuditHistory({ events }: RequestAuditHistor
                 </p>
                 <p className="mt-0.5 text-2xs font-medium text-civic-muted">
                   {formatDateTime(event.occurred_at)} • oleh{' '}
-                  <span className="font-bold text-civic-dark">{actorLabels[event.actor_type] || event.actor_type}</span>
+                  <span className="font-bold text-civic-dark">
+                    {actorLabels[event.actor_type] || event.actor_type}
+                  </span>
                 </p>
               </div>
             );
           })
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -1,9 +1,18 @@
 import { useState } from 'react';
 import { z } from 'zod';
 import type { FormEvent } from 'react';
-import Dialog from '@components/shared/Dialog';
-import { Select } from '@components/shared/Select';
-import { TimePicker } from '@components/submission/TimePicker';
+import Dialog from '@/components/shared/Dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { TimePicker } from '@/components/submission/TimePicker';
+import { DatePicker } from '@/components/ui/date-picker';
 
 const schema = z.object({
   nomor: z.string().trim().min(1, 'Nomor wajib diisi.'),
@@ -53,47 +62,49 @@ export default function RescheduleDialog({ open, loading, onSubmit, onCancel }: 
       onClose={loading ? () => undefined : onCancel}
     >
       <form onSubmit={submit} className="space-y-3.5">
-        <label className="block text-xs font-bold text-civic-dark">
-          Nomor Surat
-          <input
+        <div className="space-y-1.5">
+          <Label htmlFor="reschedule-nomor" className="text-xs font-bold text-civic-dark">
+            Nomor Surat
+          </Label>
+          <Input
+            id="reschedule-nomor"
             type="text"
             value={form.nomor}
             onChange={(e) => update('nomor', e.target.value)}
             disabled={loading}
             placeholder="Misal: 005/124/DISP-SETDA/2026"
-            className="bg-civic-cardFill mt-1.5 w-full rounded-2xl border border-civic-border px-3.5 py-2.5 text-xs text-civic-dark transition-all focus:border-civic-dark focus:outline-none"
+            className="bg-civic-cardFill"
           />
           {errors.nomor && (
             <span className="mt-1 block text-label-sm font-semibold text-rose-600">
               {errors.nomor}
             </span>
           )}
-        </label>
+        </div>
 
-        <label className="block text-xs font-bold text-civic-dark">
-          Tanggal Kunjungan Baru
-          <input
-            type="date"
+        <div className="space-y-1.5">
+          <Label className="text-xs font-bold text-civic-dark">Tanggal Kunjungan Baru</Label>
+          <DatePicker
             value={form.tanggal_kunjungan}
-            onChange={(e) => update('tanggal_kunjungan', e.target.value)}
-            disabled={loading}
-            className="bg-civic-cardFill mt-1.5 w-full rounded-2xl border border-civic-border px-3.5 py-2.5 text-xs text-civic-dark transition-all focus:border-civic-dark focus:outline-none"
+            onChange={(val) => update('tanggal_kunjungan', val)}
+            disablePastDates
+            disabledTrigger={loading}
+            placeholder="Pilih tanggal kunjungan baru..."
+            className="bg-civic-cardFill h-10 w-full rounded-2xl border-civic-border"
           />
           {errors.tanggal_kunjungan && (
             <span className="mt-1 block text-label-sm font-semibold text-rose-600">
               {errors.tanggal_kunjungan}
             </span>
           )}
-        </label>
+        </div>
 
-        <div className="block text-xs font-bold text-civic-dark">
-          <span>Jam Kunjungan Baru</span>
-          <div className="mt-1.5">
-            <TimePicker
-              value={form.jam_kunjungan}
-              onChange={(value) => update('jam_kunjungan', value)}
-            />
-          </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs font-bold text-civic-dark">Jam Kunjungan Baru</Label>
+          <TimePicker
+            value={form.jam_kunjungan}
+            onChange={(value) => update('jam_kunjungan', value)}
+          />
           {errors.jam_kunjungan && (
             <span className="mt-1 block text-label-sm font-semibold text-rose-600">
               {errors.jam_kunjungan}
@@ -101,25 +112,28 @@ export default function RescheduleDialog({ open, loading, onSubmit, onCancel }: 
           )}
         </div>
 
-        <label className="block text-xs font-bold text-civic-dark">
-          Sifat Surat
+        <div className="space-y-1.5">
+          <Label className="text-xs font-bold text-civic-dark">Sifat Surat</Label>
           <Select
-            value={form.sifat}
-            onChange={(e) => update('sifat', e.target.value)}
+            value={form.sifat || null}
+            onValueChange={(val) => update('sifat', val ?? '')}
             disabled={loading}
-            className="bg-civic-cardFill mt-1.5 w-full rounded-2xl border border-civic-border px-3.5 py-2.5 text-xs text-civic-dark transition-all focus:border-civic-dark focus:outline-none"
           >
-            <option value="">Pilih sifat surat</option>
-            <option value="Biasa">Biasa</option>
-            <option value="Penting">Penting</option>
-            <option value="Sangat Penting">Sangat Penting</option>
+            <SelectTrigger className="bg-civic-cardFill">
+              <SelectValue placeholder="Pilih sifat surat" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Biasa">Biasa</SelectItem>
+              <SelectItem value="Penting">Penting</SelectItem>
+              <SelectItem value="Sangat Penting">Sangat Penting</SelectItem>
+            </SelectContent>
           </Select>
           {errors.sifat && (
             <span className="mt-1 block text-label-sm font-semibold text-rose-600">
               {errors.sifat}
             </span>
           )}
-        </label>
+        </div>
 
         <div className="mt-6 flex justify-end gap-2.5 border-t border-civic-border pt-3">
           <button

@@ -1,4 +1,6 @@
 import { Search, X } from 'lucide-react';
+import { DatePicker } from '@/components/ui/date-picker';
+import { Input } from '@/components/ui/input';
 
 interface RequestFiltersProps {
   search: string;
@@ -72,12 +74,12 @@ export default function RequestFilters({
         {/* Search */}
         <div className="relative w-full sm:w-64">
           <Search className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-civic-muted" />
-          <input
+          <Input
             type="text"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Cari token atau instansi..."
-            className="soft-shadow w-full rounded-xl border border-civic-border bg-civic-surface py-2 pr-8 pl-10 text-xs text-civic-dark transition-all focus:border-civic-dark focus:outline-none"
+            className="soft-shadow pr-8 pl-10"
           />
           {search && (
             <button
@@ -92,11 +94,12 @@ export default function RequestFilters({
 
         {/* Date Filter */}
         <div className="relative w-full sm:w-auto">
-          <input
-            type="date"
+          <DatePicker
             value={date}
-            onChange={(e) => onDateChange(e.target.value)}
-            className="soft-shadow w-full cursor-pointer rounded-xl border border-civic-border bg-civic-surface px-3 py-2 text-xs text-civic-dark transition-all focus:border-civic-dark focus:outline-none"
+            onChange={onDateChange}
+            placeholder="Filter tanggal..."
+            aria-label="Filter tanggal kunjungan"
+            className="w-full sm:w-52"
           />
         </div>
       </div>

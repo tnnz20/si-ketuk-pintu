@@ -1,18 +1,23 @@
 import { useState } from 'react';
 import { ClipboardList, Download, FileText, Trash2, Upload } from 'lucide-react';
 import { toast } from 'sonner';
-import ConfirmDialog from '@components/shared/ConfirmDialog';
-import Dialog from '@components/shared/Dialog';
+import ConfirmDialog from '@/components/shared/ConfirmDialog';
+import Dialog from '@/components/shared/Dialog';
+import { Card } from '@/components/ui/card';
 import {
   Empty,
   EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from '@components/shared/Empty';
-import type { Attachment } from '@app-types/api';
-import { formatBytes } from '@lib/formatBytes';
-import { deleteDaftarAbsen, downloadArchiveAttachment, uploadDaftarAbsen } from '@lib/api/archives';
+} from '@/components/ui/empty';
+import type { Attachment } from '@/types/api';
+import { formatBytes } from '@/lib/formatBytes';
+import {
+  deleteDaftarAbsen,
+  downloadArchiveAttachment,
+  uploadDaftarAbsen,
+} from '@/lib/api/archives';
 
 const MAX_PDF_BYTES = 5 * 1024 * 1024; // 5 MB
 
@@ -78,7 +83,7 @@ export default function DaftarAbsenCard({
   }
 
   return (
-    <div className="soft-shadow space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-6">
+    <Card className="space-y-4 p-6">
       <div className="flex items-center justify-between border-b border-civic-border pb-3">
         <h3 className="flex items-center gap-2 text-sm font-extrabold text-civic-dark">
           <ClipboardList className="h-4 w-4" />
@@ -163,7 +168,7 @@ export default function DaftarAbsenCard({
           onConfirm={handleDelete}
         />
       )}
-    </div>
+    </Card>
   );
 }
 

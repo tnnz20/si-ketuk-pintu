@@ -57,9 +57,7 @@ export interface AuditEvent {
 }
 
 export type AuditEventValue =
-  | null
-  | { status: string }
-  | { tanggal_kunjungan: number; jam_kunjungan: number };
+  null | { status: string } | { tanggal_kunjungan: number; jam_kunjungan: number };
 
 export interface RequestDetailResponse {
   request: VisitRequest;

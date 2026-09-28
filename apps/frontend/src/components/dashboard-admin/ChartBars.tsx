@@ -1,4 +1,4 @@
-import type { ChartItem, ChartPeriod } from '@app-types/dashboard';
+﻿import type { ChartItem, ChartPeriod } from '@/types/dashboard';
 
 interface ChartBarsProps {
   data: ChartItem[];

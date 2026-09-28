@@ -1,6 +1,6 @@
-import { useSearchParams } from 'react-router';
-import RequestNotFoundState from '@components/requests/RequestNotFoundState';
-import Seo from '@components/shared/Seo';
+﻿import { useSearchParams } from 'react-router';
+import RequestNotFoundState from '@/components/requests/RequestNotFoundState';
+import Seo from '@/components/shared/Seo';
 
 export default function RequestNotFound() {
   const [params] = useSearchParams();
@@ -9,11 +9,7 @@ export default function RequestNotFound() {
   return (
     <>
       <Seo title="Halaman Tidak Ditemukan — Si Ketuk Pintu" noindex />
-      <RequestNotFoundState
-        token={token}
-        tokenFallback="provided"
-        backToHomeIcon="arrow-left"
-      />
+      <RequestNotFoundState token={token} tokenFallback="provided" backToHomeIcon="arrow-left" />
     </>
   );
 }

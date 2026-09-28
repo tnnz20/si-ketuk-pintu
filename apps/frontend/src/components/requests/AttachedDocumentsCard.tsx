@@ -1,7 +1,8 @@
 import { Eye, Paperclip } from 'lucide-react';
-import type { Attachment } from '@app-types/api';
-import { attachmentLabels } from '@constants/attachments';
-import type { VisitLetterAttachment } from '@app-types/api';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { Attachment } from '@/types/api';
+import { attachmentLabels } from '@/constants/attachments';
+import type { VisitLetterAttachment } from '@/types/api';
 
 interface AttachedDocumentsCardProps {
   attachments: VisitLetterAttachment[];
@@ -13,16 +14,16 @@ export default function AttachedDocumentsCard({
   onPreview,
 }: AttachedDocumentsCardProps) {
   return (
-    <section className="soft-shadow space-y-3.5 rounded-3xl border border-civic-border bg-civic-surface p-6">
-      <div className="flex items-center justify-between border-b border-civic-border pb-3">
-        <h3 className="flex items-center gap-2 text-sm font-extrabold text-civic-dark">
+    <Card className="space-y-3.5 p-6">
+      <CardHeader className="flex flex-row items-center justify-between border-b border-civic-border p-0 pb-3">
+        <CardTitle className="flex items-center gap-2 text-sm font-extrabold text-civic-dark">
           <Paperclip className="h-4 w-4 text-civic-muted" />
           <span>Dokumen Terlampir</span>
-        </h3>
+        </CardTitle>
         <span className="text-xs font-medium text-civic-muted">{attachments.length} berkas</span>
-      </div>
+      </CardHeader>
 
-      <div className="space-y-2">
+      <CardContent className="space-y-2 p-0">
         {attachments.length === 0 ? (
           <p className="py-3 text-center text-xs text-civic-muted">Tidak ada berkas terlampir.</p>
         ) : (
@@ -51,7 +52,7 @@ export default function AttachedDocumentsCard({
             </div>
           ))
         )}
-      </div>
-    </section>
+      </CardContent>
+    </Card>
   );
 }

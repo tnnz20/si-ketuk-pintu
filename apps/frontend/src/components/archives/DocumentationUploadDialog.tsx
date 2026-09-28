@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react';
+﻿import { useRef, useState } from 'react';
 import { FileWarning, Images, Upload } from 'lucide-react';
-import Dialog from '@components/shared/Dialog';
-import { uploadDocumentationImages } from '@lib/api/archives';
+import Dialog from '@/components/shared/Dialog';
+import { uploadDocumentationImages } from '@/lib/api/archives';
 
 const ALLOWED_EXTENSIONS = ['.png', '.jpg', '.jpeg'];
 const MAX_TOTAL_BYTES = 10 * 1024 * 1024; // 10 MB

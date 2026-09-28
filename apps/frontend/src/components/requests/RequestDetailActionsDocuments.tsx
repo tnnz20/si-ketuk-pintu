@@ -14,10 +14,11 @@ import {
   Trash2,
   XCircle,
 } from 'lucide-react';
-import StatusBadge from '@components/shared/StatusBadge';
-import type { Attachment, VisitRequest } from '@app-types/api';
-import { INDO_MONTHS } from '@constants/dashboard';
-import { WITA_ZONE } from '@lib/dateTime';
+import StatusBadge from '@/components/shared/StatusBadge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { Attachment, VisitRequest } from '@/types/api';
+import { INDO_MONTHS } from '@/constants/dashboard';
+import { WITA_ZONE } from '@/lib/dateTime';
 
 type OriginalAttachmentType = Extract<
   Attachment['attachment_type'],
@@ -119,145 +120,147 @@ export default function RequestDetailActionsDocuments({
   return (
     <div className="space-y-5">
       {/* ================= 1. PANEL AKSI ADMIN ================= */}
-      <div className="soft-shadow space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-6">
+      <Card className="space-y-4 p-6">
         {/* Header */}
-        <div className="flex items-center gap-2 border-b border-civic-border pb-3">
+        <CardHeader className="flex flex-row items-center gap-2 border-b border-civic-border p-0 pb-3">
           <KeyRound className="h-4 w-4 text-civic-dark" />
-          <h3 className="text-base font-extrabold text-civic-dark">Aksi Admin</h3>
-        </div>
+          <CardTitle className="text-base font-extrabold text-civic-dark">Aksi Admin</CardTitle>
+        </CardHeader>
 
-        {/* Current Status Box */}
-        <div className="bg-civic-cardFill flex items-center justify-between rounded-2xl border border-civic-border p-3.5">
-          <span className="text-xs font-bold text-civic-muted">Status Saat Ini</span>
-          <StatusBadge status={request.status} />
-        </div>
+        <CardContent className="space-y-4 p-0">
+          {/* Current Status Box */}
+          <div className="bg-civic-cardFill flex items-center justify-between rounded-2xl border border-civic-border p-3.5">
+            <span className="text-xs font-bold text-civic-muted">Status Saat Ini</span>
+            <StatusBadge status={request.status} />
+          </div>
 
-        {/* Action Buttons */}
-        <div className="space-y-2.5 pt-1">
-          {request.status === 'pending' && (
-            <>
-              <button
-                type="button"
-                onClick={() => onStatusChange('approved')}
-                disabled={approvalBusy}
-                className="hover:bg-civic-darkHover flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-civic-dark px-4 py-3 text-xs font-extrabold text-white shadow-sm transition-all disabled:opacity-50"
-              >
-                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                <span>Setujui Permohonan</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => onStatusChange('rejected')}
-                disabled={approvalBusy}
-                className="hover:bg-civic-rejectedBg text-civic-rejectedText flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-civic-border bg-civic-surface px-4 py-3 text-xs font-bold transition-all hover:border-rose-300 disabled:opacity-50"
-              >
-                <XCircle className="h-4 w-4 text-rose-600" />
-                <span>Tolak Permohonan</span>
-              </button>
-
-              {/* Reschedule Button */}
-              {hasRescheduleLetter ? (
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={onRescheduleDownload}
-                    disabled={approvalBusy}
-                    className="hover:bg-civic-cardFill flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-2xl border border-civic-border bg-civic-surface px-3 py-2.5 text-xs font-bold text-civic-dark transition-all disabled:opacity-50"
-                  >
-                    <Download className="h-3.5 w-3.5 text-civic-muted" />
-                    <span>Surat Reschedule</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onRescheduleDelete}
-                    disabled={approvalBusy}
-                    className="bg-civic-rejectedBg text-civic-rejectedText cursor-pointer rounded-2xl border border-rose-200 p-2.5 transition-colors hover:bg-rose-100 disabled:opacity-50"
-                    title="Hapus surat reschedule"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              ) : (
+          {/* Action Buttons */}
+          <div className="space-y-2.5 pt-1">
+            {request.status === 'pending' && (
+              <>
                 <button
                   type="button"
-                  onClick={onRescheduleGenerate}
-                  disabled={approvalBusy}
-                  className="hover:bg-civic-cardFill flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-civic-border bg-civic-surface px-4 py-2.5 text-xs font-bold text-civic-dark transition-all disabled:opacity-50"
-                >
-                  <Clock className="h-4 w-4 text-civic-muted" />
-                  <span>Jadwalkan Ulang</span>
-                </button>
-              )}
-            </>
-          )}
-
-          {/* Approved Specific Action */}
-          {request.status === 'approved' && (
-            <div>
-              {hasApprovalLetter ? (
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={onApprovalDownload}
-                    disabled={approvalBusy}
-                    className="hover:bg-civic-darkHover flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-civic-dark px-4 py-3 text-xs font-extrabold text-white shadow-sm transition-all disabled:opacity-50"
-                  >
-                    <Download className="h-4 w-4" />
-                    <span>Unduh Surat Persetujuan</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={onApprovalDelete}
-                    disabled={approvalBusy}
-                    className="bg-civic-rejectedBg text-civic-rejectedText cursor-pointer rounded-2xl border border-rose-200 p-3 transition-colors hover:bg-rose-100 disabled:opacity-50"
-                    title="Hapus surat persetujuan"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={onApprovalGenerate}
+                  onClick={() => onStatusChange('approved')}
                   disabled={approvalBusy}
                   className="hover:bg-civic-darkHover flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-civic-dark px-4 py-3 text-xs font-extrabold text-white shadow-sm transition-all disabled:opacity-50"
                 >
-                  <FileText className="h-4 w-4" />
-                  <span>Buat Surat Persetujuan</span>
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <span>Setujui Permohonan</span>
                 </button>
-              )}
-            </div>
-          )}
 
-          {/* Download PDF Surat Permohonan */}
-          <button
-            type="button"
-            onClick={onGeneratePdf}
-            disabled={generating}
-            className="hover:bg-civic-cardFill flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-civic-border bg-civic-surface px-4 py-3 text-xs font-bold text-civic-dark transition-all disabled:opacity-50"
-          >
-            <Download className="h-4 w-4 text-civic-muted" />
-            <span>Unduh Surat Permohonan</span>
-          </button>
-        </div>
-      </div>
+                <button
+                  type="button"
+                  onClick={() => onStatusChange('rejected')}
+                  disabled={approvalBusy}
+                  className="hover:bg-civic-rejectedBg text-civic-rejectedText flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-civic-border bg-civic-surface px-4 py-3 text-xs font-bold transition-all hover:border-rose-300 disabled:opacity-50"
+                >
+                  <XCircle className="h-4 w-4 text-rose-600" />
+                  <span>Tolak Permohonan</span>
+                </button>
+
+                {/* Reschedule Button */}
+                {hasRescheduleLetter ? (
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={onRescheduleDownload}
+                      disabled={approvalBusy}
+                      className="hover:bg-civic-cardFill flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-2xl border border-civic-border bg-civic-surface px-3 py-2.5 text-xs font-bold text-civic-dark transition-all disabled:opacity-50"
+                    >
+                      <Download className="h-3.5 w-3.5 text-civic-muted" />
+                      <span>Surat Reschedule</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onRescheduleDelete}
+                      disabled={approvalBusy}
+                      className="bg-civic-rejectedBg text-civic-rejectedText cursor-pointer rounded-2xl border border-rose-200 p-2.5 transition-colors hover:bg-rose-100 disabled:opacity-50"
+                      title="Hapus surat reschedule"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onRescheduleGenerate}
+                    disabled={approvalBusy}
+                    className="hover:bg-civic-cardFill flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-civic-border bg-civic-surface px-4 py-2.5 text-xs font-bold text-civic-dark transition-all disabled:opacity-50"
+                  >
+                    <Clock className="h-4 w-4 text-civic-muted" />
+                    <span>Jadwalkan Ulang</span>
+                  </button>
+                )}
+              </>
+            )}
+
+            {/* Approved Specific Action */}
+            {request.status === 'approved' && (
+              <div>
+                {hasApprovalLetter ? (
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={onApprovalDownload}
+                      disabled={approvalBusy}
+                      className="hover:bg-civic-darkHover flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-civic-dark px-4 py-3 text-xs font-extrabold text-white shadow-sm transition-all disabled:opacity-50"
+                    >
+                      <Download className="h-4 w-4" />
+                      <span>Unduh Surat Persetujuan</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onApprovalDelete}
+                      disabled={approvalBusy}
+                      className="bg-civic-rejectedBg text-civic-rejectedText cursor-pointer rounded-2xl border border-rose-200 p-3 transition-colors hover:bg-rose-100 disabled:opacity-50"
+                      title="Hapus surat persetujuan"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onApprovalGenerate}
+                    disabled={approvalBusy}
+                    className="hover:bg-civic-darkHover flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-civic-dark px-4 py-3 text-xs font-extrabold text-white shadow-sm transition-all disabled:opacity-50"
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span>Buat Surat Persetujuan</span>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Download PDF Surat Permohonan */}
+            <button
+              type="button"
+              onClick={onGeneratePdf}
+              disabled={generating}
+              className="hover:bg-civic-cardFill flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border border-civic-border bg-civic-surface px-4 py-3 text-xs font-bold text-civic-dark transition-all disabled:opacity-50"
+            >
+              <Download className="h-4 w-4 text-civic-muted" />
+              <span>Unduh Surat Permohonan</span>
+            </button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* ================= 2. DOKUMEN TERLAMPIR ================= */}
-      <div className="soft-shadow space-y-3.5 rounded-3xl border border-civic-border bg-civic-surface p-6">
+      <Card className="space-y-3.5 p-6">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-civic-border pb-3">
-          <h3 className="flex items-center gap-2 text-sm font-extrabold text-civic-dark">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-civic-border p-0 pb-3">
+          <CardTitle className="flex items-center gap-2 text-sm font-extrabold text-civic-dark">
             <Paperclip className="h-4 w-4 text-civic-muted" />
             <span>Dokumen Terlampir</span>
-          </h3>
+          </CardTitle>
           <span className="text-xs font-medium text-civic-muted">
             {mainAttachments.length} File
           </span>
-        </div>
+        </CardHeader>
 
         {/* Document Items */}
-        <div className="space-y-2">
+        <CardContent className="space-y-2 p-0">
           {mainAttachments.length === 0 ? (
             <p className="py-3 text-center text-xs text-civic-muted">Tidak ada file terlampir.</p>
           ) : (
@@ -286,11 +289,11 @@ export default function RequestDetailActionsDocuments({
               </div>
             ))
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* ================= 3. MINI CALENDAR WIDGET ================= */}
-      <div className="soft-shadow space-y-3.5 rounded-3xl border border-civic-border bg-civic-surface p-5">
+      <Card className="space-y-3.5 p-5">
         {/* Calendar Month Header */}
         <div className="flex items-center justify-between px-1">
           <button
@@ -353,7 +356,7 @@ export default function RequestDetailActionsDocuments({
             </div>
           ))}
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

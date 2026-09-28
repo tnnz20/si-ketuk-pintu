@@ -1,6 +1,6 @@
-import { z } from 'zod';
-import { isFutureDate } from '@lib/dateTime';
-import { TUJUAN_BAGIAN_OPTIONS, TUJUAN_INSTANSI_OPTIONS } from '@constants/destinations';
+﻿import { z } from 'zod';
+import { isFutureDate } from '@/lib/dateTime';
+import { TUJUAN_BAGIAN_OPTIONS, TUJUAN_INSTANSI_OPTIONS } from '@/constants/destinations';
 
 export const guestSchema = z.object({
   nama: z.string().min(1, 'Nama tamu wajib diisi'),

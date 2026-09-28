@@ -3,11 +3,7 @@
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "paths": {
-      "@components/*": ["./src/components/*"],
-      "@lib/*": ["./src/lib/*"],
-      "@app-types/*": ["./src/types/*"],
-      "@constants/*": ["./src/constants/*"],
-      "@schemas/*": ["./src/schemas/*"]
+      "@/*": ["./src/*"]
     },
     "target": "ES2022",
     "useDefineForClassFields": true,

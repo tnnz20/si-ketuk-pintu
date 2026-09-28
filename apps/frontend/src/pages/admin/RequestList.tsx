@@ -1,84 +1,37 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import ConfirmDialog from '@components/shared/ConfirmDialog';
-import RequestActionMenu from '@components/requests/RequestActionMenu';
-import RequestFilters from '@components/requests/RequestFilters';
-import RequestPagination from '@components/requests/RequestPagination';
-import RequestTableContent from '@components/requests/RequestTableContent';
-import { deleteRequest, getRequests, getStats } from '@lib/api/requests';
-import type { PaginatedRequestsResponse, StatsResponse } from '@app-types/api';
-
-type RequestRow = PaginatedRequestsResponse['data'][number];
+import ConfirmDialog from '@/components/shared/ConfirmDialog';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import RequestFilters from '@/components/requests/RequestFilters';
+import RequestPagination from '@/components/requests/RequestPagination';
+import RequestTableContent from '@/components/requests/RequestTableContent';
+import { useRequests, type RequestRow } from '@/hooks/use-requests';
 
 export default function RequestList() {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const {
+    requests,
+    stats,
+    page,
+    pageSize,
+    totalPages,
+    totalCount,
+    search,
+    status,
+    date,
+    loading,
+    setPage,
+    setPageSize,
+    setSearch,
+    setStatus,
+    setDate,
+    remove,
+  } = useRequests();
 
-  const [requests, setRequests] = useState<PaginatedRequestsResponse['data']>([]);
-  const [stats, setStats] = useState<StatsResponse>();
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-
-  const initialSearch = searchParams.get('search') ?? '';
-  const initialStatus = searchParams.get('status') ?? '';
-
-  const [search, setSearch] = useState(initialSearch);
-  const [status, setStatus] = useState(initialStatus);
-  const [date, setDate] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [menu, setMenu] = useState<{ row: RequestRow; left: number; top: number }>();
   const [confirmDelete, setConfirmDelete] = useState<RequestRow>();
 
-  // Fetch Stats for accurate counts on filter pills
-  useEffect(() => {
-    getStats()
-      .then(setStats)
-      .catch(() => {});
-  }, []);
-
-  const load = useCallback(() => {
-    setLoading(true);
-    getRequests(page, pageSize, { search, status, date })
-      .then((result) => {
-        setRequests(result.data);
-        setTotalPages(result.total_pages);
-        setTotalCount(result.total);
-      })
-      .catch(() => toast.error('Gagal memuat daftar permohonan.'))
-      .finally(() => setLoading(false));
-  }, [page, pageSize, search, status, date]);
-
-  useEffect(() => {
-    void Promise.resolve().then(load);
-  }, [load]);
-
-  async function runDelete() {
-    if (!confirmDelete) return;
-    try {
-      await deleteRequest(confirmDelete.id);
-      toast.success('Permohonan berhasil dihapus.');
-      setConfirmDelete(undefined);
-      if (requests.length === 1 && page > 1) {
-        setPage(page - 1);
-      } else {
-        load();
-      }
-    } catch {
-      toast.error('Aksi gagal diproses.');
-    }
-  }
-
-  function openMenu(event: React.MouseEvent, row: RequestRow) {
-    event.stopPropagation();
-    const rect = event.currentTarget.getBoundingClientRect();
-    setMenu({ row, left: Math.min(rect.right, window.innerWidth - 190), top: rect.bottom + 8 });
-  }
-
   async function copyToken(row: RequestRow) {
-    setMenu(undefined);
     try {
       await navigator.clipboard.writeText(row.token);
       toast.success('Token disalin ke clipboard.');
@@ -87,96 +40,66 @@ export default function RequestList() {
     }
   }
 
-  const handleStatusChange = (val: string) => {
-    setStatus(val);
-    setPage(1);
-    const newParams = new URLSearchParams(searchParams);
-    if (val) newParams.set('status', val);
-    else newParams.delete('status');
-    setSearchParams(newParams);
-  };
-
-  const handleSearchChange = (val: string) => {
-    setSearch(val);
-    setPage(1);
-    const newParams = new URLSearchParams(searchParams);
-    if (val) newParams.set('search', val);
-    else newParams.delete('search');
-    setSearchParams(newParams);
-  };
+  async function runDelete() {
+    if (!confirmDelete) return;
+    const ok = await remove(confirmDelete);
+    if (ok) setConfirmDelete(undefined);
+  }
 
   return (
     <div className="animate-fade-in space-y-5">
-      {/* Table Container Card */}
-      <div className="soft-shadow space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-5 sm:p-6">
-        {/* Card Header & Title */}
-        <div className="flex flex-col justify-between gap-3 border-b border-civic-border pb-4 sm:flex-row sm:items-center">
+      <Card className="space-y-4 p-5 sm:p-6">
+        <CardHeader className="flex flex-col justify-between gap-3 border-b border-civic-border p-0 pb-4 sm:flex-row sm:items-center">
           <div>
-            <h3 className="text-base font-extrabold text-civic-dark sm:text-lg">
+            <CardTitle className="text-base font-extrabold text-civic-dark sm:text-lg">
               Manajemen Permohonan
-            </h3>
-            <p className="mt-0.5 text-xs font-medium text-civic-muted">
+            </CardTitle>
+            <CardDescription className="mt-0.5 text-xs font-medium text-civic-muted">
               Daftar permohonan masuk yang terdaftar di Si Ketuk Pintu
-            </p>
+            </CardDescription>
           </div>
 
           <div className="text-xs font-bold text-civic-muted">
             Total Data: <span className="font-extrabold text-civic-dark">{totalCount}</span>
           </div>
-        </div>
+        </CardHeader>
 
-        {/* Filters */}
-        <RequestFilters
-          search={search}
-          status={status}
-          date={date}
-          counts={
-            stats
-              ? {
-                  total: stats.total_requests,
-                  pending: stats.pending_approval,
-                }
-              : undefined
-          }
-          onSearchChange={handleSearchChange}
-          onStatusChange={handleStatusChange}
-          onDateChange={(val: string) => {
-            setDate(val);
-            setPage(1);
-          }}
-        />
+        <CardContent className="space-y-4 p-0">
+          <RequestFilters
+            search={search}
+            status={status}
+            date={date}
+            counts={
+              stats
+                ? {
+                    total: stats.total_requests,
+                    pending: stats.pending_approval,
+                  }
+                : undefined
+            }
+            onSearchChange={setSearch}
+            onStatusChange={setStatus}
+            onDateChange={setDate}
+          />
 
-        {/* Table Content */}
-        <RequestTableContent requests={requests} loading={loading} onOpenMenu={openMenu} />
+          <RequestTableContent
+            requests={requests}
+            loading={loading}
+            onViewDetail={(id) => navigate(`/dashboard/requests/${id}`)}
+            onCopyToken={copyToken}
+            onDelete={(row) => setConfirmDelete(row)}
+          />
 
-        {/* Pagination */}
-        <RequestPagination
-          page={page}
-          pageSize={pageSize}
-          totalPages={totalPages}
-          onPageChange={setPage}
-          onPageSizeChange={(value: number) => {
-            setPageSize(value);
-            setPage(1);
-          }}
-        />
-      </div>
+          <RequestPagination
+            page={page}
+            pageSize={pageSize}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
+        </CardContent>
+      </Card>
 
-      {/* Floating Action Menu */}
-      {menu && (
-        <RequestActionMenu
-          menu={menu}
-          onClose={() => setMenu(undefined)}
-          onViewDetail={(id: string) => navigate(`/dashboard/requests/${id}`)}
-          onCopyToken={copyToken}
-          onDelete={(row: RequestRow) => {
-            setConfirmDelete(row);
-            setMenu(undefined);
-          }}
-        />
-      )}
-
-      {/* Delete Confirmation */}
       {confirmDelete && (
         <ConfirmDialog
           title="Hapus permohonan ini?"

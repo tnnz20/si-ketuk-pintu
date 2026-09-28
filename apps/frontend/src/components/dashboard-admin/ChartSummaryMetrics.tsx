@@ -1,5 +1,5 @@
-import { BarChart3, Calendar as CalendarIcon, TrendingUp } from 'lucide-react';
-import type { ChartItem } from '@app-types/dashboard';
+﻿import { BarChart3, Calendar as CalendarIcon, TrendingUp } from 'lucide-react';
+import type { ChartItem } from '@/types/dashboard';
 
 interface ChartSummaryMetricsProps {
   peakItem: ChartItem;

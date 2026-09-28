@@ -1,7 +1,7 @@
-import { Download, FileText, Paperclip } from 'lucide-react';
+﻿import { Download, FileText, Paperclip } from 'lucide-react';
 import { toast } from 'sonner';
-import type { Attachment } from '@app-types/api';
-import { downloadAttachment } from '@lib/api/requests';
+import type { Attachment } from '@/types/api';
+import { downloadAttachment } from '@/lib/api/requests';
 
 type DocumentAttachmentType = Exclude<Attachment['attachment_type'], 'images' | 'daftar_absen'>;
 

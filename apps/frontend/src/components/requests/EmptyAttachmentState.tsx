@@ -5,7 +5,7 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from '@components/shared/Empty';
+} from '@/components/ui/empty';
 
 interface EmptyAttachmentStateProps {
   icon: 'images' | 'clipboard';
