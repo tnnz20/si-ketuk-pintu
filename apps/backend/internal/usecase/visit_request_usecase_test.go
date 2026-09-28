@@ -465,3 +465,85 @@ func TestSaveDaftarAbsenValidation(t *testing.T) {
 		})
 	}
 }
+
+func TestCreate_CleansUpFilesOnDatabaseFailure(t *testing.T) {
+	tempDir := t.TempDir()
+	uploadSvc := service.NewFileSystemUploadService(tempDir)
+	store := &statusStoreStub{
+		createVisitErr: errors.New("db error on insert"),
+	}
+	uc := NewVisitRequestUsecase(store, &auditStub{}, logrus.New(), uploadSvc)
+
+	input := CreateVisitRequestInput{
+		Email:             "test@example.com",
+		NamaInstansi:      "Instansi",
+		AlamatInstansi:    "Alamat",
+		TujuanInstansi:    "DPRD Kab. Tapin",
+		TujuanBagian:      "Komisi I",
+		TanggalKunjungan:  1786723200000,
+		JamKunjungan:      7200000,
+		TemaKunjungan:     "Kunjungan Kerja",
+		PimpinanRombongan: "Pimpinan",
+		JumlahTamu:        1,
+		KontakDihubungi:   "08123456789",
+		Guests:            []model.GuestInput{{Nama: "Tamu 1", Jabatan: "Staf"}},
+		SuratKunjungan:    FileInput{Reader: bytes.NewReader([]byte("%PDF-1.4 kunjungan")), Filename: "kunjungan.pdf"},
+		SuratTugas:        FileInput{Reader: bytes.NewReader([]byte("%PDF-1.4 tugas")), Filename: "tugas.pdf"},
+	}
+
+	_, err := uc.Create(context.Background(), input)
+	if err == nil {
+		t.Fatal("expected error, got nil")
+	}
+
+	// Verify no orphaned files remain in tempDir
+	var remainingFiles []string
+	_ = filepath.Walk(tempDir, func(path string, info os.FileInfo, err error) error {
+		if err == nil && !info.IsDir() {
+			remainingFiles = append(remainingFiles, path)
+		}
+		return nil
+	})
+	if len(remainingFiles) > 0 {
+		t.Fatalf("expected 0 orphaned files, found: %v", remainingFiles)
+	}
+}
+
+func TestDelete_RemovesPhysicalFiles(t *testing.T) {
+	tempDir := t.TempDir()
+	uploadSvc := service.NewFileSystemUploadService(tempDir)
+
+	// Create test file on disk
+	subDir := filepath.Join(tempDir, "dokumentasi")
+	if err := os.MkdirAll(subDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	testFilePath := filepath.Join(subDir, "photo.png")
+	if err := os.WriteFile(testFilePath, []byte("png image data"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	reqID := uuid.New()
+	store := &statusStoreStub{
+		request: &entity.VisitRequest{
+			ID: reqID,
+			Attachments: []entity.Attachment{
+				{
+					AttachmentType: "images",
+					StorageKey:     "dokumentasi/photo.png",
+				},
+			},
+		},
+	}
+	uc := NewVisitRequestUsecase(store, &auditStub{}, logrus.New(), uploadSvc)
+
+	if err := uc.Delete(context.Background(), reqID); err != nil {
+		t.Fatalf("Delete failed: %v", err)
+	}
+
+	// Verify physical file was deleted
+	if _, err := os.Stat(testFilePath); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("expected physical file to be deleted, got err=%v", err)
+	}
+}
+

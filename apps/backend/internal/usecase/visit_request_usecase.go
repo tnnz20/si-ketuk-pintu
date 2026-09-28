@@ -185,12 +185,25 @@ func (u *VisitRequestUsecase) Create(
 
 	suratTugasAttachment, err := u.uploader.SavePDF("surat_tugas", input.SuratTugas)
 	if err != nil {
+		if u.uploader != nil {
+			if removeErr := u.uploader.DeleteFile(suratKunjunganAttachment.StorageKey); removeErr != nil {
+				u.logger.WithError(removeErr).WithField("storage_key", suratKunjunganAttachment.StorageKey).Error("failed to remove surat_kunjungan after surat_tugas failure")
+			}
+		}
 		return nil, fmt.Errorf("save surat_tugas: %w", err)
 	}
 
 	visitRequest.Attachments = []entity.Attachment{*suratKunjunganAttachment, *suratTugasAttachment}
 
 	if err := u.store.Create(ctx, visitRequest); err != nil {
+		if u.uploader != nil {
+			if removeErr := u.uploader.DeleteFile(suratKunjunganAttachment.StorageKey); removeErr != nil {
+				u.logger.WithError(removeErr).WithField("storage_key", suratKunjunganAttachment.StorageKey).Error("failed to remove surat_kunjungan after db failure")
+			}
+			if removeErr := u.uploader.DeleteFile(suratTugasAttachment.StorageKey); removeErr != nil {
+				u.logger.WithError(removeErr).WithField("storage_key", suratTugasAttachment.StorageKey).Error("failed to remove surat_tugas after db failure")
+			}
+		}
 		return nil, fmt.Errorf("create visit request: %w", err)
 	}
 
@@ -252,9 +265,23 @@ func (u *VisitRequestUsecase) Graph(ctx context.Context, period string, year, mo
 	return u.store.CountByPeriod(ctx, period, year, month, model.WITATimeZone)
 }
 
-// Delete removes a visit request and all its related records.
+// Delete removes a visit request, all its related records, and files on disk.
 func (u *VisitRequestUsecase) Delete(ctx context.Context, id uuid.UUID) error {
-	return u.store.Delete(ctx, id)
+	request, err := u.store.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if err := u.store.Delete(ctx, id); err != nil {
+		return err
+	}
+	if request != nil && u.uploader != nil {
+		for _, attachment := range request.Attachments {
+			if removeErr := u.uploader.DeleteFile(attachment.StorageKey); removeErr != nil {
+				u.logger.WithError(removeErr).WithField("storage_key", attachment.StorageKey).Warn("failed to remove attachment file during request deletion")
+			}
+		}
+	}
+	return nil
 }
 
 // SaveApprovalLetter stores a surat_persetujuan PDF for an approved
