@@ -1,5 +1,6 @@
 import { ArrowRight, Eye, FileText, Inbox } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Empty,
   EmptyDescription,
@@ -9,6 +10,14 @@ import {
 } from '@/components/ui/empty';
 import { Skeleton } from '@/components/ui/skeleton';
 import StatusBadge from '@/components/shared/StatusBadge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { PaginatedRequestsResponse } from '@/types/api';
 import { formatDate } from '@/lib/dateTime';
@@ -26,18 +35,18 @@ export default function RecentRequests({ requests, loading }: RecentRequestsProp
   function renderBody() {
     if (loading) {
       return Array.from({ length: 4 }).map((_, i) => (
-        <tr key={i}>
-          <td colSpan={6} className="px-4 py-3.5">
+        <TableRow key={i}>
+          <TableCell colSpan={6} className="px-4 py-3.5">
             <Skeleton className="h-6 w-full rounded-xl" />
-          </td>
-        </tr>
+          </TableCell>
+        </TableRow>
       ));
     }
 
     if (requests.length === 0) {
       return (
-        <tr>
-          <td colSpan={6} className="px-4 py-12">
+        <TableRow>
+          <TableCell colSpan={6} className="px-4 py-12">
             <Empty>
               <EmptyHeader>
                 <EmptyMedia variant="icon">
@@ -47,8 +56,8 @@ export default function RecentRequests({ requests, loading }: RecentRequestsProp
                 <EmptyDescription>Belum ada permohonan yang masuk.</EmptyDescription>
               </EmptyHeader>
             </Empty>
-          </td>
-        </tr>
+          </TableCell>
+        </TableRow>
       );
     }
 
@@ -56,26 +65,26 @@ export default function RecentRequests({ requests, loading }: RecentRequestsProp
       .sort((a, b) => b.created_at - a.created_at)
       .slice(0, 5)
       .map((request) => (
-        <tr key={request.id} className="hover:bg-civic-cardFill transition-colors">
+        <TableRow key={request.id}>
           {/* No. Ref / Token */}
-          <td className="px-4 py-3.5 font-bold whitespace-nowrap text-civic-dark">
+          <TableCell className="font-bold whitespace-nowrap text-civic-dark">
             <span className="bg-civic-cardFill rounded-lg border border-civic-border/70 px-2.5 py-1 font-mono text-label-sm">
               {request.token}
             </span>
-          </td>
-          <td className="px-4 py-3.5">
+          </TableCell>
+          <TableCell>
             <p className="max-w-50 truncate font-bold text-civic-dark">{request.nama_instansi}</p>
-          </td>
-          <td className="px-4 py-3.5 font-semibold whitespace-nowrap">
+          </TableCell>
+          <TableCell className="font-semibold whitespace-nowrap">
             {formatDate(request.tanggal_kunjungan)}
-          </td>
-          <td className="max-w-40 truncate px-4 py-3.5 text-civic-muted">
+          </TableCell>
+          <TableCell className="max-w-40 truncate text-civic-muted">
             {request.pimpinan_rombongan}
-          </td>
-          <td className="px-4 py-3.5 whitespace-nowrap">
+          </TableCell>
+          <TableCell className="whitespace-nowrap">
             <StatusBadge status={request.status} />
-          </td>
-          <td className="px-4 py-3.5 text-right whitespace-nowrap">
+          </TableCell>
+          <TableCell className="text-right whitespace-nowrap">
             <Tooltip>
               <TooltipTrigger>
                 <button
@@ -89,20 +98,22 @@ export default function RecentRequests({ requests, loading }: RecentRequestsProp
               </TooltipTrigger>
               <TooltipContent>Lihat Detail</TooltipContent>
             </Tooltip>
-          </td>
-        </tr>
+          </TableCell>
+        </TableRow>
       ));
   }
 
   return (
-    <div className="soft-shadow space-y-4 rounded-3xl border border-civic-border bg-civic-surface p-5 sm:p-6">
-      <div className="flex items-center justify-between border-b border-civic-border pb-3">
+    <Card className="overflow-hidden p-0">
+      <CardHeader className="flex flex-row items-center justify-between border-b border-civic-border p-5 pb-4 sm:p-6">
         <div>
-          <h3 className="flex items-center gap-2 text-base font-extrabold text-civic-dark">
+          <CardTitle className="flex items-center gap-2 text-base font-extrabold text-civic-dark">
             <FileText className="h-4 w-4 text-civic-muted" />
             <span>Permohonan Terbaru</span>
-          </h3>
-          <p className="mt-0.5 text-xs text-civic-muted">Daftar permohonan yang baru saja masuk</p>
+          </CardTitle>
+          <CardDescription className="mt-0.5 text-xs text-civic-muted">
+            Daftar permohonan yang baru saja masuk
+          </CardDescription>
         </div>
 
         <button
@@ -113,26 +124,23 @@ export default function RecentRequests({ requests, loading }: RecentRequestsProp
           <span>Semua Data</span>
           <ArrowRight className="h-3.5 w-3.5" />
         </button>
-      </div>
+      </CardHeader>
 
-      {/* Table View */}
-      <div className="scrollbar-none max-w-full min-w-0 overflow-x-auto">
-        <table className="w-full max-w-full border-collapse text-left text-xs">
-          <thead>
-            <tr className="border-b border-civic-border text-2xs font-bold tracking-wider text-civic-muted uppercase">
-              <th className="px-4 py-3">No. Ref</th>
-              <th className="px-4 py-3">Pengirim / Instansi</th>
-              <th className="px-4 py-3">Tanggal Kunjungan</th>
-              <th className="px-4 py-3">Pimpinan</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3 text-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-civic-border font-medium text-civic-dark">
-            {renderBody()}
-          </tbody>
-        </table>
-      </div>
-    </div>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>No. Ref</TableHead>
+              <TableHead>Pengirim / Instansi</TableHead>
+              <TableHead>Tanggal Kunjungan</TableHead>
+              <TableHead>Pimpinan</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Aksi</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>{renderBody()}</TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   );
 }
