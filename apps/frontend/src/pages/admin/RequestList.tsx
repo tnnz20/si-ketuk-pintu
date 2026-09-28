@@ -1,8 +1,7 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
-import RequestActionMenu from '@/components/requests/RequestActionMenu';
 import RequestFilters from '@/components/requests/RequestFilters';
 import RequestPagination from '@/components/requests/RequestPagination';
 import RequestTableContent from '@/components/requests/RequestTableContent';
@@ -29,7 +28,6 @@ export default function RequestList() {
   const [status, setStatus] = useState(initialStatus);
   const [date, setDate] = useState('');
   const [loading, setLoading] = useState(true);
-  const [menu, setMenu] = useState<{ row: RequestRow; left: number; top: number }>();
   const [confirmDelete, setConfirmDelete] = useState<RequestRow>();
 
   // Fetch Stats for accurate counts on filter pills
@@ -71,14 +69,7 @@ export default function RequestList() {
     }
   }
 
-  function openMenu(event: React.MouseEvent, row: RequestRow) {
-    event.stopPropagation();
-    const rect = event.currentTarget.getBoundingClientRect();
-    setMenu({ row, left: Math.min(rect.right, window.innerWidth - 190), top: rect.bottom + 8 });
-  }
-
   async function copyToken(row: RequestRow) {
-    setMenu(undefined);
     try {
       await navigator.clipboard.writeText(row.token);
       toast.success('Token disalin ke clipboard.');
@@ -147,7 +138,13 @@ export default function RequestList() {
         />
 
         {/* Table Content */}
-        <RequestTableContent requests={requests} loading={loading} onOpenMenu={openMenu} />
+        <RequestTableContent
+          requests={requests}
+          loading={loading}
+          onViewDetail={(id: string) => navigate(`/dashboard/requests/${id}`)}
+          onCopyToken={copyToken}
+          onDelete={(row: RequestRow) => setConfirmDelete(row)}
+        />
 
         {/* Pagination */}
         <RequestPagination
@@ -161,20 +158,6 @@ export default function RequestList() {
           }}
         />
       </div>
-
-      {/* Floating Action Menu */}
-      {menu && (
-        <RequestActionMenu
-          menu={menu}
-          onClose={() => setMenu(undefined)}
-          onViewDetail={(id: string) => navigate(`/dashboard/requests/${id}`)}
-          onCopyToken={copyToken}
-          onDelete={(row: RequestRow) => {
-            setConfirmDelete(row);
-            setMenu(undefined);
-          }}
-        />
-      )}
 
       {/* Delete Confirmation */}
       {confirmDelete && (

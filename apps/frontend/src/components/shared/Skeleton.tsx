@@ -1,3 +1,4 @@
-export default function Skeleton({ className = '' }: { className?: string }) {
-  return <span className={`block animate-pulse rounded bg-surface-container-high ${className}`} />;
-}
+import { Skeleton } from '@/components/ui/skeleton';
+
+export { Skeleton };
+export default Skeleton;

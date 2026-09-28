@@ -1,7 +1,6 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
-import RequestActionMenu from '@/components/requests/RequestActionMenu';
 import RequestPagination from '@/components/requests/RequestPagination';
 import ArchiveTableContent from '@/components/archives/ArchiveTableContent';
 import { getArchives } from '@/lib/api/archives';
@@ -22,11 +21,6 @@ export default function Archives() {
   const [search, setSearch] = useState(initialSearch);
   const [date, setDate] = useState('');
   const [loading, setLoading] = useState(true);
-  const [menu, setMenu] = useState<{
-    row: PaginatedRequestsResponse['data'][number];
-    left: number;
-    top: number;
-  }>();
 
   const load = useCallback(() => {
     setLoading(true);
@@ -47,12 +41,6 @@ export default function Archives() {
   useEffect(() => {
     void Promise.resolve().then(load);
   }, [load]);
-
-  function openMenu(event: React.MouseEvent, row: PaginatedRequestsResponse['data'][number]) {
-    event.stopPropagation();
-    const rect = event.currentTarget.getBoundingClientRect();
-    setMenu({ row, left: Math.min(rect.right, window.innerWidth - 190), top: rect.bottom + 8 });
-  }
 
   const handleSearchChange = (val: string) => {
     setSearch(val);
@@ -108,7 +96,19 @@ export default function Archives() {
         </div>
 
         {/* Table Content */}
-        <ArchiveTableContent archives={archives} loading={loading} onOpenMenu={openMenu} />
+        <ArchiveTableContent
+          archives={archives}
+          loading={loading}
+          onViewDetail={(id) => navigate(`/dashboard/archives/${id}`)}
+          onCopyToken={async (row) => {
+            try {
+              await navigator.clipboard.writeText(row.token);
+              toast.success('Token disalin ke clipboard.');
+            } catch {
+              toast.error('Gagal menyalin token.');
+            }
+          }}
+        />
 
         {/* Pagination */}
         <RequestPagination
@@ -122,23 +122,6 @@ export default function Archives() {
           }}
         />
       </div>
-      {menu && (
-        <RequestActionMenu
-          menu={menu}
-          onClose={() => setMenu(undefined)}
-          onViewDetail={(id) => navigate(`/dashboard/archives/${id}`)}
-          onCopyToken={async (row) => {
-            setMenu(undefined);
-            try {
-              await navigator.clipboard.writeText(row.token);
-              toast.success('Token disalin ke clipboard.');
-            } catch {
-              toast.error('Gagal menyalin token.');
-            }
-          }}
-          showDelete={false}
-        />
-      )}
     </div>
   );
 }
