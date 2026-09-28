@@ -11,3 +11,4 @@ apps/frontend/dist/
 docs/*
 
 .playwright-mcp
+.superpowers/
