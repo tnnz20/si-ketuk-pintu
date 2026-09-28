@@ -1,10 +1,11 @@
-﻿import { lazy, Suspense } from 'react';
+import { lazy, Suspense } from 'react';
 import { LoaderCircle } from 'lucide-react';
 import { Toaster } from 'sonner';
 import { BrowserRouter, Route, Routes } from 'react-router';
 import AuthGuard from '@/components/layout/AuthGuard';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import LandingLayout from '@/components/layout/LandingLayout';
+import AuthLayout from '@/layouts/auth-layout';
+import DashboardLayout from '@/layouts/dashboard-layout';
+import MainLayout from '@/layouts/main-layout';
 
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const Archives = lazy(() => import('./pages/admin/Archives'));
@@ -40,13 +41,15 @@ function App() {
     <BrowserRouter>
       <Suspense fallback={<PageFallback />}>
         <Routes>
-          <Route element={<LandingLayout />}>
+          <Route element={<MainLayout />}>
             <Route path="/" element={<LandingPage />} />
             <Route path="/form" element={<SubmissionForm />} />
             <Route path="/status/:token" element={<RequestStatus />} />
             <Route path="/success" element={<SubmissionSuccess />} />
           </Route>
-          <Route path="/login" element={<Login />} />
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<Login />} />
+          </Route>
           <Route element={<AuthGuard />}>
             <Route element={<DashboardLayout />}>
               <Route path="/dashboard" element={<AdminDashboard />} />

@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   Archive,
@@ -15,7 +15,16 @@ import {
 import { Link, Outlet, useLocation, useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import { logout } from '@/lib/api/auth';
-import ConfirmDialog from '@/components/shared/ConfirmDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface NavItem {
   icon: typeof LayoutDashboard;
@@ -29,6 +38,16 @@ const navItems: NavItem[] = [
   { icon: Archive, label: 'Arsip Permohonan', path: '/dashboard/archives' },
   { icon: QrCode, label: 'Scanner Tiket Tamu', path: '/dashboard/scanner' },
 ];
+
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [pathname]);
+
+  return null;
+}
 
 export default function DashboardLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -53,6 +72,8 @@ export default function DashboardLayout() {
 
   return (
     <div className="flex h-screen gap-4 overflow-hidden bg-civic-bg p-3 text-civic-dark antialiased md:p-5">
+      <ScrollToTop />
+
       {/* ================= DESKTOP SIDEBAR ================= */}
       <aside className="border-civic-sidebarBorder soft-shadow hidden w-64 shrink-0 flex-col justify-between rounded-3xl border bg-civic-sidebar p-5 text-civic-dark lg:flex">
         <div className="space-y-6">
@@ -99,14 +120,12 @@ export default function DashboardLayout() {
           {/* User Profile Footer */}
           <div className="flex items-center justify-between border-t border-civic-border pt-2">
             <div className="flex items-center gap-2.5">
-              <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-                className="h-8 w-8 rounded-full border border-civic-border object-cover"
-                alt="Admin Avatar"
-              />
+              <div className="bg-civic-neutralFill flex h-8 w-8 items-center justify-center rounded-full border border-civic-border text-xs font-bold text-civic-dark">
+                AD
+              </div>
               <div className="truncate">
-                <p className="truncate text-xs font-bold text-civic-dark">Khairol M.</p>
-                <p className="truncate text-2xs text-civic-muted">Super Admin</p>
+                <p className="truncate text-xs font-bold text-civic-dark">Administrator</p>
+                <p className="truncate text-2xs text-civic-muted">Petugas Instansi</p>
               </div>
             </div>
             <button
@@ -260,16 +279,23 @@ export default function DashboardLayout() {
         </div>
       </main>
 
-      {/* Logout Confirmation Dialog */}
-      {confirmLogout && (
-        <ConfirmDialog
-          title="Keluar dari Portal Admin?"
-          description="Anda akan kembali ke halaman login. Sesi autentikasi Anda akan berakhir."
-          action="Keluar"
-          onCancel={() => setConfirmLogout(false)}
-          onConfirm={handleLogout}
-        />
-      )}
+      {/* Logout Confirmation AlertDialog */}
+      <AlertDialog open={confirmLogout} onOpenChange={setConfirmLogout}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Keluar dari Portal Admin?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Anda akan kembali ke halaman login. Sesi autentikasi Anda akan berakhir.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={handleLogout}>
+              Keluar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
