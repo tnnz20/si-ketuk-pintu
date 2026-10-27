@@ -168,7 +168,7 @@ AI is not applicable to the MVP. The product does not require AI models, AI tool
 6. Administrator authentication grants access to management endpoints.
 7. Administrator status changes update the request and append an audit event.
 
-The application is a responsive browser application deployed on a government-controlled server. The framework, hosting vendor, and specific relational database engine remain `TBD`.
+The application is a responsive browser application (React 19 SPA built with Node.js 24.22.1 LTS) deployed on a government-controlled server with a Go REST API backend and PostgreSQL database.
 
 ### Core Data Entities
 

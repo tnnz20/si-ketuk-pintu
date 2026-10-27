@@ -6,7 +6,7 @@ Government visitor request platform for submitting, reviewing, tracking, and arc
 
 ### Frontend
 
-- React 19 with TypeScript
+- React 19 with TypeScript (Node.js 24.22.1 LTS)
 - Vite 8
 - React Router 7
 - Tailwind CSS 4 with `@base-ui/react` (Shadcn UI primitives)
@@ -51,7 +51,7 @@ Government visitor request platform for submitting, reviewing, tracking, and arc
 ## Requirements
 
 - Go 1.27+
-- Node.js and npm
+- Node.js 24 (v24.22.1 LTS) and npm
 - GNU Make
 - PostgreSQL client tools
 - Docker or Podman with Compose support

@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-This repository contains a Go API (Go 1.27+) and a React single-page application.
+This repository contains a Go API (Go 1.27+) and a React single-page application (Node.js 24.22.1 LTS build environment).
 
 ### Backend (`apps/backend/`)
 
