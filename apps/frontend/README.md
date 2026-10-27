@@ -85,7 +85,7 @@ npm run preview
 | Route            | Purpose                 |
 | ---------------- | ----------------------- |
 | `/`              | Landing page            |
-| `/permohonan`    | Submit visitor request (redirects from `/form`) |
+| `/permohonan`    | Submit visitor request  |
 | `/status/:token` | Check request status    |
 | `/success`       | Submission success page |
 

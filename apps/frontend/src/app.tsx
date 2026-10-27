@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { LoaderCircle } from 'lucide-react';
 import { Toaster } from 'sonner';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
+import { BrowserRouter, Route, Routes } from 'react-router';
 import { RedirectIfAuthenticated, RequireAuth } from '@/components/shared/auth-guard';
 import { SessionProvider } from '@/components/shared/session-provider';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -48,7 +48,6 @@ function App() {
               <Route element={<MainLayout />}>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/permohonan" element={<SubmissionForm />} />
-                <Route path="/form" element={<Navigate to="/permohonan" replace />} />
                 <Route path="/status/:token" element={<RequestStatus />} />
                 <Route path="/success" element={<SubmissionSuccess />} />
               </Route>
