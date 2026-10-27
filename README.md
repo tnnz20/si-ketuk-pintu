@@ -8,9 +8,9 @@ Government visitor request platform for submitting, reviewing, tracking, and arc
 
 - React 19 with TypeScript (Node.js 24.22.1 LTS)
 - Vite 8
-- React Router 7
+- React Router 8
 - Tailwind CSS 4 with `@base-ui/react` (Shadcn UI primitives)
-- `class-variance-authority` and `react-day-picker`
+- `class-variance-authority`, `motion` 14, and `react-day-picker` 10
 
 ### Backend
 
