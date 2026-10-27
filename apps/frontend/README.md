@@ -9,13 +9,13 @@ Dependencies installed in `package.json`:
 - React 19 and React DOM
 - TypeScript 6
 - Vite 8
-- React Router DOM 7
+- React Router 8
 - Tailwind CSS 4 with `@tailwindcss/vite`
 - `@base-ui/react` (Shadcn UI headless primitives)
 - `class-variance-authority` (CVA)
-- `react-day-picker` v9 and `date-fns`
+- `react-day-picker` v10 and `date-fns`
 - Zod 4
-- Motion
+- Motion 14
 - Sonner
 - Luxon
 - jsPDF and jsPDF AutoTable
