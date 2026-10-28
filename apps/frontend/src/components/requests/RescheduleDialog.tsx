@@ -87,7 +87,6 @@ export default function RescheduleDialog({ open, loading, onSubmit, onCancel }: 
           <DatePicker
             value={form.tanggal_kunjungan}
             onChange={(val) => update('tanggal_kunjungan', val)}
-            disablePastDates
             disabledTrigger={loading}
             placeholder="Pilih tanggal kunjungan baru..."
             className="bg-civic-cardFill h-10 w-full rounded-2xl border-civic-border"

@@ -288,7 +288,7 @@ func TestAdminRescheduleValidatesTemporalValues(t *testing.T) {
 		jam      string
 		wantCode int
 	}{
-		{name: "past visit", tanggal: strconv.FormatInt(pastDate.UnixMilli(), 10), jam: epochTimeMillis("10:00"), wantCode: http.StatusBadRequest},
+		{name: "valid past reschedule", tanggal: strconv.FormatInt(pastDate.UnixMilli(), 10), jam: epochTimeMillis("10:00"), wantCode: http.StatusOK},
 		{name: "non-midnight tanggal", tanggal: "5", jam: epochTimeMillis("10:00"), wantCode: http.StatusBadRequest},
 		{name: "non-minute-aligned jam", tanggal: epochDateMillis("2031-01-01"), jam: "1", wantCode: http.StatusBadRequest},
 		{name: "valid future reschedule", tanggal: epochDateMillis("2031-01-01"), jam: epochTimeMillis("09:00"), wantCode: http.StatusOK},

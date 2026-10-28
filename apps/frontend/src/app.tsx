@@ -47,7 +47,7 @@ function App() {
             <Routes>
               <Route element={<MainLayout />}>
                 <Route path="/" element={<LandingPage />} />
-                <Route path="/form" element={<SubmissionForm />} />
+                <Route path="/permohonan" element={<SubmissionForm />} />
                 <Route path="/status/:token" element={<RequestStatus />} />
                 <Route path="/success" element={<SubmissionSuccess />} />
               </Route>

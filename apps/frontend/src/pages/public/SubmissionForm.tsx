@@ -566,7 +566,6 @@ export default function SubmissionForm() {
                             id="tanggal_kunjungan"
                             value={formData.tanggal_kunjungan}
                             onChange={(val) => updateField('tanggal_kunjungan', val)}
-                            disablePastDates
                             placeholder="Pilih tanggal kunjungan..."
                             className="font-body-md h-12 w-full rounded-xl border-outline-variant bg-surface px-4 py-3 text-body-md focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                           />

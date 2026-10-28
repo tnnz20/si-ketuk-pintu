@@ -146,7 +146,7 @@ export default function ProcessSection() {
           className="mt-12 flex justify-center"
         >
           <Link
-            to="/form"
+            to="/permohonan"
             className="group flex items-center gap-2 rounded-xl bg-emerald-600 px-8 py-4 font-label text-label-md font-semibold text-white transition-all hover:shadow-lg hover:shadow-emerald-600/25 active:scale-[0.98]"
           >
             Mulai Sekarang

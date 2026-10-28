@@ -1,5 +1,4 @@
-﻿import { z } from 'zod';
-import { isFutureDate } from '@/lib/dateTime';
+import { z } from 'zod';
 import { TUJUAN_BAGIAN_OPTIONS, TUJUAN_INSTANSI_OPTIONS } from '@/constants/destinations';
 
 export const guestSchema = z.object({
@@ -20,10 +19,7 @@ export const visitRequestBaseSchema = z.object({
   alamat_instansi: z.string().min(1, 'Alamat instansi wajib diisi'),
   tujuan_instansi: z.enum(TUJUAN_INSTANSI_OPTIONS, 'Tujuan instansi wajib dipilih'),
   tujuan_bagian: z.string().min(1, 'Tujuan bagian wajib dipilih'),
-  tanggal_kunjungan: z
-    .string()
-    .min(1, 'Tanggal kunjungan wajib diisi')
-    .refine((val) => isFutureDate(val), 'Tanggal kunjungan harus di masa depan'),
+  tanggal_kunjungan: z.string().min(1, 'Tanggal kunjungan wajib diisi'),
   jam_kunjungan: z
     .string()
     .min(1, 'Jam kunjungan wajib diisi')
