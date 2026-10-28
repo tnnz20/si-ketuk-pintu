@@ -202,16 +202,8 @@ func TestCreateVisitRequestValidationFailed(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(recorder, request)
 
-	if recorder.Code != http.StatusCreated {
-		t.Fatalf("got %d %s, want %d", recorder.Code, recorder.Body.String(), http.StatusCreated)
-	}
-
-	var response model.CreateVisitRequestResponse
-	if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
-		t.Fatalf("unmarshal response: %v", err)
-	}
-	if response.Token == "" {
-		t.Fatalf("expected non-empty token in response")
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400 Bad Request, got %d. body: %s", recorder.Code, recorder.Body.String())
 	}
 }
 
