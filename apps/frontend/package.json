@@ -1,7 +1,7 @@
 {
   "name": "si-ketuk-pintu-frontend",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "engines": {
     "node": ">=24.22.1"
