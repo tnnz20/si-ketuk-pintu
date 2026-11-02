@@ -348,7 +348,7 @@ func TestCreateVisitRequestRejectsInvalidTemporalValues(t *testing.T) {
 	}
 }
 
-func TestCreateVisitRequestRejectsPastVisit(t *testing.T) {
+func TestCreateVisitRequestAllowsPastVisit(t *testing.T) {
 	clearDatabase(t)
 
 	pastDate, err := time.ParseInLocation("2006-01-02", "2020-01-01", witaZone)
@@ -381,8 +381,16 @@ func TestCreateVisitRequestRejectsPastVisit(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	bootstrap.Router.ServeHTTP(recorder, request)
 
-	if recorder.Code != http.StatusBadRequest {
-		t.Fatalf("got %d %s, want %d", recorder.Code, recorder.Body.String(), http.StatusBadRequest)
+	if recorder.Code != http.StatusCreated {
+		t.Fatalf("got %d %s, want %d", recorder.Code, recorder.Body.String(), http.StatusCreated)
+	}
+
+	var response model.CreateVisitRequestResponse
+	if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+		t.Fatalf("unmarshal response: %v", err)
+	}
+	if response.Token == "" {
+		t.Fatalf("expected non-empty token in response")
 	}
 }
 

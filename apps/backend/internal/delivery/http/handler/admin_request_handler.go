@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -297,11 +296,6 @@ func (h *AdminRequestHandler) Reschedule(ginContext *gin.Context) {
 		return
 	}
 
-	visitDateTime := input.TanggalKunjungan + (input.JamKunjungan + witaOffsetMillis)
-	if visitDateTime < time.Now().UnixMilli() {
-		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "visit date and time must be in the future"})
-		return
-	}
 
 	administratorID, _ := ginContext.Get(middleware.AdministratorIDKey)
 	if err := h.visitRequestUsecase.Reschedule(ginContext.Request.Context(), usecase.RescheduleInput{

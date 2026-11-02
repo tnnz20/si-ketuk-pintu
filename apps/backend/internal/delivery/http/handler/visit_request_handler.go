@@ -10,7 +10,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -105,12 +104,6 @@ func (h *VisitRequestHandler) Create(ginContext *gin.Context) {
 		return
 	}
 
-	visitDateTime := request.TanggalKunjungan + (request.JamKunjungan + witaOffsetMillis)
-	if visitDateTime < time.Now().UnixMilli() {
-		h.logger.Warn("visit date and time is in the past")
-		ginContext.JSON(http.StatusBadRequest, model.ErrorResponse{Error: "visit date and time must be in the future"})
-		return
-	}
 
 	guestsJSON := ginContext.PostForm("guests")
 	if guestsJSON == "" {

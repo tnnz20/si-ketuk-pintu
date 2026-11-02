@@ -27,11 +27,6 @@ export function todayEpoch(): number {
   return DateTime.now().setZone(WITA_ZONE).startOf('day').toMillis();
 }
 
-export function isFutureDate(value: string): boolean {
-  const dt = DateTime.fromISO(value, { zone: WITA_ZONE, locale: 'id' });
-  return dt.isValid && dt.startOf('day') > DateTime.now().setZone(WITA_ZONE).startOf('day');
-}
-
 export function dateInputToEpoch(value: string): number {
   const dt = DateTime.fromISO(value, { zone: WITA_ZONE }).startOf('day');
   return dt.isValid ? dt.toMillis() : NaN;

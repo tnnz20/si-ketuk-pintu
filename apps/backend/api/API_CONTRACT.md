@@ -95,7 +95,7 @@ Submit a new visitor request with required documents.
 - Guest count must match `jumlah_tamu`
 - PDF files must be valid
 - Each file must not exceed 5MB
-- `tanggal_kunjungan` and `jam_kunjungan` must be in the future
+- `tanggal_kunjungan` and `jam_kunjungan` must be valid epoch timestamps (past dates permitted for retroactive recording)
 - `tanggal_kunjungan` must be midnight-aligned in Asia/Makassar (UTC+8); `jam_kunjungan` must be minute-aligned within one calendar day
 
 **Response (Success):**
@@ -112,7 +112,7 @@ Submit a new visitor request with required documents.
 | Status | Error | Reason |
 |--------|-------|--------|
 | `400 Bad Request` | Invalid format | Malformed request, invalid date/time format, missing fields |
-| `422 Unprocessable Entity` | Business logic error | Guest count mismatch, invalid PDF, file size exceeds 5MB, past date/time |
+| `422 Unprocessable Entity` | Business logic error | Guest count mismatch, invalid PDF, file size exceeds 5MB |
 | `500 Internal Server Error` | Server error | Unexpected error while processing request |
 
 ---
